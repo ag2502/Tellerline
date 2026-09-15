@@ -23,11 +23,6 @@ Usage:
 
 import argparse
 import json
-import subprocess
-import sys
-import time
-import urllib.error
-import urllib.request
 from collections import defaultdict
 from datetime import date
 from pathlib import Path
@@ -51,11 +46,11 @@ from bench.scoring import score_case
 from tellerline.actions import NODE_ACTIONS, parse_action
 from tellerline.banking.responses import respond
 from tellerline.banking.tools import tools_for
-from tellerline.config import LLM_CHAT_TEMPLATE_ARGS, LLM_MODELS, LLM_SERVER_HOST, LLM_SERVER_PORT
+from tellerline.config import LLM_MODELS, LLM_SERVER_HOST, LLM_SERVER_PORT
+from tellerline.llm_server import MAX_TOKENS, start_server
 from tellerline.prompts import MODES, build_system_prompt
 
 BENCH_TODAY = date(2026, 9, 14)
-MAX_TOKENS = 200
 
 GREETING = (
     "Hello, you're through to Tellerline Bank. I'm an AI assistant. How can I help you today?"
@@ -240,40 +235,6 @@ def follow_up_messages(messages: list[dict[str, Any]], call: dict[str, str]) -> 
             "content": json.dumps(MOCK_TOOL_RESULTS.get(call["name"], {"status": "ok"})),
         },
     ]
-
-
-def start_server(model_id: str, port: int, log_path: Path) -> subprocess.Popen:
-    command = [
-        sys.executable,
-        "-m",
-        "mlx_lm.server",
-        "--model",
-        model_id,
-        "--host",
-        LLM_SERVER_HOST,
-        "--port",
-        str(port),
-        "--temp",
-        "0",
-        "--max-tokens",
-        str(MAX_TOKENS),
-        "--chat-template-args",
-        json.dumps(LLM_CHAT_TEMPLATE_ARGS),
-    ]
-    log = log_path.open("w")
-    process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)
-    url = f"http://{LLM_SERVER_HOST}:{port}/v1/models"
-    deadline = time.monotonic() + 600
-    while time.monotonic() < deadline:
-        if process.poll() is not None:
-            raise RuntimeError(f"mlx_lm.server exited early; see {log_path}")
-        try:
-            with urllib.request.urlopen(url, timeout=2):
-                return process
-        except (urllib.error.URLError, ConnectionError, TimeoutError):
-            time.sleep(1)
-    process.terminate()
-    raise TimeoutError(f"mlx_lm.server did not start within 10 minutes; see {log_path}")
 
 
 def tool_call_token_id(model_id: str) -> int:

@@ -217,3 +217,43 @@ def parse_action(text: str, allowed: Collection[str] | None = None) -> Action | 
         arguments.setdefault(name, value)
     missing = tuple(name for name in REQUIRED[spec.tool] if name not in arguments)
     return Action(spec.tool, arguments, missing)
+
+
+class ReplySplitter:
+    """Tells, from the first characters of a streamed response, whether it's speech or an action.
+
+    Speech is released as it arrives so text-to-speech can start on the first sentence; an
+    ``ACTION`` line is held back whole for parsing. Only the few characters that could still be
+    the start of "ACTION" are ever delayed.
+    """
+
+    def __init__(self) -> None:
+        self.text = ""
+        self.mode: str | None = None  # "speech" or "action" once decided
+
+    @property
+    def is_action(self) -> bool:
+        return self.mode == "action"
+
+    def feed(self, piece: str) -> str:
+        """Add a streamed piece; return the speech that can be spoken now (possibly empty)."""
+        self.text += piece
+        if self.mode == "speech":
+            return piece
+        if self.mode == "action":
+            return ""
+        head = self.text.lstrip()
+        if not head or (PREFIX.startswith(head) and len(head) < len(PREFIX)):
+            return ""
+        if head.startswith(PREFIX):
+            self.mode = "action"
+            return ""
+        self.mode = "speech"
+        return self.text
+
+    def finish(self) -> str:
+        """End of the stream: release anything still held back as speech."""
+        if self.mode is None:
+            self.mode = "speech"
+            return self.text if self.text.strip() else ""
+        return ""

@@ -4,6 +4,7 @@ from tellerline.actions import (
     ACTIONS,
     NODE_ACTIONS,
     Action,
+    ReplySplitter,
     action_instructions,
     clarifying_question,
     parse_action,
@@ -111,3 +112,40 @@ def test_instructions_list_only_the_steps_actions():
     assert "ACTION verify" in identify
     assert "ACTION balance" not in identify
     assert set(NODE_ACTIONS) == {"identify", "assist"}
+
+
+def split(pieces: list[str]) -> tuple[str, ReplySplitter]:
+    splitter = ReplySplitter()
+    released = "".join(splitter.feed(piece) for piece in pieces) + splitter.finish()
+    return released, splitter
+
+
+def test_speech_is_released_as_soon_as_it_cannot_be_an_action():
+    splitter = ReplySplitter()
+    assert splitter.feed("Could") == "Could"
+    assert splitter.feed(" I have") == " I have"
+    assert splitter.mode == "speech"
+
+
+def test_action_line_is_held_back_across_token_boundaries():
+    released, splitter = split(["AC", "TI", "ON freeze", " card=4217"])
+    assert released == ""
+    assert splitter.is_action
+    assert splitter.text == "ACTION freeze card=4217"
+
+
+def test_speech_starting_like_action_is_released_once_it_diverges():
+    released, splitter = split(["A", "ctually, ", "yes."])
+    assert released == "Actually, yes."
+    assert not splitter.is_action
+
+
+def test_short_reply_that_matches_a_prefix_is_released_at_the_end():
+    released, splitter = split(["A"])
+    assert released == "A"
+    assert splitter.mode == "speech"
+
+
+def test_leading_whitespace_before_action():
+    _, splitter = split(["  ", "ACTION end"])
+    assert splitter.is_action
