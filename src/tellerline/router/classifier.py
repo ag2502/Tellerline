@@ -7,6 +7,7 @@ the session keep the current task (see ``tellerline.router.session``).
 """
 
 from dataclasses import dataclass
+from functools import lru_cache
 
 import numpy as np
 
@@ -57,3 +58,11 @@ class IntentClassifier:
         margin = best_score - second_score
         confident = best_score >= self.min_score and margin >= self.min_margin
         return Prediction(best, best_score, margin, confident, scores)
+
+
+@lru_cache(maxsize=1)
+def default_classifier() -> IntentClassifier:
+    """The shared classifier for all calls (the model and example vectors load once)."""
+    from tellerline.router.intents import EXAMPLES
+
+    return IntentClassifier(Embedder(), EXAMPLES)

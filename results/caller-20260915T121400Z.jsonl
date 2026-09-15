@@ -1,0 +1,14 @@
+{"type": "run", "bench": "caller", "started_at": "20260915T121400Z", "machine": {"chip": "Apple M5", "model": "Mac17,4", "memory_gb": 16, "macos": "26.5", "python": "3.12.14", "packages": {"pipecat-ai": "1.10.0", "mlx": "0.32.2", "mlx-lm": "0.31.3", "mlx-audio": "0.5.4", "kokoro-onnx": "0.6.1", "onnxruntime": "1.24.4"}}, "config": {"url": "http://localhost:7860", "turns": 12, "calls": 3}}
+{"type": "sample", "call": 1, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 9.621333333333334, "latency_s": 1.2405648339990876}
+{"type": "sample", "call": 1, "turn": 1, "caller": "I've lost my card.", "caller_speech_s": 1.5146666666666666, "latency_s": 1.2607201249993523}
+{"type": "sample", "call": 1, "turn": 2, "caller": "It ends in 2210.", "caller_speech_s": 2.2826666666666666, "latency_s": 1.44518537499971}
+{"type": "sample", "call": 1, "turn": 3, "caller": "No thanks, that's all.", "caller_speech_s": 1.3866666666666667, "latency_s": 1.6410507920008968}
+{"type": "sample", "call": 2, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 9.621333333333334, "latency_s": 1.3806085830001393}
+{"type": "sample", "call": 2, "turn": 1, "caller": "I want to dispute a payment.", "caller_speech_s": 1.536, "latency_s": 1.9799507499992615}
+{"type": "sample", "call": 2, "turn": 2, "caller": "It was to Pizza Palace.", "caller_speech_s": 1.6853333333333333, "latency_s": 1.3214941249971162}
+{"type": "sample", "call": 2, "turn": 3, "caller": "22 euro 50, on Saturday.", "caller_speech_s": 2.5813333333333333, "latency_s": 2.460520667002129}
+{"type": "sample", "call": 3, "turn": 0, "caller": "Hi, can you check my balance?", "caller_speech_s": 1.9626666666666666, "latency_s": 9.400837415996648}
+{"type": "sample", "call": 3, "turn": 1, "caller": "My customer number is 48210573.", "caller_speech_s": 6.272, "latency_s": 7.660591042003944}
+{"type": "sample", "call": 3, "turn": 2, "caller": "Born the 2nd of May 1987.", "caller_speech_s": 2.88, "latency_s": 2.5805505829994217}
+{"type": "sample", "call": 3, "turn": 3, "caller": "The current account, please.", "caller_speech_s": 1.6, "latency_s": 1.4221174590056762}
+{"type": "summary", "latency_s": {"n": 12, "mean": 2.8161826459169483, "min": 1.2405648339990876, "p50": 1.5431180835003033, "p90": 7.152586996103493, "p95": 8.443701910300659, "max": 9.400837415996648}, "timeouts": 0, "target_p90_s": 1.5, "passed": false}

@@ -44,3 +44,6 @@ TTS_DEFAULT_VOICE = "bf_emma"
 LATENCY_TARGET_P90_S = 1.5
 # Silence Silero VAD waits for before Smart Turn decides whether the caller has finished.
 VAD_STOP_SECS = 0.2
+# If Smart Turn thinks the caller hasn't finished, how long to wait before answering anyway.
+# Pipecat's default is 5 s; on a phone line that silence feels like the call has dropped.
+USER_TURN_STOP_TIMEOUT_S = 2.0

@@ -86,9 +86,17 @@ async def spoken_text(service, *texts):
 
 def test_last_user_text_handles_string_and_parts():
     context = LLMContext()
-    context.add_message({"role": "user", "content": [{"type": "text", "text": "Hi there"}]})
+    context.add_message({"role": "user", "content": "Earlier question"})
     context.add_message({"role": "assistant", "content": "Hello"})
+    context.add_message({"role": "user", "content": [{"type": "text", "text": "Hi there"}]})
     assert last_user_text(context) == "Hi there"
+
+
+def test_nothing_new_from_the_caller_gives_empty_text():
+    context = LLMContext()
+    context.add_message({"role": "user", "content": "Hi"})
+    context.add_message({"role": "assistant", "content": "Hello"})
+    assert last_user_text(context) == ""
 
 
 async def test_speech_streams_straight_through():
@@ -141,3 +149,14 @@ async def test_repeated_failed_verification_transfers_the_caller():
     assert not brain.verified
     assert any(isinstance(frame, EndTaskFrame) for frame in up)
     assert [call.tool for call in bank.calls][-1] == "transfer_to_human"
+
+
+def test_fragments_since_the_agent_last_spoke_are_joined():
+    context = LLMContext()
+    context.add_message({"role": "assistant", "content": "How can I help?"})
+    context.add_message({"role": "user", "content": "My customer number is 45127890."})
+    context.add_message({"role": "user", "content": "and my date of birth"})
+    context.add_message({"role": "user", "content": "is the 3rd of March 1991."})
+    assert last_user_text(context) == (
+        "My customer number is 45127890. and my date of birth is the 3rd of March 1991."
+    )

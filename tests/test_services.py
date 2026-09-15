@@ -39,13 +39,13 @@ async def test_tts_speaks_in_short_chunks_with_the_chosen_voice():
 
 
 async def test_stt_turns_pcm_into_a_transcription():
-    model = FakeTranscriber("What's my balance?")
+    model = FakeTranscriber("What's my balance on 1,234?")
     stt = ParakeetMLXSTTService(loader=lambda _: model, sample_rate=16_000)
     await run_test(stt, frames_to_send=[])  # start() loads and warms up the model
 
     frames = [frame async for frame in stt.run_stt(np.zeros(8_000, dtype=np.int16).tobytes())]
     assert isinstance(frames[0], TranscriptionFrame)
-    assert frames[0].text == "What's my balance?"
+    assert frames[0].text == "What's my balance on 1234?"
     assert model.lengths[-1] == 8_000
 
 
@@ -55,3 +55,13 @@ async def test_stt_resamples_other_rates_to_16k():
     await run_test(stt, frames_to_send=[])
     [frame async for frame in stt.run_stt(np.zeros(8_000, dtype=np.int16).tobytes())]
     assert abs(model.lengths[-1] - 16_000) <= 2
+
+
+def test_transcripts_lose_digit_group_commas():
+    from tellerline.services.stt import clean_transcript
+
+    assert (
+        clean_transcript("My customer number is 45,127,890.") == "My customer number is 45127890."
+    )
+    assert clean_transcript("It cost 1,250 euro, thanks") == "It cost 1250 euro, thanks"
+    assert clean_transcript("Yes, 12, 13") == "Yes, 12, 13"
