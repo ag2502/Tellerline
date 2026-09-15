@@ -13,7 +13,7 @@ LLM_SERVER_PORT = 8080
 # the 16 GB Mac into swap. Each MLX process caps its cache at this size.
 MLX_CACHE_LIMIT_BYTES = 512 * 1024**2
 # Prompt caches the LLM server may keep (one per step prompt and conversation prefix).
-LLM_PROMPT_CACHE_BYTES = 256 * 1024**2
+LLM_PROMPT_CACHE_BYTES = 1024**3
 # Gemma 4 can "think" before answering; on a phone call that is pure latency.
 LLM_CHAT_TEMPLATE_ARGS = {"enable_thinking": False}
 
