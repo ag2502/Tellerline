@@ -6,8 +6,8 @@ transactions, freezing a lost card, disputes, and handing over to a human. Speec
 recognition, the language model and the voice all run on one MacBook Air M5 with 16 GB of
 memory. No cloud APIs, no running costs.
 
-> **Status: Phase 0 complete.** Every stage has been benchmarked on the target Mac, and the
-> agent's decision logic is built and tested. The voice pipeline is next (Phase 1).
+> **Status: Phase 1 in progress.** The voice agent runs end to end over WebRTC with a mock bank;
+> the latency gate (200+ automated calls' turns within 1.5 s at p90) is being measured.
 > See [docs/PLAN.md](docs/PLAN.md) and the full [Phase 0 results](results/PHASE0.md).
 
 ## How a turn works
@@ -74,6 +74,16 @@ uv pip install -e ".[dev]"
 python scripts/download_models.py   # about 12.6 GB
 ```
 
+## Call the agent
+
+```bash
+python -m tellerline.agent
+```
+
+Then open **http://localhost:7860/client**, allow the microphone and connect. The agent starts
+the mock bank and the Gemma 4 server itself. Test customers, things to try, and how to measure
+latency with the automated caller are in [docs/DEMO.md](docs/DEMO.md).
+
 ## Benchmarks
 
 ```bash
@@ -97,6 +107,9 @@ Prompts, examples and thresholds are tuned only on the `dev` split; results are 
 
 ```
 src/tellerline/
+  agent/          the voice agent: launcher, Pipecat pipeline, latency logs and tracing
+  services/       Pipecat services: Parakeet STT, Kokoro TTS on MLX, the agent's LLM turn
+  bank/           mock core-banking API (FastAPI + SQLite) and its client
   brain.py        the decision step: prompt, allowed actions, call state
   actions.py      ACTION syntax, parsing, validation, follow-up questions
   prompts.py      persona and single-prompt steps
@@ -104,10 +117,10 @@ src/tellerline/
   banking/        tool definitions and spoken response templates
   speech.py       money, dates and codes written out for text-to-speech
   tts/            Kokoro on MLX
-bench/            Phase 0 benchmarks and labelled cases (dev and test)
+bench/            benchmarks, labelled cases (dev and test) and the automated WebRTC caller
 scripts/          model download, voice samples
 results/          benchmark results (JSONL) and the Phase 0 report
-docs/             plan and decision log
+docs/             plan, decision log and demo guide
 tests/
 ```
 

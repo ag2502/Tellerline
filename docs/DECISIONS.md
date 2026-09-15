@@ -160,3 +160,52 @@ multi-turn dialogues with the router), while its decision latency was about half
 replies with E2B and 1.94–2.20 s with E4B, which misses the target in every configuration.
 The E4B test runs came last in a long benchmark session on a fanless laptop, so some of its
 gap may be heat; its dev-set reply p90 was 0.69 s, still too slow.
+
+## D-017 The bank is a separate HTTP service scoped by verified customer (2026-09-15)
+
+**Decision:** The mock bank is a FastAPI + SQLite service the agent calls over HTTP. Account,
+card and dispute endpoints take a customer id, which the agent only receives from a successful
+identity check; the agent's client refuses banking calls before then.
+**Why:** It mirrors how a voice agent integrates with core banking, and it makes "another
+customer's data" unreachable by construction rather than by prompt: a caller who names someone
+else's card gets "I can't find a card ending ... on your account".
+
+## D-018 The agent's turn is a subclass of Pipecat's OpenAI LLM service (2026-09-15)
+
+**Decision:** `TellerlineLLMService` extends Pipecat's OpenAI-compatible service and overrides
+only how a response is produced: route the turn, stream Gemma from the local server, pass speech
+straight to text-to-speech, hold back an `ACTION` line, validate it, call the bank and speak the
+template.
+**Why:** Interruptions, metrics and OpenTelemetry tracing keep working as for any Pipecat LLM,
+while none of Pipecat's tool-calling machinery is involved (D-012). Only text that could still
+become "ACTION" is ever delayed.
+
+## D-019 Memory: capped MLX cache, Parakeet in bfloat16, models warmed once (2026-09-15)
+
+**Decision:** Every MLX process caps its freed-buffer cache at 512 MB; Parakeet loads in
+bfloat16; the launcher loads and warms every model and primes the LLM's prompt cache before the
+first call.
+**Why:** The first live calls took up to 9 s per turn because the Mac was swapping: MLX's cache
+had grown to 5.4 GB in the agent, Parakeet's float32 weights took 2.3 GB, and each call re-ran a
+warm-up that compiled kernels for 11 s. bfloat16 Parakeet matched float32 on 23 of 24 test
+clips (WER 0.8%). Memory pressure from other apps is treated as normal: capacity such as the
+LLM prompt cache is not reduced to avoid it.
+
+## D-020 Turn-taking settings for a phone line (2026-09-15)
+
+**Decision:** Silero VAD waits 0.2 s of silence, Smart Turn v3.2 judges whether the caller has
+finished, and if it thinks they haven't, the agent answers anyway after 2 s (Pipecat's default is
+5 s). When a caller pauses mid-sentence and the pause is taken as the end of a turn, everything
+they said since the agent last spoke is sent to the model as one message.
+**Why:** In pilot calls, sentences with pauses ("My customer number is ... and my date of birth
+is ...") were split into fragments and the model only saw the last one. Five seconds of silence
+on a phone line sounds like a dropped call.
+
+## D-021 Latency is measured by phoning the agent (2026-09-15)
+
+**Decision:** The Phase 1 gate uses an automated WebRTC caller (`bench.caller`) that connects
+like the browser page, speaks benchmark caller lines (numbers digit by digit, as callers say
+them), and times each turn from its last speech sample to the first audible reply sample.
+**Why:** It measures what a caller experiences, including WebRTC buffering, the silence wait,
+turn detection and playback, which stage benchmarks can't. The caller's audio is rendered in a
+separate process before calls so it never competes with the agent for memory or the GPU.
