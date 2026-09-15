@@ -66,3 +66,8 @@ def test_router_falls_back_to_full_prompt_when_unsure():
     plan = brain.plan("Hmm, about that thing")
     assert plan.step == "assist"
     assert "balance" in plan.allowed and "freeze" in plan.allowed
+
+
+def test_unverified_callers_cannot_be_transferred_from_the_identity_step():
+    brain = RouterBrain(FakeClassifier("accounts", confident=False), TODAY, verified=False)
+    assert brain.plan("Can you check my balance?").allowed == ("verify",)

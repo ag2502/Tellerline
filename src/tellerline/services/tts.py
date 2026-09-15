@@ -6,6 +6,7 @@ playback quickly.
 """
 
 from collections.abc import AsyncGenerator, Callable
+from functools import lru_cache
 from typing import Protocol
 
 import numpy as np
@@ -25,10 +26,16 @@ class Synthesizer(Protocol):
     def synthesize(self, text: str, voice: str, speed: float = 1.0) -> np.ndarray: ...
 
 
+@lru_cache(maxsize=2)
 def load_kokoro(repo_id: str) -> Synthesizer:
     from tellerline.tts.kokoro_mlx import KokoroMLX
 
     return KokoroMLX(repo_id, TTS_LANG)
+
+
+def warm_up(engine: Synthesizer, voice: str = TTS_DEFAULT_VOICE) -> None:
+    """Synthesise once so MLX compiles Kokoro's kernels. Run on the MLX thread, once per process."""
+    engine.synthesize("Hello there.", voice)
 
 
 class KokoroMLXTTSService(TTSService):
@@ -62,8 +69,8 @@ class KokoroMLXTTSService(TTSService):
     async def start(self, frame: StartFrame):
         await super().start(frame)
         if self._engine is None:
+            # Cached per process; the agent launcher loads and warms it before the first call.
             self._engine = await run_mlx(self._loader, self._model_id)
-            await run_mlx(self._engine.synthesize, "Hello.", self._settings.voice, self._speed)
 
     async def run_tts(self, text: str, context_id: str) -> AsyncGenerator[Frame, None]:
         if self._engine is None:

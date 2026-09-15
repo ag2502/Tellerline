@@ -1,0 +1,24 @@
+{"type": "run", "bench": "caller", "started_at": "20260915T121846Z", "machine": {"chip": "Apple M5", "model": "Mac17,4", "memory_gb": 16, "macos": "26.5", "python": "3.12.14", "packages": {"pipecat-ai": "1.10.0", "mlx": "0.32.2", "mlx-lm": "0.31.3", "mlx-audio": "0.5.4", "kokoro-onnx": "0.6.1", "onnxruntime": "1.24.4"}}, "config": {"url": "http://localhost:7860", "turns": 30, "calls": 7}}
+{"type": "sample", "call": 1, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 9.28, "latency_s": null}
+{"type": "sample", "call": 2, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 9.28, "latency_s": 2.5400754580041394}
+{"type": "sample", "call": 2, "turn": 1, "caller": "I want to dispute a payment.", "caller_speech_s": 1.7066666666666668, "latency_s": 1.7190548750004382}
+{"type": "sample", "call": 2, "turn": 2, "caller": "It was to Pizza Palace.", "caller_speech_s": 1.4506666666666668, "latency_s": 2.099429791000148}
+{"type": "sample", "call": 2, "turn": 3, "caller": "22 euro 50, on Saturday.", "caller_speech_s": 2.5813333333333333, "latency_s": 2.740665709003224}
+{"type": "sample", "call": 3, "turn": 0, "caller": "Hi, can you check my balance?", "caller_speech_s": 1.9626666666666666, "latency_s": null}
+{"type": "sample", "call": 4, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 9.28, "latency_s": 1.4211095409991685}
+{"type": "sample", "call": 4, "turn": 1, "caller": "My card's gone missing.", "caller_speech_s": 1.408, "latency_s": 1.421466749998217}
+{"type": "sample", "call": 4, "turn": 2, "caller": "Actually, first tell me my savings balance.", "caller_speech_s": 2.496, "latency_s": 2.079190666998329}
+{"type": "sample", "call": 4, "turn": 3, "caller": "OK, and the missing card ends 7314.", "caller_speech_s": 3.562666666666667, "latency_s": 1.2814435420004884}
+{"type": "sample", "call": 5, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 9.28, "latency_s": 4.420817958001862}
+{"type": "sample", "call": 5, "turn": 1, "caller": "Can you move some money to my sister?", "caller_speech_s": 2.2826666666666666, "latency_s": 2.040121582998836}
+{"type": "sample", "call": 5, "turn": 2, "caller": "Yes please.", "caller_speech_s": 1.0453333333333332, "latency_s": 4.342355125001632}
+{"type": "sample", "call": 6, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 9.28, "latency_s": 2.601585583004635}
+{"type": "sample", "call": 6, "turn": 1, "caller": "What have I been spending money on?", "caller_speech_s": 1.5786666666666667, "latency_s": 3.4211297500005458}
+{"type": "sample", "call": 6, "turn": 2, "caller": "On the current account, the last four.", "caller_speech_s": 1.9413333333333334, "latency_s": 2.921404207998421}
+{"type": "sample", "call": 7, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 9.28, "latency_s": 8.781503457998042}
+{"type": "sample", "call": 7, "turn": 1, "caller": "What's the balance on my current account?", "caller_speech_s": 2.005333333333333, "latency_s": 1.5403888329965412}
+{"type": "sample", "call": 7, "turn": 2, "caller": "How much have I got in my savings?", "caller_speech_s": 1.8133333333333332, "latency_s": 2.140925583000353}
+{"type": "sample", "call": 7, "turn": 3, "caller": "Balance, please.", "caller_speech_s": 1.2373333333333334, "latency_s": 2.8604195000007167}
+{"type": "sample", "call": 7, "turn": 4, "caller": "Can you read me the last five transactions on my current account?", "caller_speech_s": 3.3493333333333335, "latency_s": 3.4997140830018907}
+{"type": "sample", "call": 7, "turn": 5, "caller": "What were the last three payments out of my savings account?", "caller_speech_s": 3.1573333333333333, "latency_s": null}
+{"type": "summary", "latency_s": {"n": 19, "mean": 2.835410631421454, "min": 1.2814435420004884, "p50": 2.5400754580041394, "p90": 4.358047691601678, "p95": 4.8568865080014865, "max": 8.781503457998042}, "timeouts": 3, "target_p90_s": 1.5, "passed": false}

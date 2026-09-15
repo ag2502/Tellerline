@@ -10,7 +10,8 @@ from tellerline.actions import action_instructions
 from tellerline.prompts import ACTION_RULES, BANK_NAME, PERSONA, date_context
 
 SKILL_ACTIONS: dict[str, tuple[str, ...]] = {
-    "identity": ("verify", "transfer", "end"),
+    # Only verification: requests for a person or a goodbye are routed to the general skill.
+    "identity": ("verify",),
     "accounts": ("balance", "transactions", "transfer", "end"),
     "cards": ("freeze", "replace", "transfer", "end"),
     "disputes": ("dispute", "transfer", "end"),

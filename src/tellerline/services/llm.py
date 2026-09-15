@@ -37,16 +37,29 @@ class Bank(Protocol):
     async def run(self, action: Action) -> dict[str, Any]: ...
 
 
-def last_user_text(context: LLMContext) -> str:
-    for message in reversed(context.get_messages()):
-        if message.get("role") != "user":
-            continue
-        content = message.get("content")
-        if isinstance(content, str):
-            return content.strip()
-        if isinstance(content, list):
-            return " ".join(p.get("text", "") for p in content if isinstance(p, dict)).strip()
+def _text(content) -> str:
+    if isinstance(content, str):
+        return content.strip()
+    if isinstance(content, list):
+        return " ".join(p.get("text", "") for p in content if isinstance(p, dict)).strip()
     return ""
+
+
+def last_user_text(context: LLMContext) -> str:
+    """Everything the caller said since the agent last spoke, as one message.
+
+    A caller who pauses mid-sentence ("My customer number is 45127890 ... and my date of birth
+    is ...") produces several user messages when the pause looks like the end of their turn.
+    The answer must consider all of them, not just the last fragment.
+    """
+    parts: list[str] = []
+    for message in reversed(context.get_messages()):
+        role = message.get("role")
+        if role == "assistant":
+            break
+        if role == "user" and (text := _text(message.get("content"))):
+            parts.append(text)
+    return " ".join(reversed(parts))
 
 
 class TellerlineLLMService(OpenAILLMService):

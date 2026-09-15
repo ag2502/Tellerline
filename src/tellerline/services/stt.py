@@ -4,7 +4,9 @@ Pipecat buffers the caller's speech and hands over one segment when the VAD says
 talking; the whole segment is transcribed at once, which Parakeet does in well under 100 ms.
 """
 
+import re
 from collections.abc import AsyncGenerator, Callable
+from functools import lru_cache
 from typing import Protocol
 
 import numpy as np
@@ -25,10 +27,33 @@ class Transcriber(Protocol):
     def generate(self, audio): ...
 
 
+@lru_cache(maxsize=2)
 def load_parakeet(model_id: str = STT_MODEL) -> Transcriber:
     from mlx_audio.stt.utils import load_model
 
     return load_model(model_id)
+
+
+_DIGIT_GROUP_COMMA = re.compile(r"(?<=\d),(?=\d{3}\b)")
+
+
+def clean_transcript(text: str) -> str:
+    """Undo number formatting speech recognition adds: "45,127,890" becomes "45127890".
+
+    Callers read out customer numbers and card digits, which must reach the model as digits.
+    """
+    return _DIGIT_GROUP_COMMA.sub("", text).strip()
+
+
+def warm_up(model: Transcriber) -> None:
+    """Run one inference so MLX compiles its kernels before a caller is waiting.
+
+    The first inference on a fresh process takes around ten seconds; afterwards it's milliseconds.
+    Call it on the MLX thread, once per process.
+    """
+    import mlx.core as mx
+
+    model.generate(mx.array(np.zeros(STT_SAMPLE_RATE, dtype=np.float32)))
 
 
 class ParakeetMLXSTTService(SegmentedSTTService):
@@ -57,14 +82,13 @@ class ParakeetMLXSTTService(SegmentedSTTService):
     async def start(self, frame: StartFrame):
         await super().start(frame)
         if self._model is None:
+            # Cached per process; the agent launcher loads and warms it before the first call.
             self._model = await run_mlx(self._loader, self._model_id)
-            # Compile kernels now, not on the caller's first sentence.
-            await run_mlx(self._transcribe, np.zeros(STT_SAMPLE_RATE, dtype=np.float32))
 
     def _transcribe(self, samples: np.ndarray) -> str:
         import mlx.core as mx
 
-        return self._model.generate(mx.array(samples)).text.strip()
+        return clean_transcript(self._model.generate(mx.array(samples)).text)
 
     @traced_stt
     async def _handle_transcription(
