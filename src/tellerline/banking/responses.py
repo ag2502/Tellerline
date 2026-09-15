@@ -102,6 +102,32 @@ TEMPLATES: dict[str, Template] = {
 }
 
 
+def _card_not_found(args: dict) -> str:
+    card = speech.digits(args.get("card_last_four", ""))
+    return (
+        f"I can't find a card ending {card} on your account. "
+        "Could you check the last four digits for me?"
+    )
+
+
+ERRORS: dict[str, Callable[[dict], str]] = {
+    "card_not_found": _card_not_found,
+    "account_not_found": lambda args: (
+        f"I can't see a {args.get('account', 'that')} account in your name. "
+        "Is there another account I can help with?"
+    ),
+    "dispute_date_out_of_range": lambda args: (
+        "I can only open disputes for payments in the last year. "
+        "Could you check the date of the payment?"
+    ),
+    "customer_not_found": lambda args: (
+        "Sorry, I've lost track of your details. I'll transfer you to a colleague."
+    ),
+}
+
+
 def respond(tool: str, args: dict[str, Any], result: dict[str, Any], today: date) -> str:
     """The sentence(s) the agent speaks after ``tool`` ran with ``args`` and returned ``result``."""
+    if "error" in result:
+        return ERRORS[result["error"]](args)
     return TEMPLATES[tool](args, result, today)
