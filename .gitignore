@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.DS_Store
+.env
+
+# Server and download logs are noisy and machine-specific; result files and reports are kept.
+results/logs/
+*.part
+
+# Regenerate with: python scripts/voice_samples.py
+results/samples/
