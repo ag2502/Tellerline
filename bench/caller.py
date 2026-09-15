@@ -20,6 +20,8 @@ import asyncio
 import fractions
 import hashlib
 import re
+import subprocess
+import sys
 import time
 from collections import deque
 from dataclasses import dataclass, field
@@ -280,7 +282,14 @@ async def place_call(url: str, lines: list[str], audio: dict[str, np.ndarray]) -
 
 async def run(args: argparse.Namespace) -> None:
     scripts = call_scripts(args.turns)
-    audio = render_lines({line for call in scripts for line in call})
+    lines = {line for call in scripts for line in call}
+    # Render in a child process: its MLX memory is returned to the system when it exits, so the
+    # caller doesn't hold gigabytes the agent needs during the calls.
+    subprocess.run(
+        [sys.executable, "-m", "bench.caller", "--render-only", "--turns", str(args.turns)],
+        check=True,
+    )
+    audio = render_lines(lines)
     latencies: list[float] = []
     timeouts = 0
     config = {"url": args.url, "turns": args.turns, "calls": len(scripts)}
@@ -323,7 +332,12 @@ def main() -> None:
     )
     parser.add_argument("--url", default="http://localhost:7860")
     parser.add_argument("--turns", type=int, default=220)
-    asyncio.run(run(parser.parse_args()))
+    parser.add_argument("--render-only", action="store_true", help=argparse.SUPPRESS)
+    args = parser.parse_args()
+    if args.render_only:
+        render_lines({line for call in call_scripts(args.turns) for line in call})
+        return
+    asyncio.run(run(args))
 
 
 if __name__ == "__main__":

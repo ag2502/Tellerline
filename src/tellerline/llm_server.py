@@ -1,4 +1,7 @@
-"""Start (or reuse) the local mlx-lm server that serves Gemma 4 over an OpenAI-compatible API."""
+"""Start (or reuse) the local mlx-lm server that serves Gemma 4 over an OpenAI-compatible API.
+
+The server runs through ``tellerline.llm_server_main``, which caps MLX's buffer cache.
+"""
 
 import json
 import subprocess
@@ -8,7 +11,12 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from tellerline.config import LLM_CHAT_TEMPLATE_ARGS, LLM_SERVER_HOST, LLM_SERVER_PORT
+from tellerline.config import (
+    LLM_CHAT_TEMPLATE_ARGS,
+    LLM_PROMPT_CACHE_BYTES,
+    LLM_SERVER_HOST,
+    LLM_SERVER_PORT,
+)
 
 MAX_TOKENS = 200
 
@@ -32,7 +40,7 @@ def start_server(
     command = [
         sys.executable,
         "-m",
-        "mlx_lm.server",
+        "tellerline.llm_server_main",
         "--model",
         model_id,
         "--host",
@@ -45,6 +53,8 @@ def start_server(
         str(MAX_TOKENS),
         "--chat-template-args",
         json.dumps(LLM_CHAT_TEMPLATE_ARGS),
+        "--prompt-cache-bytes",
+        str(LLM_PROMPT_CACHE_BYTES),
     ]
     log = log_path.open("w") if log_path else subprocess.DEVNULL
     process = subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT)

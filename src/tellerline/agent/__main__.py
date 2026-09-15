@@ -30,7 +30,7 @@ from tellerline.bank.client import BANK_URL
 from tellerline.config import KOKORO_MLX_MODELS, STT_MODEL, TTS_MLX_VARIANT
 from tellerline.llm_server import is_running, start_server
 from tellerline.router.classifier import default_classifier
-from tellerline.services.mlx_thread import run_mlx
+from tellerline.services.mlx_thread import limit_mlx_cache, run_mlx
 from tellerline.services.stt import load_parakeet
 from tellerline.services.stt import warm_up as warm_up_stt
 from tellerline.services.tts import load_kokoro
@@ -71,6 +71,7 @@ def start_llm() -> None:
 
 async def preload() -> None:
     """Load and warm every model once, so no call waits for loading or kernel compilation."""
+    await run_mlx(limit_mlx_cache)
     parakeet = await run_mlx(load_parakeet, STT_MODEL)
     await run_mlx(warm_up_stt, parakeet)
     kokoro = await run_mlx(load_kokoro, KOKORO_MLX_MODELS[TTS_MLX_VARIANT])

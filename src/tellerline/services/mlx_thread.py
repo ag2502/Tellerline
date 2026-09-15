@@ -17,3 +17,12 @@ async def run_mlx[T](fn: Callable[..., T], *args, **kwargs) -> T:
     """Run ``fn`` on the MLX thread without blocking the event loop."""
     loop = asyncio.get_running_loop()
     return await loop.run_in_executor(_EXECUTOR, partial(fn, *args, **kwargs))
+
+
+def limit_mlx_cache() -> None:
+    """Cap MLX's freed-buffer cache for this process (see ``MLX_CACHE_LIMIT_BYTES``)."""
+    import mlx.core as mx
+
+    from tellerline.config import MLX_CACHE_LIMIT_BYTES
+
+    mx.set_cache_limit(MLX_CACHE_LIMIT_BYTES)

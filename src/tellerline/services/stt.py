@@ -29,9 +29,13 @@ class Transcriber(Protocol):
 
 @lru_cache(maxsize=2)
 def load_parakeet(model_id: str = STT_MODEL) -> Transcriber:
+    """Load Parakeet in bfloat16; the published float32 weights (2.3 GB) are twice what we need."""
+    import mlx.core as mx
     from mlx_audio.stt.utils import load_model
 
-    return load_model(model_id)
+    model = load_model(model_id)
+    model.set_dtype(mx.bfloat16)
+    return model
 
 
 _DIGIT_GROUP_COMMA = re.compile(r"(?<=\d),(?=\d{3}\b)")
