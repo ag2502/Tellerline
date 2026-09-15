@@ -60,6 +60,28 @@ def warm_up(model: Transcriber) -> None:
     model.generate(mx.array(np.zeros(STT_SAMPLE_RATE, dtype=np.float32)))
 
 
+_DIGIT_GROUP_COMMA = re.compile(r"(?<=\d),(?=\d{3}\b)")
+
+
+def clean_transcript(text: str) -> str:
+    """Undo number formatting speech recognition adds: "45,127,890" becomes "45127890".
+
+    Callers read out customer numbers and card digits, which must reach the model as digits.
+    """
+    return _DIGIT_GROUP_COMMA.sub("", text).strip()
+
+
+def warm_up(model: Transcriber) -> None:
+    """Run one inference so MLX compiles its kernels before a caller is waiting.
+
+    The first inference on a fresh process takes around ten seconds; afterwards it's milliseconds.
+    Call it on the MLX thread, once per process.
+    """
+    import mlx.core as mx
+
+    model.generate(mx.array(np.zeros(STT_SAMPLE_RATE, dtype=np.float32)))
+
+
 class ParakeetMLXSTTService(SegmentedSTTService):
     def __init__(
         self,
