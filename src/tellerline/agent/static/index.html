@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tellerline Bank · Call</title>
+<style>
+  :root {
+    --ground: #f3f5f4; --surface: #ffffff; --ink: #13212b; --muted: #5f6e77; --rule: #d6dddc;
+    --accent: #0d6464; --accent-ink: #ffffff; --agent: #e6f0ef; --caller: #13212b; --caller-ink: #f3f5f4;
+    --danger: #a3301e; --ok: #2c733b; --warn: #8a5800;
+    --font: "Helvetica Neue", Arial, system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #0e1618; --surface: #152023; --ink: #e1e9e8; --muted: #8c9da1; --rule: #2a393c;
+      --accent: #5cbdb5; --accent-ink: #0e1618; --agent: #1b2c2e; --caller: #e1e9e8; --caller-ink: #0e1618;
+      --danger: #ee8c79; --ok: #7acb88; --warn: #e5b35b;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ground); color: var(--ink); font: 16px/1.5 var(--font);
+         padding-inline: 16px; padding-block: 24px; }
+  main { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+  h1 span { color: var(--muted); font-weight: 400; }
+  .pill { font: 500 12px/1 var(--mono); padding: 6px 10px; border-radius: 999px; border: 1px solid var(--rule); color: var(--muted); }
+  .pill[data-state="connected"] { color: var(--ok); border-color: currentColor; }
+  .pill[data-state="connecting"] { color: var(--warn); border-color: currentColor; }
+  .panel { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 16px; }
+  .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  button { font: 600 15px/1 var(--font); border-radius: 999px; padding: 12px 20px; border: 1px solid var(--rule);
+           background: var(--surface); color: var(--ink); cursor: pointer; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  #call { background: var(--accent); color: var(--accent-ink); border-color: transparent; min-width: 120px; }
+  #call.hangup { background: var(--danger); }
+  .meter { flex: 1; min-width: 120px; height: 8px; background: var(--rule); border-radius: 4px; overflow: hidden; }
+  .meter div { height: 100%; width: 0%; background: var(--accent); transition: width 60ms linear; }
+  .stats { display: flex; gap: 20px; flex-wrap: wrap; font: 13px/1.4 var(--mono); color: var(--muted); }
+  .stats b { color: var(--ink); font-weight: 500; }
+  #transcript { display: flex; flex-direction: column; gap: 10px; min-height: 280px; max-height: 60vh; overflow-y: auto; }
+  .line { max-width: 85%; padding: 10px 14px; border-radius: 14px; }
+  .line small { display: block; font: 11px/1.2 var(--mono); opacity: 0.7; margin-bottom: 4px; }
+  .agent { background: var(--agent); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .caller { background: var(--caller); color: var(--caller-ink); align-self: flex-end; border-bottom-right-radius: 4px; }
+  .empty { color: var(--muted); margin: auto; text-align: center; }
+  details { font-size: 14px; color: var(--muted); }
+  details table { border-collapse: collapse; margin-top: 8px; font: 13px/1.5 var(--mono); }
+  details td, details th { padding: 2px 12px 2px 0; text-align: left; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Tellerline Bank <span>· AI phone assistant</span></h1>
+    <span class="pill" id="state" data-state="idle">Not connected</span>
+  </header>
+
+  <section class="panel controls">
+    <button id="call">Call</button>
+    <button id="mute" disabled>Mute</button>
+    <div class="meter" title="Your microphone level"><div id="level"></div></div>
+  </section>
+
+  <section class="panel stats" aria-live="polite">
+    <span>Last reply <b id="latency">–</b></span>
+    <span>Median <b id="median">–</b></span>
+    <span>Turns <b id="turns">0</b></span>
+  </section>
+
+  <section class="panel" id="transcript" aria-live="polite">
+    <p class="empty" id="empty">Press Call, allow the microphone, and wait for the greeting.</p>
+  </section>
+
+  <details class="panel">
+    <summary>Test customers</summary>
+    <table>
+      <tr><th>Name</th><th>Customer number</th><th>Date of birth</th><th>Cards</th></tr>
+      <tr><td>Aoife Byrne</td><td>45127890</td><td>3 Mar 1991</td><td>4217, 0093</td></tr>
+      <tr><td>Cian Murphy</td><td>30118842</td><td>14 Jul 1985</td><td>5561</td></tr>
+      <tr><td>Niamh Kelly</td><td>77451102</td><td>29 Feb 1996</td><td>7780, 1188</td></tr>
+    </table>
+  </details>
+</main>
+<audio id="bot" autoplay></audio>
+<script>
+const $ = (id) => document.getElementById(id);
+let pc = null, stream = null, meterTimer = null;
+let userStoppedAt = null, agentLine = null;
+const latencies = [];
+
+function setState(state, label) { $("state").dataset.state = state; $("state").textContent = label; }
+
+function addLine(who, text) {
+  $("empty")?.remove();
+  const el = document.createElement("div");
+  el.className = `line ${who}`;
+  el.innerHTML = `<small>${who === "agent" ? "Tellerline" : "You"}</small>`;
+  el.append(document.createTextNode(text));
+  $("transcript").append(el);
+  $("transcript").scrollTop = $("transcript").scrollHeight;
+  return el;
+}
+
+function recordLatency(ms) {
+  latencies.push(ms);
+  const sorted = [...latencies].sort((a, b) => a - b);
+  $("latency").textContent = `${(ms / 1000).toFixed(2)} s`;
+  $("median").textContent = `${(sorted[Math.floor(sorted.length / 2)] / 1000).toFixed(2)} s`;
+  $("turns").textContent = latencies.length;
+}
+
+function onMessage(raw) {
+  let msg;
+  try { msg = JSON.parse(raw); } catch { return; }
+  if (msg.label !== "rtvi-ai") return;
+  const data = msg.data || {};
+  switch (msg.type) {
+    case "user-stopped-speaking":
+      userStoppedAt = performance.now();
+      break;
+    case "user-transcription":
+      if (data.final && data.text) { addLine("caller", data.text); agentLine = null; }
+      break;
+    case "bot-started-speaking":
+      if (userStoppedAt !== null) { recordLatency(performance.now() - userStoppedAt); userStoppedAt = null; }
+      break;
+    case "bot-output": {
+      const fresh = data.spoken === false || data.spoken_status === "new";
+      if (!fresh || !data.text || data.aggregated_by === "word") return;
+      if (agentLine) agentLine.append(document.createTextNode(" " + data.text));
+      else agentLine = addLine("agent", data.text);
+      break;
+    }
+  }
+}
+
+function startMeter() {
+  const ctx = new AudioContext();
+  const analyser = ctx.createAnalyser();
+  ctx.createMediaStreamSource(stream).connect(analyser);
+  const buf = new Uint8Array(analyser.fftSize);
+  meterTimer = setInterval(() => {
+    analyser.getByteTimeDomainData(buf);
+    let peak = 0;
+    for (const v of buf) peak = Math.max(peak, Math.abs(v - 128));
+    $("level").style.width = `${Math.min(100, (peak / 128) * 160)}%`;
+  }, 60);
+}
+
+async function call() {
+  $("call").disabled = true;
+  setState("connecting", "Connecting…");
+  try {
+    // The browser's own echo cancellation and noise suppression run before audio leaves the page.
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 },
+    });
+    pc = new RTCPeerConnection();
+    const channel = pc.createDataChannel("rtvi");
+    channel.onmessage = (event) => onMessage(event.data);
+    stream.getAudioTracks().forEach((track) => pc.addTrack(track, stream));
+    pc.addTransceiver("video", { direction: "recvonly" });
+    pc.ontrack = (event) => { if (event.track.kind === "audio") $("bot").srcObject = event.streams[0] || new MediaStream([event.track]); };
+    pc.onconnectionstatechange = () => {
+      if (pc.connectionState === "connected") setState("connected", "On a call");
+      if (["failed", "closed", "disconnected"].includes(pc.connectionState)) hangUp("Call ended");
+    };
+
+    await pc.setLocalDescription(await pc.createOffer());
+    await new Promise((resolve) => {
+      if (pc.iceGatheringState === "complete") return resolve();
+      pc.addEventListener("icegatheringstatechange", () => pc.iceGatheringState === "complete" && resolve());
+      setTimeout(resolve, 1500);
+    });
+    const response = await fetch("/api/offer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sdp: pc.localDescription.sdp, type: pc.localDescription.type }),
+    });
+    if (!response.ok) throw new Error(`The agent answered ${response.status}`);
+    await pc.setRemoteDescription(await response.json());
+
+    startMeter();
+    $("call").textContent = "Hang up";
+    $("call").classList.add("hangup");
+    $("call").disabled = false;
+    $("mute").disabled = false;
+  } catch (error) {
+    console.error(error);
+    hangUp(`Couldn't connect: ${error.message}`);
+  }
+}
+
+function hangUp(label = "Not connected") {
+  clearInterval(meterTimer);
+  pc?.close(); pc = null;
+  stream?.getTracks().forEach((t) => t.stop()); stream = null;
+  $("level").style.width = "0%";
+  $("call").textContent = "Call";
+  $("call").classList.remove("hangup");
+  $("call").disabled = false;
+  $("mute").disabled = true;
+  $("mute").textContent = "Mute";
+  setState("idle", label);
+}
+
+$("call").addEventListener("click", () => (pc ? hangUp("Call ended") : call()));
+$("mute").addEventListener("click", () => {
+  const track = stream?.getAudioTracks()[0];
+  if (!track) return;
+  track.enabled = !track.enabled;
+  $("mute").textContent = track.enabled ? "Mute" : "Unmute";
+});
+</script>
+</body>
+</html>

@@ -112,9 +112,31 @@ def main() -> None:
         logger.info(f"Tracing to {setup_file_tracing()}")
     if not {"-t", "--transport"} & set(sys.argv):
         sys.argv += ["-t", "webrtc"]
+    from pipecat.runner.run import app
     from pipecat.runner.run import main as run_runner
 
+    mount_call_page(app)
+    logger.info("Call page: http://localhost:7860/call/")
     run_runner()
+
+
+def mount_call_page(app) -> None:
+    """Serve Tellerline's own call page at /call and send the site root there.
+
+    Pipecat's Playground (still at /client) is built for any bot, including video panels a
+    voice-only bank line doesn't have. Routes added here take precedence over the runner's.
+    """
+    from pathlib import Path
+
+    from fastapi.responses import RedirectResponse
+    from fastapi.staticfiles import StaticFiles
+
+    static = Path(__file__).parent / "static"
+    app.mount("/call", StaticFiles(directory=static, html=True), name="tellerline-call")
+
+    @app.get("/", include_in_schema=False)
+    async def root():
+        return RedirectResponse(url="/call/")
 
 
 if __name__ == "__main__":

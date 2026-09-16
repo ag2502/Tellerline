@@ -81,8 +81,10 @@ python -m tellerline.agent
 ```
 
 Then open **http://localhost:7860/client**, allow the microphone and connect. The agent starts
-the mock bank and the Gemma 4 server itself. Test customers, things to try, and how to measure
-latency with the automated caller are in [docs/DEMO.md](docs/DEMO.md).
+the mock bank and the Gemma 4 server itself.
+
+- Step-by-step guide, options and troubleshooting: [docs/RUNNING.md](docs/RUNNING.md)
+- Test customers and things to try: [docs/DEMO.md](docs/DEMO.md)
 
 ## Benchmarks
 
