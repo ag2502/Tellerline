@@ -9,6 +9,7 @@ from datetime import date
 from typing import Any, Protocol
 
 from loguru import logger
+from opentelemetry import trace
 from pipecat.frames.frames import EndTaskFrame
 from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.frame_processor import FrameDirection
@@ -94,6 +95,13 @@ class TellerlineLLMService(OpenAILLMService):
             return
         plan = self._brain.plan(text)
         logger.debug(f"Turn routed to '{plan.step}' ({plan.route_reason or 'single prompt'})")
+        span = trace.get_current_span()
+        span.set_attribute("tellerline.route.step", plan.step)
+        span.set_attribute("tellerline.route.reason", plan.route_reason)
+        span.set_attribute("tellerline.route.seconds", plan.route_s)
+        if plan.intent is not None:
+            span.set_attribute("tellerline.intent", plan.intent)
+            span.set_attribute("tellerline.intent.score", float(plan.intent_score or 0.0))
 
         splitter = ReplySplitter()
         await self.start_ttfb_metrics()
@@ -127,6 +135,9 @@ class TellerlineLLMService(OpenAILLMService):
             spoken, action = await self._act(plan, splitter.text)
             await self._push_llm_text(spoken)
         self._brain.record(text, plan, action, spoken)
+        span.set_attribute("tellerline.model_output", splitter.text.strip())
+        span.set_attribute("tellerline.action", action.tool if action else "")
+        span.set_attribute("tellerline.spoken", spoken)
 
         if action and action.tool in ENDS_CALL:
             # Ends after what's already queued has been spoken.

@@ -14,6 +14,7 @@ from pipecat.frames.frames import ErrorFrame, Frame, StartFrame, TTSAudioRawFram
 from pipecat.services.settings import TTSSettings
 from pipecat.services.tts_service import TTSService
 from pipecat.transcriptions.language import Language
+from pipecat.utils.tracing.service_decorators import traced_tts
 
 from tellerline.config import KOKORO_MLX_MODELS, TTS_DEFAULT_VOICE, TTS_LANG, TTS_MLX_VARIANT
 from tellerline.services.mlx_thread import run_mlx
@@ -72,6 +73,7 @@ class KokoroMLXTTSService(TTSService):
             # Cached per process; the agent launcher loads and warms it before the first call.
             self._engine = await run_mlx(self._loader, self._model_id)
 
+    @traced_tts
     async def run_tts(self, text: str, context_id: str) -> AsyncGenerator[Frame, None]:
         if self._engine is None:
             yield ErrorFrame("Kokoro model not loaded")
