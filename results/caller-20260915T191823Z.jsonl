@@ -1,0 +1,41 @@
+{"type": "run", "bench": "caller", "started_at": "20260915T191823Z", "machine": {"power": {"on_battery": true, "battery_percent": 85, "low_power_mode": true}, "chip": "Apple M5", "model": "Mac17,4", "memory_gb": 16, "macos": "26.5", "python": "3.12.14", "packages": {"pipecat-ai": "1.10.0", "mlx": "0.32.2", "mlx-lm": "0.31.3", "mlx-audio": "0.5.4", "kokoro-onnx": "0.6.1", "onnxruntime": "1.24.4"}}, "config": {"url": "http://localhost:7860", "turns": 220, "calls": 68}}
+{"type": "sample", "call": 1, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 8.042666666666667, "latency_s": 1.1811777500042808}
+{"type": "sample", "call": 1, "turn": 1, "caller": "I've lost my card.", "caller_speech_s": 1.2373333333333334, "latency_s": 0.9010683329979656}
+{"type": "sample", "call": 1, "turn": 2, "caller": "It ends in 2210.", "caller_speech_s": 1.856, "latency_s": 0.9807883749963366}
+{"type": "sample", "call": 1, "turn": 3, "caller": "No thanks, that's all.", "caller_speech_s": 1.3866666666666667, "latency_s": 0.9221070419953321}
+{"type": "sample", "call": 2, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 8.042666666666667, "latency_s": 1.1401677500034566}
+{"type": "sample", "call": 2, "turn": 1, "caller": "I want to dispute a payment.", "caller_speech_s": 1.536, "latency_s": 1.040420625002298}
+{"type": "sample", "call": 2, "turn": 2, "caller": "It was to Pizza Palace.", "caller_speech_s": 1.4506666666666668, "latency_s": 0.981739374998142}
+{"type": "sample", "call": 2, "turn": 3, "caller": "22 euro 50, on Saturday.", "caller_speech_s": 2.5813333333333333, "latency_s": 1.1821159169994644}
+{"type": "sample", "call": 3, "turn": 0, "caller": "Hi, can you check my balance?", "caller_speech_s": 1.7706666666666666, "latency_s": 0.8809813330008183}
+{"type": "sample", "call": 3, "turn": 1, "caller": "My customer number is 48210573.", "caller_speech_s": 4.437333333333333, "latency_s": 1.1412853749934584}
+{"type": "sample", "call": 3, "turn": 2, "caller": "Born the 2nd of May 1987.", "caller_speech_s": 2.88, "latency_s": 1.2020993750047637}
+{"type": "sample", "call": 3, "turn": 3, "caller": "The current account, please.", "caller_speech_s": 1.472, "latency_s": 1.1420067090002703}
+{"type": "sample", "call": 4, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 8.042666666666667, "latency_s": 1.1805561670043971}
+{"type": "sample", "call": 4, "turn": 1, "caller": "My card's gone missing.", "caller_speech_s": 1.536, "latency_s": 1.1819804580009077}
+{"type": "sample", "call": 4, "turn": 2, "caller": "Actually, first tell me my savings balance.", "caller_speech_s": 2.6666666666666665, "latency_s": 1.3014892909995979}
+{"type": "sample", "call": 4, "turn": 3, "caller": "OK, and the missing card ends 7314.", "caller_speech_s": 3.1786666666666665, "latency_s": 1.0619751659978647}
+{"type": "sample", "call": 5, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 8.042666666666667, "latency_s": 1.1207678329956252}
+{"type": "sample", "call": 5, "turn": 1, "caller": "Can you move some money to my sister?", "caller_speech_s": 2.2826666666666666, "latency_s": 0.8009990840000683}
+{"type": "sample", "call": 5, "turn": 2, "caller": "Yes please.", "caller_speech_s": 0.9386666666666666, "latency_s": 0.7812337499999558}
+{"type": "sample", "call": 6, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 8.042666666666667, "latency_s": 1.1807443330035312}
+{"type": "sample", "call": 6, "turn": 1, "caller": "What have I been spending money on?", "caller_speech_s": 1.8986666666666667, "latency_s": 1.8816080420001526}
+{"type": "sample", "call": 6, "turn": 2, "caller": "On the current account, the last four.", "caller_speech_s": 2.2186666666666666, "latency_s": 2.2031466249973164}
+{"type": "sample", "call": 7, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 8.042666666666667, "latency_s": 1.1401845839936868}
+{"type": "sample", "call": 7, "turn": 1, "caller": "What's the balance on my current account?", "caller_speech_s": 2.005333333333333, "latency_s": 1.181653917003132}
+{"type": "sample", "call": 7, "turn": 2, "caller": "How much have I got in my savings?", "caller_speech_s": 2.24, "latency_s": null}
+{"type": "sample", "call": 9, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 8.042666666666667, "latency_s": 1.2024184170004446}
+{"type": "sample", "call": 9, "turn": 1, "caller": "Can you send me a new card to replace the one ending 4217?", "caller_speech_s": 4.437333333333333, "latency_s": 0.8828958329977468}
+{"type": "sample", "call": 9, "turn": 2, "caller": "I was charged 49.99 by StreamFlix on the 2nd of September and I never signed up.", "caller_speech_s": 6.8053333333333335, "latency_s": 1.3021682919934392}
+{"type": "sample", "call": 9, "turn": 3, "caller": "I want to dispute a 120 euro charge from Harbour Hotel yesterday.", "caller_speech_s": 4.8213333333333335, "latency_s": 1.3069685839946033}
+{"type": "sample", "call": 9, "turn": 4, "caller": "Can you move 500 euro from my current account into savings?", "caller_speech_s": 3.7546666666666666, "latency_s": 0.8617842909952742}
+{"type": "sample", "call": 10, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 8.042666666666667, "latency_s": null}
+{"type": "sample", "call": 11, "turn": 0, "caller": "Hi, I've lost my debit card.", "caller_speech_s": 2.2613333333333334, "latency_s": 0.8017617090008571}
+{"type": "sample", "call": 12, "turn": 0, "caller": "What's my balance?", "caller_speech_s": 1.3013333333333332, "latency_s": 0.8008240420022048}
+{"type": "sample", "call": 13, "turn": 0, "caller": "Freeze my card ending 4217 now.", "caller_speech_s": 2.816, "latency_s": 0.9208859169957577}
+{"type": "sample", "call": 14, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 8.042666666666667, "latency_s": 1.241082667002047}
+{"type": "sample", "call": 15, "turn": 0, "caller": "My customer number is 3011 8842, born the 14th of July 1985.", "caller_speech_s": 6.762666666666667, "latency_s": 1.2817854579989216}
+{"type": "sample", "call": 16, "turn": 0, "caller": "It's 77451102 and my birthday is the 29th of February 1996.", "caller_speech_s": 7.424, "latency_s": 1.3022078340000007}
+{"type": "sample", "call": 17, "turn": 0, "caller": "My customer number is 30118842.", "caller_speech_s": 3.8186666666666667, "latency_s": 0.9628584160018363}
+{"type": "sample", "call": 18, "turn": 0, "caller": "Can I just speak to a real person, please?", "caller_speech_s": 2.5813333333333333, "latency_s": 0.9624770830050693}
+{"type": "summary", "latency_s": {"n": 37, "mean": 1.1227679932967845, "min": 0.7812337499999558, "p50": 1.1401845839936868, "p90": 1.3021841087960637, "p95": 1.4218964755957149, "max": 2.2031466249973164}, "timeouts": 2, "target_p90_s": 1.5, "passed": true}

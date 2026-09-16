@@ -1,0 +1,12 @@
+{"type": "run", "bench": "caller", "started_at": "20260915T194553Z", "machine": {"power": {"on_battery": true, "battery_percent": 84, "low_power_mode": false}, "chip": "Apple M5", "model": "Mac17,4", "memory_gb": 16, "macos": "26.5", "python": "3.12.14", "packages": {"pipecat-ai": "1.10.0", "mlx": "0.32.2", "mlx-lm": "0.31.3", "mlx-audio": "0.5.4", "kokoro-onnx": "0.6.1", "onnxruntime": "1.24.4"}}, "config": {"url": "http://localhost:7860", "turns": 20, "calls": 6, "background_db": -15.0}}
+{"type": "sample", "call": 1, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 9.28, "latency_s": 10.641959500004305}
+{"type": "sample", "call": 1, "turn": 1, "caller": "I've lost my card.", "caller_speech_s": 1.5146666666666666, "latency_s": null}
+{"type": "sample", "call": 2, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 9.28, "latency_s": 4.982988791001844}
+{"type": "sample", "call": 2, "turn": 1, "caller": "I want to dispute a payment.", "caller_speech_s": 1.536, "latency_s": null}
+{"type": "sample", "call": 3, "turn": 0, "caller": "Hi, can you check my balance?", "caller_speech_s": 1.9626666666666666, "latency_s": null}
+{"type": "sample", "call": 4, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 9.28, "latency_s": 4.96144487499987}
+{"type": "sample", "call": 4, "turn": 1, "caller": "My card's gone missing.", "caller_speech_s": 1.408, "latency_s": null}
+{"type": "sample", "call": 5, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 9.28, "latency_s": 4.960908875000314}
+{"type": "sample", "call": 5, "turn": 1, "caller": "Can you move some money to my sister?", "caller_speech_s": 1.7706666666666666, "latency_s": null}
+{"type": "sample", "call": 6, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 9.28, "latency_s": 4.981507374999637}
+{"type": "summary", "latency_s": {"n": 5, "mean": 6.105761883201194, "min": 4.960908875000314, "p50": 4.981507374999637, "p90": 8.378371216403321, "p95": 9.51016535820381, "max": 10.641959500004305}, "timeouts": 5, "target_p90_s": 1.5, "passed": false}

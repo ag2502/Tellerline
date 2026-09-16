@@ -30,6 +30,22 @@ def _sysctl(key: str) -> str:
         return "unknown"
 
 
+def power_state() -> dict[str, Any]:
+    """Power source, battery level and Low Power Mode: both change how fast the chip runs."""
+    try:
+        battery = subprocess.run(["pmset", "-g", "batt"], capture_output=True, text=True).stdout
+        settings = subprocess.run(["pmset", "-g"], capture_output=True, text=True).stdout
+    except OSError:
+        return {}
+    level = re.search(r"(\d+)%", battery)
+    low_power = re.search(r"lowpowermode\s+(\d)", settings)
+    return {
+        "on_battery": "Battery Power" in battery,
+        "battery_percent": int(level.group(1)) if level else None,
+        "low_power_mode": bool(low_power and low_power.group(1) == "1"),
+    }
+
+
 def machine_info() -> dict[str, Any]:
     """Describe the hardware and software a result was measured on."""
     memsize = _sysctl("hw.memsize")
@@ -40,6 +56,7 @@ def machine_info() -> dict[str, Any]:
         except metadata.PackageNotFoundError:
             versions[package] = None
     return {
+        "power": power_state(),
         "chip": _sysctl("machdep.cpu.brand_string"),
         "model": _sysctl("hw.model"),
         "memory_gb": round(int(memsize) / 1024**3) if memsize.isdigit() else None,

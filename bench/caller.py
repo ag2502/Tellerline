@@ -131,6 +131,40 @@ def render_lines(lines: set[str]) -> dict[str, np.ndarray]:
     return audio
 
 
+BACKGROUND_LINES = [
+    ("am_adam", "Did you see the match last night? I couldn't believe that second goal."),
+    ("af_sky", "We should book the restaurant for Friday before it fills up."),
+    ("bm_daniel", "The train was delayed again this morning, I was nearly an hour late."),
+    ("af_nicole", "Can you pass me the charger? My phone is almost dead."),
+]
+
+
+def render_background(level_db: float) -> np.ndarray:
+    """A noisy room: overlapping background conversation plus steady noise, as a 20 s loop.
+
+    ``level_db`` is the background's loudness relative to the caller's speech (e.g. -15 dB is a
+    conversation a couple of metres away). Cached on disk like the caller's lines.
+    """
+    path = AUDIO_CACHE / f"background_{int(-level_db)}db.wav"
+    if path.exists():
+        return sf.read(path, dtype="int16")[0]
+    from tellerline.tts.kokoro_mlx import SAMPLE_RATE, KokoroMLX
+
+    kokoro = KokoroMLX(KOKORO_MLX_MODELS[TTS_MLX_VARIANT], "en-us")
+    loop = np.zeros(RATE * 20, dtype=np.float32)
+    rng = np.random.default_rng(7)
+    for index, (voice, text) in enumerate(BACKGROUND_LINES * 2):
+        speech = soxr.resample(kokoro.synthesize(text, voice), SAMPLE_RATE, RATE).astype(np.float32)
+        start = (index * RATE * 2 + rng.integers(0, RATE)) % (len(loop) - len(speech))
+        loop[start : start + len(speech)] += speech
+    loop += 0.3 * np.std(loop) * rng.standard_normal(len(loop)).astype(np.float32)  # room noise
+    speech_rms = 0.12  # typical RMS of the caller's rendered lines
+    loop *= speech_rms * 10 ** (level_db / 20) / (np.sqrt(np.mean(loop**2)) + 1e-9)
+    pcm = (np.clip(loop, -1, 1) * 32767).astype(np.int16)
+    sf.write(path, pcm, RATE)
+    return pcm
+
+
 # ---------------------------------------------------------------- WebRTC client
 
 
@@ -139,8 +173,10 @@ class CallerTrack(MediaStreamTrack):
 
     kind = "audio"
 
-    def __init__(self):
+    def __init__(self, background: np.ndarray | None = None):
         super().__init__()
+        self._background = background
+        self._background_pos = 0
         self._pts = 0
         self._start: float | None = None
         self._pending: deque[np.ndarray] = deque()
@@ -167,6 +203,11 @@ class CallerTrack(MediaStreamTrack):
                 self._done.set_result(time.perf_counter())
         else:
             chunk = np.zeros(FRAME, dtype=np.int16)
+        if self._background is not None:
+            pos = self._background_pos
+            noise = np.take(self._background, range(pos, pos + FRAME), mode="wrap")
+            self._background_pos = (pos + FRAME) % len(self._background)
+            chunk = np.clip(chunk.astype(np.int32) + noise, -32768, 32767).astype(np.int16)
         frame = av.AudioFrame.from_ndarray(chunk.reshape(1, -1), format="s16", layout="mono")
         frame.sample_rate = RATE
         frame.pts = self._pts
@@ -217,10 +258,12 @@ class BotEar:
             await asyncio.sleep(0.02)
 
 
-async def place_call(url: str, lines: list[str], audio: dict[str, np.ndarray]) -> list[dict]:
+async def place_call(
+    url: str, lines: list[str], audio: dict[str, np.ndarray], background: np.ndarray | None = None
+) -> list[dict]:
     pc = RTCPeerConnection()
     pc.createDataChannel("chat")
-    caller = CallerTrack()
+    caller = CallerTrack(background)
     pc.addTrack(caller)
     pc.addTransceiver("video", direction="recvonly")
     ear = BotEar()
@@ -285,18 +328,24 @@ async def run(args: argparse.Namespace) -> None:
     lines = {line for call in scripts for line in call}
     # Render in a child process: its MLX memory is returned to the system when it exits, so the
     # caller doesn't hold gigabytes the agent needs during the calls.
-    subprocess.run(
-        [sys.executable, "-m", "bench.caller", "--render-only", "--turns", str(args.turns)],
-        check=True,
-    )
+    render = [sys.executable, "-m", "bench.caller", "--render-only", "--turns", str(args.turns)]
+    if args.background_db is not None:
+        render += ["--background-db", str(args.background_db)]
+    subprocess.run(render, check=True)
     audio = render_lines(lines)
+    background = None if args.background_db is None else render_background(args.background_db)
     latencies: list[float] = []
     timeouts = 0
-    config = {"url": args.url, "turns": args.turns, "calls": len(scripts)}
+    config = {
+        "url": args.url,
+        "turns": args.turns,
+        "calls": len(scripts),
+        "background_db": args.background_db,
+    }
     with ResultWriter("caller", config) as writer:
         for number, lines in enumerate(scripts, start=1):
             try:
-                turns = await place_call(args.url, lines, audio)
+                turns = await place_call(args.url, lines, audio, background)
             except Exception as error:
                 print(f"call {number}/{len(scripts)} failed: {type(error).__name__}: {error}")
                 continue
@@ -332,10 +381,17 @@ def main() -> None:
     )
     parser.add_argument("--url", default="http://localhost:7860")
     parser.add_argument("--turns", type=int, default=220)
+    parser.add_argument(
+        "--background-db",
+        type=float,
+        help="Play a noisy room (background talk and noise) this many dB below the caller",
+    )
     parser.add_argument("--render-only", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.render_only:
         render_lines({line for call in call_scripts(args.turns) for line in call})
+        if args.background_db is not None:
+            render_background(args.background_db)
         return
     asyncio.run(run(args))
 

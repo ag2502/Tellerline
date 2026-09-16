@@ -1,0 +1,11 @@
+{"type": "run", "bench": "caller", "started_at": "20260915T124255Z", "machine": {"chip": "Apple M5", "model": "Mac17,4", "memory_gb": 16, "macos": "26.5", "python": "3.12.14", "packages": {"pipecat-ai": "1.10.0", "mlx": "0.32.2", "mlx-lm": "0.31.3", "mlx-audio": "0.5.4", "kokoro-onnx": "0.6.1", "onnxruntime": "1.24.4"}}, "config": {"url": "http://localhost:7860", "turns": 220, "calls": 68}}
+{"type": "sample", "call": 1, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 8.042666666666667, "latency_s": 11.642537457999424}
+{"type": "sample", "call": 1, "turn": 1, "caller": "I've lost my card.", "caller_speech_s": 1.2373333333333334, "latency_s": 1.24251437500061}
+{"type": "sample", "call": 1, "turn": 2, "caller": "It ends in 2210.", "caller_speech_s": 1.856, "latency_s": 1.3832439589969}
+{"type": "sample", "call": 1, "turn": 3, "caller": "No thanks, that's all.", "caller_speech_s": 1.3866666666666667, "latency_s": 1.0809307500021532}
+{"type": "sample", "call": 2, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 8.042666666666667, "latency_s": 1.7263390829975833}
+{"type": "sample", "call": 2, "turn": 1, "caller": "I want to dispute a payment.", "caller_speech_s": 1.536, "latency_s": 1.4821905409989995}
+{"type": "sample", "call": 2, "turn": 2, "caller": "It was to Pizza Palace.", "caller_speech_s": 1.4506666666666668, "latency_s": 1.3006793330059736}
+{"type": "sample", "call": 2, "turn": 3, "caller": "22 euro 50, on Saturday.", "caller_speech_s": 2.5813333333333333, "latency_s": 1.8628591250017053}
+{"type": "sample", "call": 3, "turn": 0, "caller": "Hi, can you check my balance?", "caller_speech_s": 1.7706666666666666, "latency_s": 1.1229967920007766}
+{"type": "sample", "call": 4, "turn": 0, "caller": "My customer number is 45127890 and my date of birth is the 3rd of March 1991.", "caller_speech_s": 8.042666666666667, "latency_s": null}
