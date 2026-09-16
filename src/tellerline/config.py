@@ -49,6 +49,14 @@ TTS_DEFAULT_VOICE = "bf_emma"
 LATENCY_TARGET_P90_S = 1.5
 # Silence Silero VAD waits for before Smart Turn decides whether the caller has finished.
 VAD_STOP_SECS = 0.2
+# Stricter than Pipecat's defaults (0.7, 0.2 s, 0.6) so background voices and noise don't count
+# as the caller: speech must be more certain, last longer, and be closer to the microphone.
+VAD_CONFIDENCE = 0.8
+VAD_START_SECS = 0.3
+VAD_MIN_VOLUME = 0.65
+# While the agent is talking, the caller must say this many words to interrupt it. A cough, a
+# door or someone talking in the background shouldn't cut the agent off.
+INTERRUPT_MIN_WORDS = 2
 # If Smart Turn thinks the caller hasn't finished, how long to wait before answering anyway.
 # Pipecat's default is 5 s; on a phone line that silence feels like the call has dropped.
 USER_TURN_STOP_TIMEOUT_S = 2.0

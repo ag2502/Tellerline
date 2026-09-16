@@ -17,16 +17,23 @@ from pipecat.processors.aggregators.llm_response_universal import (
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.transports.base_transport import BaseTransport, TransportParams
+from pipecat.turns.user_start import MinWordsUserTurnStartStrategy
+from pipecat.turns.user_turn_strategies import UserTurnStrategies
 from pipecat.workers.runner import WorkerRunner
 
 from tellerline.agent.observability import TurnLatencyLog
+from tellerline.audio.noise import RNNoiseSuppressor
 from tellerline.bank.client import BankClient
 from tellerline.brain import GREETING, RouterBrain
 from tellerline.config import (
+    INTERRUPT_MIN_WORDS,
     LLM_MODELS,
     STT_SAMPLE_RATE,
     TTS_DEFAULT_VOICE,
     USER_TURN_STOP_TIMEOUT_S,
+    VAD_CONFIDENCE,
+    VAD_MIN_VOLUME,
+    VAD_START_SECS,
     VAD_STOP_SECS,
 )
 from tellerline.router.classifier import default_classifier
@@ -38,10 +45,38 @@ from tellerline.tts.kokoro_mlx import SAMPLE_RATE as TTS_SAMPLE_RATE
 LLM_MODEL = LLM_MODELS[os.environ.get("TELLERLINE_LLM", "e2b")]
 VOICE = os.environ.get("TELLERLINE_VOICE", TTS_DEFAULT_VOICE)
 TRACING = os.environ.get("TELLERLINE_TRACING", "1") == "1"
+# Noise handling can be switched off to measure its effect: TELLERLINE_NOISE=0.
+NOISE_HANDLING = os.environ.get("TELLERLINE_NOISE", "1") == "1"
 
 transport_params = {
-    "webrtc": lambda: TransportParams(audio_in_enabled=True, audio_out_enabled=True),
+    "webrtc": lambda: TransportParams(
+        audio_in_enabled=True,
+        audio_out_enabled=True,
+        audio_in_filter=RNNoiseSuppressor() if NOISE_HANDLING else None,
+    ),
 }
+
+
+def user_params() -> LLMUserAggregatorParams:
+    """Turn-taking: when the caller has started and finished speaking."""
+    if not NOISE_HANDLING:
+        return LLMUserAggregatorParams(
+            vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=VAD_STOP_SECS)),
+            user_turn_stop_timeout=USER_TURN_STOP_TIMEOUT_S,
+        )
+    vad = VADParams(
+        confidence=VAD_CONFIDENCE,
+        start_secs=VAD_START_SECS,
+        stop_secs=VAD_STOP_SECS,
+        min_volume=VAD_MIN_VOLUME,
+    )
+    return LLMUserAggregatorParams(
+        vad_analyzer=SileroVADAnalyzer(params=vad),
+        user_turn_strategies=UserTurnStrategies(
+            start=[MinWordsUserTurnStartStrategy(min_words=INTERRUPT_MIN_WORDS, use_interim=False)],
+        ),
+        user_turn_stop_timeout=USER_TURN_STOP_TIMEOUT_S,
+    )
 
 
 async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
@@ -56,11 +91,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
     context = LLMContext()
     user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
-        context,
-        user_params=LLMUserAggregatorParams(
-            vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=VAD_STOP_SECS)),
-            user_turn_stop_timeout=USER_TURN_STOP_TIMEOUT_S,
-        ),
+        context, user_params=user_params()
     )
     pipeline = Pipeline(
         [
