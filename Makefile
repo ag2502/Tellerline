@@ -1,6 +1,6 @@
 PY := .venv/bin/python
 
-.PHONY: setup download bench bench-turn bench-tts bench-stt bench-memory bench-router bench-dialogues bench-contention report samples test lint format
+.PHONY: setup download bench bench-caller bench-turn bench-tts bench-stt bench-memory bench-router bench-dialogues bench-contention report samples test lint format
 
 setup:
 	uv venv .venv --python 3.12
@@ -29,6 +29,10 @@ bench-dialogues:
 
 bench-contention:
 	$(PY) -m bench.contention --model e2b
+
+# Needs the agent already serving on --url; left out of `bench` for that reason.
+bench-caller:
+	$(PY) -m bench.caller --turns 220
 
 samples:
 	$(PY) scripts/voice_samples.py

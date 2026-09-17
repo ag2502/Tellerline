@@ -48,7 +48,8 @@ def timeline(spans: list[dict], call: str | None = None, last: int | None = None
         attrs = conversation["attributes"]
         started = _time(conversation["start_time"]).astimezone()
         lines.append(
-            f"\n{attrs.get('conversation.id')}  started {started:%H:%M:%S}, lasted {_ms(conversation) / 1000:.1f} s"
+            f"\n{attrs.get('conversation.id')}  started {started:%H:%M:%S}, "
+            f"lasted {_ms(conversation) / 1000:.1f} s"
         )
         turns = sorted(children[conversation["context"]["span_id"]], key=lambda s: s["start_time"])
         for turn in turns:
@@ -74,9 +75,8 @@ def timeline(spans: list[dict], call: str | None = None, last: int | None = None
                     score = a.get("tellerline.intent.score")
                     routing = f"{route}" + (f" (intent {intent} {score:.2f})" if intent else "")
                     action = a.get("tellerline.action") or "reply"
-                    lines.append(
-                        f'    decided {ttfb_text:<22} {routing}, {action}: "{a.get("tellerline.spoken", a.get("output", ""))}"'
-                    )
+                    spoken = a.get("tellerline.spoken", a.get("output", ""))
+                    lines.append(f'    decided {ttfb_text:<22} {routing}, {action}: "{spoken}"')
                 elif span["name"] == "tts":
                     lines.append(f'    spoke   {ttfb_text:<22} "{a.get("text", "")}"')
     missing = [s for s in spans if s.get("parent_id") and s["parent_id"] not in by_id]
