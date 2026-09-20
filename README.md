@@ -68,10 +68,17 @@ Why each choice was made, with the measurements behind it: [docs/DECISIONS.md](d
 Requires macOS on Apple Silicon and [uv](https://docs.astral.sh/uv/).
 
 ```bash
+make setup      # creates .venv and installs the package with its dev extras
+make download   # fetches the models, about 12.6 GB
+```
+
+Or the same steps by hand:
+
+```bash
 uv venv .venv --python 3.12
 source .venv/bin/activate
 uv pip install -e ".[dev]"
-python scripts/download_models.py   # about 12.6 GB
+python scripts/download_models.py
 ```
 
 ## Call the agent
@@ -88,19 +95,38 @@ the mock bank and the Gemma 4 server itself.
 
 ## Benchmarks
 
+`make bench` runs the whole suite one stage at a time, so the stages don't compete for the
+chip, and finishes by writing [results/PHASE0.md](results/PHASE0.md). Each stage also has its
+own target:
+
 ```bash
 make test                                        # unit tests
-python -m bench.turn                             # Smart Turn inference time
-python -m bench.tts                              # Kokoro runtimes: ONNX (CPU, CoreML) vs MLX
-python -m bench.stt                              # Parakeet on browser- and phone-quality audio
-python -m bench.memory                           # memory per model
-python -m bench.router                           # intent classifier accuracy, thresholds, latency
+make lint                                        # ruff check and format --check
+make format                                      # apply both fixes
+python -m bench.turn                             # make bench-turn: Smart Turn inference time
+python -m bench.tts                              # make bench-tts: ONNX (CPU, CoreML) vs MLX
+python -m bench.stt                              # make bench-stt: browser- and phone-quality audio
+python -m bench.memory                           # make bench-memory: memory per model
+python -m bench.router                           # make bench-router: accuracy, thresholds, latency
 python -m bench.llm --split dev --mode tools     # native tool calling (the approach replaced)
-python -m bench.dialogues --split test           # single prompt vs router, E2B vs E4B
-python -m bench.contention                       # Kokoro and Gemma sharing the GPU
-python -m bench.report                           # writes results/PHASE0.md
-python scripts/voice_samples.py                  # British voice samples in results/samples/
+python -m bench.dialogues --split test           # make bench-dialogues: single prompt vs router
+python -m bench.contention                       # make bench-contention: Kokoro and Gemma on the GPU
+python -m bench.report                           # make report: writes results/PHASE0.md
+python scripts/voice_samples.py                  # make samples: British voices in results/samples/
 ```
+
+### The latency gate
+
+The Phase 1 gate — 220 automated call turns, p90 within 1.5 s — drives a real WebRTC call
+rather than the pipeline in isolation, so it needs the agent already serving. Start the agent
+in one shell and run the caller in another:
+
+```bash
+python -m tellerline.agent   # shell one
+make bench-caller            # shell two
+```
+
+It's left out of `make bench` for that reason.
 
 Prompts, examples and thresholds are tuned only on the `dev` split; results are reported on
 `test`.
