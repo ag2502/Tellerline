@@ -11,7 +11,6 @@ from pipecat.turns.user_start import MinWordsUserTurnStartStrategy
 
 from tellerline.agent.turns import (
     GoodbyeStopStrategy,
-    MuteWhileEndingStrategy,
     VADWhenAgentSilentStartStrategy,
     turn_start_strategies,
     turn_stop_strategies,
@@ -55,12 +54,15 @@ def test_interruptions_still_need_words():
     assert isinstance(second, MinWordsUserTurnStartStrategy)
 
 
-async def test_the_caller_is_muted_once_the_agent_has_ended_the_call():
+async def test_nothing_the_caller_says_starts_a_turn_once_the_call_has_ended():
     ending = False
-    strategy = MuteWhileEndingStrategy(lambda: ending)
-    assert await strategy.process_frame(VADUserStartedSpeakingFrame()) is False
+    voice, words = turn_start_strategies(lambda: ending)
+    assert await started_turns(voice, [VADUserStartedSpeakingFrame()]) == 1
     ending = True
-    assert await strategy.process_frame(VADUserStartedSpeakingFrame()) is True
+    voice, words = turn_start_strategies(lambda: ending)
+    assert await started_turns(voice, [VADUserStartedSpeakingFrame()]) == 0
+    frames = [BotStartedSpeakingFrame(), TranscriptionFrame("Thanks, bye", "caller", "now")]
+    assert await started_turns(words, frames) == 0
 
 
 async def stopped_after(words: str, still_speaking: bool = False) -> bool:
