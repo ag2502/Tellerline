@@ -1,5 +1,6 @@
 from datetime import date
 
+import pytest
 from pipecat.frames.frames import (
     BotStoppedSpeakingFrame,
     EndWorkerFrame,
@@ -213,6 +214,25 @@ async def test_the_call_ends_only_after_a_goodbye():
     service, _, bank, _ = make_service([["ACTION end"]], {"end_call": {"status": "ending"}})
     text, up = await spoken_text(service, "Grand, that's all I needed. Cheers.", then=SPOKEN)
     assert any(isinstance(frame, EndWorkerFrame) for frame in up)
+
+
+@pytest.mark.parametrize(
+    "hello", ["Hi, it's Naim.", "Hello?", "Good morning, this is Seán Murphy."]
+)
+async def test_a_caller_who_has_only_said_hello_is_not_transferred(hello):
+    # Demo-call failure: "Hi, it's Niamh", heard as "Naim", read as a request for a person.
+    service, _, bank, _ = make_service([["ACTION transfer"]], {}, verified=False)
+    text, up = await spoken_text(service, hello)
+    assert text == "Hello. How can I help you today?"
+    assert bank.calls == []
+
+
+async def test_a_caller_who_asks_for_a_person_is_transferred():
+    service, _, bank, _ = make_service(
+        [["ACTION transfer"]], {"transfer_to_human": {"status": "queued"}}, verified=False
+    )
+    await spoken_text(service, "Hi, can I talk to a real person please?")
+    assert [call.tool for call in bank.calls] == ["transfer_to_human"]
 
 
 async def test_the_call_ends_anyway_if_speech_never_finishes():

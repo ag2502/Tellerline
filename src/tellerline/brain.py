@@ -51,6 +51,14 @@ _GOODBYE = re.compile(
     r"|\btalk (?:to you )?soon\b|\bsee you\b",
     re.I,
 )
+# A transfer can't be undone either, and a caller who has only said hello and who they are
+# ("Hi, it's Niamh", which Parakeet heard as "Naim") hasn't asked for anything, let alone a person.
+_GREETING_ONLY = re.compile(
+    r"^\s*(?:hi|hello|hey|hiya|good (?:morning|afternoon|evening))\b[\s,.!?]*"
+    r"(?:(?:it'?s|this is|my name is|i'?m|i am)\s+(?:[\w'-]+[\s,.]*){1,3})?[\s.!?]*$",
+    re.I,
+)
+HELLO_AGAIN = "Hello. How can I help you today?"
 # Values the bank acts on that only the caller can supply. The model must not invent them, copy
 # them from an example or work them out from another number (the last four digits of a customer
 # number are not a card), so each must appear in something the caller actually said.
@@ -170,6 +178,8 @@ class SinglePromptBrain:
             return Outcome(say=DIDNT_CATCH, reason="unusable action line")
         if action.tool == "end_call" and not _GOODBYE.search(plan.text):
             return Outcome(say=ANYTHING_ELSE, reason="the caller hasn't said goodbye")
+        if action.tool == "transfer_to_human" and _GREETING_ONLY.search(plan.text):
+            return Outcome(say=HELLO_AGAIN, reason="the caller has only said hello")
         action = self._grounded(action, plan.text)
         if not action.complete:
             return Outcome(
