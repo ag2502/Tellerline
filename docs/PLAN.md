@@ -41,7 +41,7 @@ Each phase ends at a gate; the next phase starts only when the gate passes.
 - **Gate:** projected p90 within 1.5 s, a Gemma 4 model chosen, and every model fits in memory
   together.
 
-### Phase 1: Browser call, end to end
+### Phase 1: Browser call, end to end (gate passed, see D-026)
 
 - Mock bank API (FastAPI, SQLite, synthetic customers).
 - Pipecat pipeline with SmallWebRTC and the AI disclosure at the start of every call.

@@ -303,5 +303,12 @@ Parakeet writes each pause as a full stop, and the grace turned Smart Turn's cor
 finished" into a reply over the caller. Meanwhile no clean turn took the slow 2 s path, so the
 grace bought nothing. Separately, the hold fired on any date ("What's the weather like today?")
 and on a date of birth that completed a number given a turn earlier, adding 1 s to those turns.
+**Result:** The 220-turn gate after this change, on the MacBook Air M5 running on battery with
+other apps open (6.9 GB in swap): 208 caller turns spoken, 182 replies measured and none
+unanswered; p50 1.01 s, p90 1.40 s, p95 1.48 s, within the 1.5 s target. 26 turns were overlaps,
+against 85 in the gate before (`results/caller-20261005T120429Z.jsonl`). Most of those left are
+Smart Turn ending the turn at a pause inside a synthetic caller's sentence ("A cash machine in
+Galway | swallowed my card"), plus a few where Parakeet misheard a customer number read digit by
+digit, so the identity hold didn't apply.
 **Considered:** A longer VAD silence (adds latency to every turn); keeping the grace with more
 words required (Parakeet punctuates long fragments too).

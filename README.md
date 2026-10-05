@@ -6,9 +6,10 @@ transactions, freezing a lost card, disputes, and handing over to a human. Speec
 recognition, the language model and the voice all run on one MacBook Air M5 with 16 GB of
 memory. No cloud APIs, no running costs.
 
-> **Status: Phase 1 in progress.** The voice agent runs end to end over WebRTC with a mock bank;
-> the latency gate (200+ automated calls' turns within 1.5 s at p90) is being measured.
-> See [docs/PLAN.md](docs/PLAN.md) and the full [Phase 0 results](results/PHASE0.md).
+> **Status: Phase 1 gate passed.** The voice agent runs end to end over WebRTC with a mock bank.
+> An automated caller timed 182 replies over 220 scripted turns: p50 1.01 s, p90 1.40 s, within
+> the 1.5 s target ([D-026](docs/DECISIONS.md)). See [docs/PLAN.md](docs/PLAN.md) and the
+> [Phase 0 results](results/PHASE0.md).
 
 ## How a turn works
 
