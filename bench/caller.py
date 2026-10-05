@@ -18,6 +18,7 @@ Usage (with ``python -m tellerline.agent`` running):
 import argparse
 import asyncio
 import fractions
+import functools
 import hashlib
 import json
 import re
@@ -25,6 +26,7 @@ import subprocess
 import sys
 import time
 from collections import deque
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -242,19 +244,21 @@ class BotEar:
     ended: bool = False
     _loud: bool = False
 
+    def hear(self, samples: np.ndarray, now: float) -> None:
+        """One frame of the agent's audio, as floats in [-1, 1], arriving at `now`."""
+        if float(np.sqrt(np.mean(samples**2))) >= SPEECH_RMS:
+            if not self._loud:
+                self.onsets.append(now)
+            self._loud = True
+            self.last_sound = now
+        elif now - self.last_sound > 0.3:
+            self._loud = False
+
     async def listen(self, track: MediaStreamTrack) -> None:
         try:
             while True:
                 frame = await track.recv()
-                samples = frame.to_ndarray().astype(np.float32) / 32768.0
-                now = time.perf_counter()
-                if float(np.sqrt(np.mean(samples**2))) >= SPEECH_RMS:
-                    if not self._loud:
-                        self.onsets.append(now)
-                    self._loud = True
-                    self.last_sound = now
-                elif now - self.last_sound > 0.3:
-                    self._loud = False
+                self.hear(frame.to_ndarray().astype(np.float32) / 32768.0, time.perf_counter())
         except MediaStreamError:
             self.ended = True
 
@@ -313,46 +317,71 @@ async def place_call(
         answer = response.json()
     await pc.setRemoteDescription(RTCSessionDescription(sdp=answer["sdp"], type=answer["type"]))
 
-    turns = []
     try:
-        # The greeting.
-        if await ear.wait_onset_after(0.0, timeout=30) is None:
-            raise TimeoutError("The agent never greeted the caller")
-        await ear.wait_quiet(BOT_DONE_SILENCE_S)
-
-        for index, line in enumerate(lines):
-            if ear.ended or pc.connectionState in ("closed", "failed"):
-                break
-            await asyncio.sleep(CALLER_PAUSE_S)
-            try:
-                # If the agent hangs up, nobody reads the microphone track any more.
-                speech_end = await asyncio.wait_for(
-                    caller.say(audio[line]), timeout=len(audio[line]) / RATE + 3.0
-                )
-            except TimeoutError:
-                break
-            seen = len(reports)
-            speech_s = len(audio[line]) / RATE
-            onset = await ear.wait_onset_after(speech_end, REPLY_TIMEOUT_S)
-            # The agent started talking before the caller had finished (it answered at a pause
-            # mid-sentence): there's no reply gap to measure, so the turn is counted apart.
-            overlap = any(speech_end - speech_s + 0.3 < t < speech_end for t in ear.onsets)
-            record = {
-                "turn": index,
-                "caller": line,
-                "caller_speech_s": speech_s,
-                "overlap": overlap,
-                "latency_s": None if onset is None or overlap else onset - speech_end,
-            }
-            turns.append(record)
-            if onset is None:
-                break
-            await ear.wait_quiet(BOT_DONE_SILENCE_S)
-            record["agent"] = agent_report(reports[seen:])
+        return await converse(
+            caller.say,
+            ear,
+            lines,
+            audio,
+            RATE,
+            connected=lambda: pc.connectionState not in ("closed", "failed"),
+            reports=reports,
+        )
     finally:
         for task in listening:
             task.cancel()
         await pc.close()
+
+
+async def converse(
+    say: Callable[[np.ndarray], asyncio.Future],
+    ear: BotEar,
+    lines: list[str],
+    audio: dict[str, np.ndarray],
+    rate: int,
+    connected: Callable[[], bool],
+    reports: list[dict] | None = None,
+) -> list[dict]:
+    """The caller's side of a call, whatever the line: wait out the greeting, then say each line
+    and time the reply from the last sample of the caller's speech to the first of the agent's.
+
+    `say` queues a line of `rate` Hz audio and resolves with the time its last sample went out;
+    `reports` collects the agent's own account of each turn, where the line carries it.
+    """
+    reports = [] if reports is None else reports
+    turns = []
+    # The greeting.
+    if await ear.wait_onset_after(0.0, timeout=30) is None:
+        raise TimeoutError("The agent never greeted the caller")
+    await ear.wait_quiet(BOT_DONE_SILENCE_S)
+
+    for index, line in enumerate(lines):
+        if ear.ended or not connected():
+            break
+        await asyncio.sleep(CALLER_PAUSE_S)
+        speech_s = len(audio[line]) / rate
+        try:
+            # If the agent hangs up, nobody takes the caller's audio any more.
+            speech_end = await asyncio.wait_for(say(audio[line]), timeout=speech_s + 3.0)
+        except TimeoutError:
+            break
+        seen = len(reports)
+        onset = await ear.wait_onset_after(speech_end, REPLY_TIMEOUT_S)
+        # The agent started talking before the caller had finished (it answered at a pause
+        # mid-sentence): there's no reply gap to measure, so the turn is counted apart.
+        overlap = any(speech_end - speech_s + 0.3 < t < speech_end for t in ear.onsets)
+        record = {
+            "turn": index,
+            "caller": line,
+            "caller_speech_s": speech_s,
+            "overlap": overlap,
+            "latency_s": None if onset is None or overlap else onset - speech_end,
+        }
+        turns.append(record)
+        if onset is None:
+            break
+        await ear.wait_quiet(BOT_DONE_SILENCE_S)
+        record["agent"] = agent_report(reports[seen:])
     return turns
 
 
@@ -397,7 +426,16 @@ def planned_calls(args: argparse.Namespace) -> tuple[list[list[str]], dict[str, 
     return call_scripts(args.turns), None
 
 
-async def run(args: argparse.Namespace) -> None:
+PlaceCall = Callable[[list[str], dict[str, np.ndarray], np.ndarray | None], Awaitable[list[dict]]]
+
+
+async def run(args: argparse.Namespace, place: PlaceCall | None = None, bench: str = "caller"):
+    """Place the planned calls, `args.concurrency` at a time, and write the results.
+
+    `place` makes one call over some line (WebRTC to `args.url` unless given), and `bench` names
+    the results file.
+    """
+    place = place or functools.partial(place_call, args.url)
     scripts, voices = planned_calls(args)
     lines = {line for call in scripts for line in call}
     # Render in a child process: its MLX memory is returned to the system when it exits, so the
@@ -413,7 +451,7 @@ async def run(args: argparse.Namespace) -> None:
     latencies: list[float] = []
     timeouts = overlaps = 0
     config = {
-        "url": args.url,
+        "url": getattr(args, "url", None),
         "turns": args.turns,
         "calls": len(scripts),
         "background_db": args.background_db,
@@ -429,7 +467,7 @@ async def run(args: argparse.Namespace) -> None:
         while waiting:
             number, lines = waiting.pop(0)
             try:
-                turns = await place_call(args.url, lines, audio, background)
+                turns = await place(lines, audio, background)
             except Exception as error:
                 print(f"call {number}/{len(scripts)} failed: {type(error).__name__}: {error}")
                 continue
@@ -448,7 +486,7 @@ async def run(args: argparse.Namespace) -> None:
             )
             await asyncio.sleep(1.0)
 
-    with ResultWriter("caller", config) as writer:
+    with ResultWriter(bench, config) as writer:
         await asyncio.gather(*(line_worker(n) for n in range(args.concurrency)))
         stats = summarize(latencies)
         passed = bool(latencies) and stats["p90"] <= LATENCY_TARGET_P90_S
