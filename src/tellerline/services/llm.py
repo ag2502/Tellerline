@@ -5,6 +5,7 @@ for any LLM, but replaces how a response is produced. The service talks to the l
 server; it never uses tool calling.
 """
 
+import asyncio
 import time
 from dataclasses import dataclass, field
 from datetime import date
@@ -12,7 +13,7 @@ from typing import Any, Protocol
 
 from loguru import logger
 from opentelemetry import trace
-from pipecat.frames.frames import EndTaskFrame
+from pipecat.frames.frames import BotStoppedSpeakingFrame, EndWorkerFrame, Frame
 from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.frame_processor import FrameDirection
 from pipecat.processors.frameworks.rtvi.frames import RTVIServerMessageFrame
@@ -31,6 +32,11 @@ NOT_VERIFIED_TRANSFER = (
     "I'm sorry, I still can't verify your details, so I'll transfer you to a colleague."
 )
 ENDS_CALL = frozenset({"end_call", "transfer_to_human"})
+# A call that ends (goodbye, or a transfer) waits for the agent to finish its last words: ending
+# straight away disconnects the WebRTC peer before the goodbye has left the Mac. A short grace
+# lets the last audio drain, and the call ends anyway if speech never finishes.
+END_GRACE_S = 0.5
+END_TIMEOUT_S = 15.0
 
 
 class Brain(Protocol):
@@ -97,6 +103,8 @@ class TellerlineLLMService(OpenAILLMService):
         llm_url: str | None = None,
         max_failed_verifications: int = 3,
         timeline: Timeline | None = None,
+        end_grace_s: float = END_GRACE_S,
+        end_timeout_s: float = END_TIMEOUT_S,
         **kwargs,
     ):
         super().__init__(
@@ -112,6 +120,10 @@ class TellerlineLLMService(OpenAILLMService):
         self._max_failed_verifications = max_failed_verifications
         self._failed_verifications = 0
         self._timeline = timeline
+        self._end_grace_s = end_grace_s
+        self._end_timeout_s = end_timeout_s
+        self._ending = False
+        self._end_timer: asyncio.Task | None = None
 
     @traced_llm
     async def _process_context(self, context: LLMContext):
@@ -168,8 +180,22 @@ class TellerlineLLMService(OpenAILLMService):
         await self._report(plan, text, splitter.text.strip(), first_token_s, model_s, result)
 
         if action and action.tool in ENDS_CALL:
-            # Ends after what's already queued has been spoken.
-            await self.push_frame(EndTaskFrame(), FrameDirection.UPSTREAM)
+            self._ending = True
+            self._end_timer = self.create_task(self._end_after(self._end_timeout_s))
+
+    async def process_frame(self, frame: Frame, direction: FrameDirection):
+        await super().process_frame(frame, direction)
+        if isinstance(frame, BotStoppedSpeakingFrame) and self._ending:
+            # The goodbye (or transfer message) has been spoken; let it drain, then hang up.
+            if self._end_timer is not None:
+                await self.cancel_task(self._end_timer)
+            self._end_timer = self.create_task(self._end_after(self._end_grace_s))
+
+    async def _end_after(self, seconds: float) -> None:
+        await asyncio.sleep(seconds)
+        if self._ending:
+            self._ending = False
+            await self.push_frame(EndWorkerFrame(), FrameDirection.UPSTREAM)
 
     async def _report(
         self,

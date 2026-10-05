@@ -1,8 +1,13 @@
 from datetime import date
 
-from pipecat.frames.frames import EndTaskFrame, LLMContextFrame, LLMTextFrame
+from pipecat.frames.frames import (
+    BotStoppedSpeakingFrame,
+    EndWorkerFrame,
+    LLMContextFrame,
+    LLMTextFrame,
+)
 from pipecat.processors.aggregators.llm_context import LLMContext
-from pipecat.tests.utils import run_test
+from pipecat.tests.utils import SleepFrame, run_test
 
 from tellerline.actions import Action
 from tellerline.brain import SinglePromptBrain
@@ -64,7 +69,7 @@ def make_service(responses, bank_results, verified=True, **kwargs):
     brain = SinglePromptBrain(TODAY, verified=verified)
     bank = FakeBank(bank_results)
     service = TellerlineLLMService(
-        brain=brain, bank=bank, model="test-model", today=TODAY, **kwargs
+        brain=brain, bank=bank, model="test-model", today=TODAY, **{"end_grace_s": 0.0, **kwargs}
     )
     completions = FakeCompletions(responses)
     service._client = type(
@@ -79,10 +84,14 @@ def context_with(text):
     return context
 
 
-async def spoken_text(service, *texts):
-    frames = [LLMContextFrame(context_with(text)) for text in texts]
+async def spoken_text(service, *texts, then=()):
+    frames = [LLMContextFrame(context_with(text)) for text in texts] + list(then)
     down, up = await run_test(service, frames_to_send=frames)
     return "".join(f.text for f in down if isinstance(f, LLMTextFrame)), up
+
+
+# The agent finishing its last sentence, and a moment for the hang-up to follow.
+SPOKEN = (SleepFrame(0.05), BotStoppedSpeakingFrame(), SleepFrame(0.05))
 
 
 def test_last_user_text_handles_string_and_parts():
@@ -169,10 +178,12 @@ async def test_repeated_failed_verification_transfers_the_caller():
     service, brain, bank, _ = make_service(
         [line, line], bank_results, verified=False, max_failed_verifications=2
     )
-    text, up = await spoken_text(service, "12345678, 1 January 1990", "12345678, 1 January 1990")
+    text, up = await spoken_text(
+        service, "12345678, 1 January 1990", "12345678, 1 January 1990", then=SPOKEN
+    )
     assert NOT_VERIFIED_TRANSFER in text
     assert not brain.verified
-    assert any(isinstance(frame, EndTaskFrame) for frame in up)
+    assert any(isinstance(frame, EndWorkerFrame) for frame in up)
     assert [call.tool for call in bank.calls][-1] == "transfer_to_human"
 
 
@@ -191,12 +202,25 @@ async def test_the_call_ends_only_after_a_goodbye():
     service, _, bank, _ = make_service([["ACTION end"]], {})
     text, up = await spoken_text(service, "No, I'm sure it'll turn up.")
     assert text == "No problem. Is there anything else I can help with?"
-    assert not any(isinstance(frame, EndTaskFrame) for frame in up)
+    assert not any(isinstance(frame, EndWorkerFrame) for frame in up)
 
     service, _, bank, _ = make_service([["ACTION end"]], {"end_call": {"status": "ending"}})
     text, up = await spoken_text(service, "Grand, that's all I needed. Cheers.")
     assert text == "Thanks for calling Tellerline Bank. Goodbye."
-    assert any(isinstance(frame, EndTaskFrame) for frame in up)
+    # Not yet: hanging up now would cut the goodbye off before the caller hears it.
+    assert not any(isinstance(frame, EndWorkerFrame) for frame in up)
+
+    service, _, bank, _ = make_service([["ACTION end"]], {"end_call": {"status": "ending"}})
+    text, up = await spoken_text(service, "Grand, that's all I needed. Cheers.", then=SPOKEN)
+    assert any(isinstance(frame, EndWorkerFrame) for frame in up)
+
+
+async def test_the_call_ends_anyway_if_speech_never_finishes():
+    service, _, bank, _ = make_service(
+        [["ACTION end"]], {"end_call": {"status": "ending"}}, end_timeout_s=0.01
+    )
+    _, up = await spoken_text(service, "Bye now.", then=(SleepFrame(0.1),))
+    assert any(isinstance(frame, EndWorkerFrame) for frame in up)
 
 
 async def test_each_turn_is_reported_to_the_timeline_and_the_call_page():
