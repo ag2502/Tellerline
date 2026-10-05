@@ -125,7 +125,8 @@ class TellerlineLLMService(OpenAILLMService):
         self._identity_hold_s = identity_hold_s
         self._end_grace_s = end_grace_s
         self._end_timeout_s = end_timeout_s
-        self._ending = False
+        self._ending = False  # the agent has ended the call; it stays ended
+        self._hung_up = False
         self._end_timer: asyncio.Task | None = None
 
     @traced_llm
@@ -204,7 +205,7 @@ class TellerlineLLMService(OpenAILLMService):
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         await super().process_frame(frame, direction)
-        if isinstance(frame, BotStoppedSpeakingFrame) and self._ending:
+        if isinstance(frame, BotStoppedSpeakingFrame) and self._ending and not self._hung_up:
             # The goodbye (or transfer message) has been spoken; let it drain, then hang up.
             if self._end_timer is not None:
                 await self.cancel_task(self._end_timer)
@@ -212,8 +213,10 @@ class TellerlineLLMService(OpenAILLMService):
 
     async def _end_after(self, seconds: float) -> None:
         await asyncio.sleep(seconds)
-        if self._ending:
-            self._ending = False
+        # The worker finishes what's already in the pipeline before it ends, so `ending` stays
+        # set: a "bye" heard in that time must not start another turn.
+        if self._ending and not self._hung_up:
+            self._hung_up = True
             await self.push_frame(EndWorkerFrame(), FrameDirection.UPSTREAM)
 
     async def _report(

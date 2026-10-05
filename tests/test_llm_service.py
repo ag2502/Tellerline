@@ -213,7 +213,9 @@ async def test_the_call_ends_only_after_a_goodbye():
 
     service, _, bank, _ = make_service([["ACTION end"]], {"end_call": {"status": "ending"}})
     text, up = await spoken_text(service, "Grand, that's all I needed. Cheers.", then=SPOKEN)
-    assert any(isinstance(frame, EndWorkerFrame) for frame in up)
+    assert [type(frame) for frame in up].count(EndWorkerFrame) == 1
+    # The call stays ended while the pipeline finishes: a "bye" now starts no new turn.
+    assert service.ending
 
 
 @pytest.mark.parametrize(
