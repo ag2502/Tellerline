@@ -40,6 +40,8 @@ def load_parakeet(model_id: str = STT_MODEL) -> Transcriber:
 
     model = load_model(model_id)
     model.set_dtype(mx.bfloat16)
+    # MLX is lazy: until the conversion is evaluated, the float32 weights stay in memory.
+    mx.eval(model.parameters())
     return model
 
 

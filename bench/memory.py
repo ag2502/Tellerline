@@ -1,6 +1,8 @@
 """Measure the memory each model needs, one component per fresh process.
 
-All components run on MLX and report unified (GPU) memory through ``mlx.core``.
+The models on MLX report unified (GPU) memory through ``mlx.core``; the intent router runs on
+ONNX Runtime on the CPU and reports the process's peak resident memory. Each is loaded the way
+the agent loads it (Parakeet in bfloat16, D-019).
 
 Usage:
     python -m bench.memory                      # all components
@@ -20,7 +22,7 @@ from bench.common import ResultWriter
 from tellerline.config import LLM_CHAT_TEMPLATE_ARGS, LLM_MODELS, STT_MODEL, STT_SAMPLE_RATE
 
 GB = 1024**3
-COMPONENTS = [f"llm-{key}" for key in LLM_MODELS] + ["stt", "tts"]
+COMPONENTS = [f"llm-{key}" for key in LLM_MODELS] + ["stt", "tts", "router"]
 
 
 def peak_rss_gb() -> float:
@@ -52,9 +54,10 @@ def measure_llm(key: str) -> dict:
 
 def measure_stt() -> dict:
     import mlx.core as mx
-    from mlx_audio.stt.utils import load_model
 
-    model = load_model(STT_MODEL)
+    from tellerline.services.stt import load_parakeet
+
+    model = load_parakeet(STT_MODEL)
     loaded = mx.get_active_memory() / GB
     rng = np.random.default_rng(0)
     audio = (rng.standard_normal(STT_SAMPLE_RATE * 8) * 0.05).astype(np.float32)
@@ -83,10 +86,23 @@ def measure_tts() -> dict:
     }
 
 
+def measure_router() -> dict:
+    from tellerline.router.classifier import default_classifier
+
+    before = peak_rss_gb()
+    default_classifier().predict("What's the balance on my current account?")
+    return {
+        "weights_gb": None,
+        "peak_gb": None,
+        "rss_peak_gb": peak_rss_gb(),
+        "rss_before_gb": before,
+    }
+
+
 def measure(component: str) -> dict:
     if component.startswith("llm-"):
         return measure_llm(component.removeprefix("llm-"))
-    return {"stt": measure_stt, "tts": measure_tts}[component]()
+    return {"stt": measure_stt, "tts": measure_tts, "router": measure_router}[component]()
 
 
 def main() -> None:
@@ -111,7 +127,10 @@ def main() -> None:
             ).stdout
             results[component] = json.loads(output.strip().splitlines()[-1])
             writer.sample(component=component, **results[component])
-            print(component, {k: round(v, 2) for k, v in results[component].items()})
+            print(
+                component,
+                {k: round(v, 2) for k, v in results[component].items() if v is not None},
+            )
         writer.summary(components=results)
     print(f"Results: {writer.path}")
 
