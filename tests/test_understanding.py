@@ -58,6 +58,10 @@ def test_digits(said, written):
         ("200 euro a month", "€200 a month"),
         ("7.50 euro", "€7.50"),
         ("and fifteen euro", "and €15"),
+        # Demo call: a pause after "euro" written as a full stop, "cent" heard as "sent".
+        ("It was 34 euro. And 60 sent last Tuesday.", "It was €34.60 last Tuesday."),
+        ("34 euro, and sixty cent", "€34.60"),
+        ("I sent 20 euro to my sister", "I sent €20 to my sister"),
         ("49.99 by StreamFlix", "49.99 by StreamFlix"),
     ],
 )

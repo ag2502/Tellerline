@@ -213,6 +213,11 @@ def _euro(whole: str, cents: str | None = None) -> str:
     return f"€{int(whole)}"
 
 
+# Parakeet sometimes writes "cent" as "sent", and a pause after "euro" as a full stop:
+# "It was 34 euro. And 60 sent last Tuesday."
+_CENT = r"(?:cents?|sent)"
+
+
 def normalise_money(text: str) -> str:
     """'34 euro 60' -> '€34.60', '9 euro and 99 cent' -> '€9.99', 'forty-five euro' -> '€45'."""
 
@@ -231,13 +236,13 @@ def normalise_money(text: str) -> str:
         return _euro(match.group(1), str(cents))
 
     text = re.sub(
-        rf"\b(\d+)\s*euros?\s+(?:and\s+)?({_SPELLED})(?:\s+cents?)?\b",
+        rf"\b(\d+)\s*euros?[.,]?\s+(?:and\s+)?({_SPELLED})(?:\s+{_CENT})?\b",
         spelled_cents,
         text,
         flags=re.I,
     )
     text = re.sub(
-        r"\b(\d+)\s*euros?\s+and\s+(\d{1,2})\s*cents?\b",
+        rf"\b(\d+)\s*euros?[.,]?\s+and\s+(\d{{1,2}})\s*{_CENT}\b",
         lambda m: _euro(m[1], m[2]),
         text,
         flags=re.I,
