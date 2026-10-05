@@ -287,3 +287,21 @@ p90 1.76 s with overlap artefacts counted as fast turns; after, 28 turns measure
 none without a reply, p50 0.92 s, p90 1.13 s, p95 1.19 s. The full 220-turn gate follows.
 **Considered:** A shorter VAD silence (0.2 s is already short); disabling the noise rule (it
 protects real calls in noisy rooms).
+
+## D-026 No punctuation grace; the identity hold reads the whole call (2026-10-05)
+
+**Decision:** The rule from D-025 that released a turn 0.5 s after Smart Turn doubted it, when
+Parakeet's transcript ended a sentence, is removed: Smart Turn's verdict stands, with Pipecat's
+2 s fallback. The 1 s hold now applies only when this turn gives a customer number or a date
+of birth (a date at least ten years back, not "yesterday") and the call still lacks the other.
+Digit groups split by pauses ("four five one two. seven eight nine zero", "573. 02918") are
+joined when they make the eight digits of a customer number; dates are never joined.
+**Why:** The first full 220-turn gate after D-025 measured 135 clean turns (p50 0.96 s, p90
+1.50 s) and 85 overlaps, turns where the agent spoke before the caller had finished. The
+synthetic callers pause mid-sentence (at commas, around digits read one by one, inside "49.99"),
+Parakeet writes each pause as a full stop, and the grace turned Smart Turn's correct "not
+finished" into a reply over the caller. Meanwhile no clean turn took the slow 2 s path, so the
+grace bought nothing. Separately, the hold fired on any date ("What's the weather like today?")
+and on a date of birth that completed a number given a turn earlier, adding 1 s to those turns.
+**Considered:** A longer VAD silence (adds latency to every turn); keeping the grace with more
+words required (Parakeet punctuates long fragments too).

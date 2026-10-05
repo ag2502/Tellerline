@@ -23,7 +23,7 @@ from pipecat.workers.runner import WorkerRunner
 
 from tellerline.agent.observability import TurnLatencyLog
 from tellerline.agent.recorder import CallRecorder, CallTimeline, TimelineObserver
-from tellerline.agent.turns import turn_start_strategies, turn_stop_strategies
+from tellerline.agent.turns import turn_start_strategies
 from tellerline.audio.noise import RNNoiseSuppressor
 from tellerline.bank.client import BankClient
 from tellerline.brain import GREETING, RouterBrain
@@ -76,9 +76,7 @@ def user_params() -> LLMUserAggregatorParams:
     )
     return LLMUserAggregatorParams(
         vad_analyzer=SileroVADAnalyzer(params=vad),
-        user_turn_strategies=UserTurnStrategies(
-            start=turn_start_strategies(), stop=turn_stop_strategies()
-        ),
+        user_turn_strategies=UserTurnStrategies(start=turn_start_strategies()),
         user_turn_stop_timeout=USER_TURN_STOP_TIMEOUT_S,
     )
 

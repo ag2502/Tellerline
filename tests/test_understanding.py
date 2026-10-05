@@ -27,6 +27,11 @@ MONDAY = date(2026, 9, 14)
         ("It's 5 8 3 3 1 0 2 6.", "It's 58331026."),
         ("It's 6 2 0 4, 1 9 5 8, and", "It's 62041958, and"),
         ("My customer number is 3011 8842.", "My customer number is 30118842."),
+        # Read in groups with pauses that speech recognition wrote as full stops.
+        ("It's four five one two. seven eight nine zero.", "It's 45127890."),
+        ("It's 573. zero two nine one eight.", "It's 57302918."),
+        ("Born 14-07-1985", "Born 14-07-1985"),
+        ("It ends in 4217. Three days ago", "It ends in 4217. Three days ago"),
         # Left alone: a full card number, single number words, ordinary lists of numbers.
         ("It's 4921 5561 0093 4217.", "It's 4921 5561 0093 4217."),
         (

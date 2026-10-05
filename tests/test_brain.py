@@ -76,14 +76,21 @@ def test_unverified_callers_cannot_be_transferred_from_the_identity_step():
 def test_half_the_identity_details_holds_the_reply():
     from tellerline.brain import half_identified
 
-    assert half_identified("My customer number is 45127890.")
-    assert half_identified("Born the 3rd of March 1991 (1991-03-03).")
-    assert not half_identified("It's 45127890, born the 3rd of March 1991 (1991-03-03).")
-    assert not half_identified("I've lost my card.")
+    assert half_identified("My customer number is 45127890.", "", TODAY)
+    assert half_identified("Born the 3rd of March 1991 (1991-03-03).", "", TODAY)
+    both = "It's 45127890, born the 3rd of March 1991 (1991-03-03)."
+    assert not half_identified(both, "", TODAY)
+    # The number came in an earlier turn: the date completes the details.
+    assert not half_identified("Born 1991 (1991-03-03).", "My number is 45127890.", TODAY)
+    # "Yesterday" is a date, but not a date of birth.
+    assert not half_identified("It was yesterday (2026-09-13).", "", TODAY)
+    assert not half_identified("I've lost my card.", "", TODAY)
 
     unverified = SinglePromptBrain(TODAY)
     assert unverified.plan("My customer number is 4 5 1 2 7 8 9 0").hold
+    assert unverified.plan("It's four five one two. seven eight nine zero").hold
     assert not unverified.plan("My customer number is 45127890, born 3/3/1991").hold
+    assert not unverified.plan("What's the weather like today?").hold
     verified = SinglePromptBrain(TODAY, verified=True)
     assert not verified.plan("My card ending 4217 cost me 45127890 euro").hold
 

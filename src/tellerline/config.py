@@ -64,10 +64,6 @@ INTERRUPT_MIN_WORDS = 2
 # If Smart Turn thinks the caller hasn't finished, how long to wait before answering anyway.
 # Pipecat's default is 5 s; on a phone line that silence feels like the call has dropped.
 USER_TURN_STOP_TIMEOUT_S = 2.0
-# When Smart Turn thinks the caller hasn't finished but Parakeet's transcript ends a sentence,
-# how long to wait for more speech before answering (tellerline.agent.turns).
-PUNCTUATED_GRACE_S = 0.5
-PUNCTUATED_MIN_WORDS = 4
 # A caller who has given half their identity details ("My customer number is 45127890 ...") is
 # usually about to give the rest; the agent holds its reply this long, and a caller who carries
 # on cancels it before anything is said over them. It has to cover their pause plus the 0.3 s

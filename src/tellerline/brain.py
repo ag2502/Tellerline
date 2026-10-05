@@ -79,9 +79,10 @@ class Outcome:
 
 
 _CUSTOMER_NUMBER = re.compile(r"(?<!\d)\d{8}(?!\d)")
-_DATE = re.compile(r"\(\d{4}-\d{2}-\d{2}\)")
-
-
+# A date the understanding step resolved, by year; a date of birth is years in the past, unlike
+# "yesterday" or "on the 3rd".
+_DATE_YEAR = re.compile(r"\((\d{4})-\d{2}-\d{2}\)")
+BIRTH_YEARS_AGO = 10
 # A label with its value still to come: "My customer number...", "the card ends in...".
 _DANGLING_LABEL = re.compile(
     r"\b(?:customer number|account number|date of birth|birthday|born(?: on)?"
@@ -90,18 +91,28 @@ _DANGLING_LABEL = re.compile(
 )
 
 
-def half_identified(text: str) -> bool:
-    """The turn gives a customer number or a date, but not both."""
-    return bool(_CUSTOMER_NUMBER.search(text)) != bool(_DATE.search(text))
+def _gives_birth_date(text: str, today: date) -> bool:
+    return any(int(year) <= today.year - BIRTH_YEARS_AGO for year in _DATE_YEAR.findall(text))
 
 
-def mid_sentence(text: str, verified: bool) -> bool:
+def half_identified(text: str, earlier: str, today: date) -> bool:
+    """This turn gives a customer number or a date of birth, and the call still lacks the other."""
+    number_now = bool(_CUSTOMER_NUMBER.search(text))
+    birth_now = _gives_birth_date(text, today)
+    if not (number_now or birth_now):
+        return False
+    number = number_now or bool(_CUSTOMER_NUMBER.search(earlier))
+    birth = birth_now or _gives_birth_date(earlier, today)
+    return number != birth
+
+
+def mid_sentence(text: str, verified: bool, earlier: str = "", today: date | None = None) -> bool:
     """The caller has probably paused mid-sentence: the reply should wait a moment.
 
-    Either an unverified caller has given half their details, or a turn ends on a label whose
-    value is still to come (questions excepted: "What's my account number?").
+    Either an unverified caller has just given half of their details, or a turn ends on a label
+    whose value is still to come (questions excepted: "What's my account number?").
     """
-    if not verified and half_identified(text):
+    if not verified and half_identified(text, earlier, today or date.today()):
         return True
     return not text.rstrip().endswith("?") and bool(_DANGLING_LABEL.search(text))
 
@@ -123,7 +134,7 @@ class SinglePromptBrain:
         text = understand(heard, self.today)
         step = "assist" if self.verified else "identify"
         system = build_system_prompt(self.today, step, "actions")
-        hold = mid_sentence(text, self.verified)
+        hold = mid_sentence(text, self.verified, self._said(), self.today)
         return Plan(
             self._messages(system, text),
             NODE_ACTIONS[step],
@@ -164,6 +175,10 @@ class SinglePromptBrain:
         if action and action.tool == "verify_identity":
             self.verified = True
         self._remember(plan.text or text, spoken)
+
+    def _said(self) -> str:
+        """Everything the caller has said on this call before the current turn."""
+        return " ".join(m["content"] for m in self.history if m["role"] == "user")
 
     def _grounded(self, action: Action, text: str) -> Action:
         said = " ".join(
@@ -234,7 +249,7 @@ class RouterBrain(SinglePromptBrain):
             route.prediction.score,
             heard,
             text,
-            mid_sentence(text, self.session.verified),
+            mid_sentence(text, self.session.verified, self._said(), self.today),
         )
 
     def record(self, text: str, plan: Plan, action: Action | None, spoken: str) -> None:

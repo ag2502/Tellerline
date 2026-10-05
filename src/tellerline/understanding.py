@@ -42,7 +42,12 @@ _SPOKEN_DIGITS = re.compile(
 )
 MIN_CODE_DIGITS = 3
 # Two groups of four, as an eight-digit customer number is often read: "3011 8842".
-_GROUPED_EIGHT = re.compile(r"(?<!\d\s)(?<!\d-)\b(\d{4})[\s-](\d{4})\b(?![\s-]\d)")
+# Groups of digits read with pauses between them ("4512. 7890", "573. 02918", "3011 8842"), which
+# together make the eight digits of a customer number.
+_DIGIT_GROUPS = re.compile(r"(?<!\d)(?<!\d\.)\b\d{1,7}(?:(?:[\s,-]|\.\s)+\d{1,7}\b)+(?!\d|\.\d)")
+CUSTOMER_NUMBER_DIGITS = 8
+# 14-07-1985, 14.07.85 or 2026-09-03 are dates, never a customer number read in groups.
+_NUMERIC_DATE = re.compile(r"\d{1,2}[-/.]\d{1,2}[-/.](?:\d{2}|\d{4})|\d{4}-\d{2}-\d{2}")
 
 _UNITS = {
     word: value
@@ -158,14 +163,21 @@ def _digits_from(spoken: str) -> str:
 
 
 def normalise_digits(text: str) -> str:
-    """'seven two oh six' -> '7206', 'double oh four one' -> '0041', '5 8 3 3' -> '5833'."""
+    """'seven two oh six' -> '7206', 'double oh four one' -> '0041', '5 8 3 3' -> '5833',
+    and digit groups split by pauses into one eight-digit customer number."""
 
     def code(match: re.Match) -> str:
         digits = _digits_from(match.group(0))
         return digits if len(digits) >= MIN_CODE_DIGITS else match.group(0)
 
+    def customer_number(match: re.Match) -> str:
+        if _NUMERIC_DATE.fullmatch(match.group(0)):
+            return match.group(0)
+        digits = re.sub(r"\D", "", match.group(0))
+        return digits if len(digits) == CUSTOMER_NUMBER_DIGITS else match.group(0)
+
     text = _SPOKEN_DIGITS.sub(code, text)
-    return _GROUPED_EIGHT.sub(r"\1\2", text)
+    return _DIGIT_GROUPS.sub(customer_number, text)
 
 
 # ---------------------------------------------------------------- money
