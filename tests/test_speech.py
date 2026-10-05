@@ -46,7 +46,7 @@ def test_balance_response_has_no_digits():
         {"balance_eur": 1250.40, "available_eur": 1180.40},
         TODAY,
     )
-    assert text.startswith("The balance on your current account is one thousand, two hundred")
+    assert text.startswith("On your current account, the balance is one thousand, two hundred")
     assert not any(ch.isdigit() for ch in text)
 
 
@@ -58,7 +58,7 @@ def test_transactions_response():
         ]
     }
     text = respond("get_recent_transactions", {"account": "current"}, result, TODAY)
-    assert "your last two transactions" in text
+    assert "your last two transactions were:" in text
     assert (
         "forty-two euro and seventeen cent to Tesco Rathmines on the twelfth of September" in text
     )
@@ -87,6 +87,7 @@ def test_card_and_dispute_responses_speak_codes_as_words():
         {"case_reference": "DSP-20417"},
         TODAY,
     )
+    assert dispute.startswith("I've opened a dispute for that payment.")
     assert (
         "forty-nine euro and ninety-nine cent payment to StreamFlix on the second of September"
         in dispute

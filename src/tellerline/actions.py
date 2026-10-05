@@ -13,6 +13,7 @@ import re
 from collections.abc import Callable, Collection
 from dataclasses import dataclass, field
 from datetime import date
+from itertools import combinations
 from typing import Any
 
 from tellerline.banking.tools import ACCOUNTS, FREEZE_REASONS
@@ -170,6 +171,18 @@ def clarifying_question(action: Action) -> str:
     parts = [_ASK[name] for name in action.missing]
     listed = parts[0] if len(parts) == 1 else ", ".join(parts[:-1]) + " and " + parts[-1]
     return f"Could you tell me {listed}, please?"
+
+
+def common_questions() -> list[str]:
+    """Every follow-up question ``clarifying_question`` can ask, for pre-rendering their audio."""
+    questions: list[str] = []
+    for tool, required in REQUIRED.items():
+        for size in range(1, len(required) + 1):
+            for missing in combinations(required, size):
+                question = clarifying_question(Action(tool, {}, missing))
+                if question not in questions:
+                    questions.append(question)
+    return questions
 
 
 def action_instructions(names: Collection[str]) -> str:

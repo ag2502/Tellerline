@@ -33,7 +33,7 @@ from tellerline.router.classifier import default_classifier
 from tellerline.services.mlx_thread import limit_mlx_cache, run_mlx
 from tellerline.services.stt import load_parakeet
 from tellerline.services.stt import warm_up as warm_up_stt
-from tellerline.services.tts import load_kokoro
+from tellerline.services.tts import load_kokoro, warm_phrases
 from tellerline.services.tts import warm_up as warm_up_tts
 
 
@@ -76,9 +76,28 @@ async def preload() -> None:
     await run_mlx(warm_up_stt, parakeet)
     kokoro = await run_mlx(load_kokoro, KOKORO_MLX_MODELS[TTS_MLX_VARIANT])
     await run_mlx(warm_up_tts, kokoro, VOICE)
+    rendered = await run_mlx(warm_phrases, kokoro, fixed_phrases(), VOICE)
+    logger.info(f"Pre-rendered {rendered} fixed phrases in the {VOICE} voice")
     default_classifier().predict("warm up")
     await warm_llm_prompts()
     logger.info("Models, intent classifier and LLM prompt cache warmed up")
+
+
+def fixed_phrases() -> list[str]:
+    """Everything the agent says word for word on many calls, so its audio is ready in advance."""
+    from tellerline.actions import common_questions
+    from tellerline.banking.responses import FIXED_PHRASES
+    from tellerline.brain import GREETING
+    from tellerline.services.llm import CANT_DO_NOW, DIDNT_CATCH, NOT_VERIFIED_TRANSFER
+
+    return [
+        GREETING,
+        *FIXED_PHRASES,
+        *common_questions(),
+        DIDNT_CATCH,
+        CANT_DO_NOW,
+        NOT_VERIFIED_TRANSFER,
+    ]
 
 
 async def warm_llm_prompts() -> None:

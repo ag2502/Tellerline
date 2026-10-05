@@ -117,7 +117,7 @@ async def test_action_runs_against_the_bank_and_speaks_the_template():
     )
     text, _ = await spoken_text(service, "What's my balance?")
     assert bank.calls == [Action("get_balance", {"account": "current"})]
-    assert text == "The balance on your current account is twelve euro and fifty cent."
+    assert text == "On your current account, the balance is twelve euro and fifty cent."
     assert "ACTION" not in brain.history[-1]["content"]
 
 

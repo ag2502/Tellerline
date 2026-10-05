@@ -3,7 +3,8 @@ from pipecat.frames.frames import TranscriptionFrame, TTSAudioRawFrame, TTSSpeak
 from pipecat.tests.utils import run_test
 
 from tellerline.services.stt import ParakeetMLXSTTService
-from tellerline.services.tts import KokoroMLXTTSService
+from tellerline.services.tts import KokoroMLXTTSService, PhraseCache, warm_phrases
+from tellerline.tts.chunks import CLAUSE_PAUSES_S
 
 
 class FakeSynthesizer:
@@ -28,7 +29,7 @@ class FakeTranscriber:
 
 async def test_tts_speaks_in_short_chunks_with_the_chosen_voice():
     engine = FakeSynthesizer(seconds=0.35)
-    tts = KokoroMLXTTSService(voice="bm_george", loader=lambda _: engine)
+    tts = KokoroMLXTTSService(voice="bm_george", loader=lambda _: engine, cache=PhraseCache())
     down, _ = await run_test(tts, frames_to_send=[TTSSpeakFrame("Your card is now frozen.")])
 
     audio = [f for f in down if isinstance(f, TTSAudioRawFrame)]
@@ -36,6 +37,50 @@ async def test_tts_speaks_in_short_chunks_with_the_chosen_voice():
     assert all(f.sample_rate == 24_000 for f in audio)
     assert int(np.frombuffer(audio[0].audio, dtype=np.int16)[0]) == int(0.5 * 32767)
     assert ("Your card is now frozen.", "bm_george") in engine.calls
+
+
+async def test_tts_renders_clause_by_clause_with_pauses_between():
+    engine = FakeSynthesizer(seconds=0.2)
+    tts = KokoroMLXTTSService(loader=lambda _: engine, cache=PhraseCache())
+    down, _ = await run_test(
+        tts, frames_to_send=[TTSSpeakFrame("On your current account, the balance is ten euro.")]
+    )
+
+    assert [text for text, _ in engine.calls] == [
+        "On your current account,",
+        "the balance is ten euro.",
+    ]
+    samples = np.concatenate(
+        [np.frombuffer(f.audio, dtype=np.int16) for f in down if isinstance(f, TTSAudioRawFrame)]
+    )
+    rate = 24_000
+    speech = int(0.2 * rate)
+    pause = int(CLAUSE_PAUSES_S[","] * rate)
+    assert len(samples) == 2 * speech + pause
+    assert not samples[speech : speech + pause].any()  # the comma's pause is silence
+
+
+async def test_tts_reuses_cached_clauses():
+    engine = FakeSynthesizer(seconds=0.1)
+    cache = PhraseCache()
+    warm_phrases(engine, ["I've frozen that card for you."], voice="bf_emma", cache=cache)
+    assert len(engine.calls) == 1
+
+    tts = KokoroMLXTTSService(voice="bf_emma", loader=lambda _: engine, cache=cache)
+    await run_test(tts, frames_to_send=[TTSSpeakFrame("I've frozen that card for you.")])
+    assert len(engine.calls) == 1  # spoken from the cache, not rendered again
+    assert cache.hits >= 1
+
+
+def test_phrase_cache_drops_the_least_recently_used():
+    cache = PhraseCache(max_entries=2)
+    cache.put("v", 1.0, "a", b"a")
+    cache.put("v", 1.0, "b", b"b")
+    assert cache.get("v", 1.0, "a") == b"a"  # "a" is now the most recent
+    cache.put("v", 1.0, "c", b"c")
+    assert cache.get("v", 1.0, "b") is None
+    assert cache.get("v", 1.0, "a") == b"a"
+    assert len(cache) == 2
 
 
 async def test_stt_turns_pcm_into_a_transcription():

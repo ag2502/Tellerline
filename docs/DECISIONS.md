@@ -209,3 +209,20 @@ them), and times each turn from its last speech sample to the first audible repl
 **Why:** It measures what a caller experiences, including WebRTC buffering, the silence wait,
 turn detection and playback, which stage benchmarks can't. The caller's audio is rendered in a
 separate process before calls so it never competes with the agent for memory or the GPU.
+
+## D-022 Replies are spoken clause by clause, with fixed phrases rendered in advance (2026-10-05)
+
+**Decision:** Kokoro renders each sentence one clause at a time: the first clause alone, the rest
+merged up to 140 characters, with the pause a comma or full stop implies put back as silence
+(`tellerline.tts.chunks`). Rendered clauses go into a cache shared by every call, and the fixed
+phrases (greeting, follow-up questions, the opening of every spoken result) are rendered at
+start-up. Result templates now open with a fixed clause that already says what happened ("I've
+frozen that card for you.", "On your savings account,") and give the details after it.
+**Why:** Kokoro renders a whole text before any of it plays, at about 60 ms plus 2.7 ms per
+character on the M5. Live calls showed the cost: a balance sentence took 0.3 s to start, and five
+transactions read as one sentence 1.25 s. Across every template (`bench.first_audio`), time from
+text to first audio went from p50 150 ms / p90 1,105 ms for the whole first sentence to p50 127 ms
+/ p90 151 ms for the first clause, and p50 0 ms / p90 54 ms with the cache.
+**Considered:** A one-word acknowledgement ("Done.") before each result: faster still, but it
+says nothing and would game the latency measure (D-002). Splitting inside a clause: Kokoro's
+prosody breaks at a seam with no punctuation.

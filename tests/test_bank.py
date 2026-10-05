@@ -106,7 +106,9 @@ async def test_client_runs_a_verified_call(bank):
 
     missing = await bank.run(Action("freeze_card", {"card_last_four": "9999", "reason": "lost"}))
     spoken = respond("freeze_card", {"card_last_four": "9999"}, missing, TODAY)
-    assert spoken.startswith("I can't find a card ending nine nine nine nine")
+    assert spoken.startswith(
+        "Sorry, I can't find that card. There's no card ending nine nine nine nine"
+    )
 
 
 async def test_other_customers_cards_are_not_reachable(bank):
