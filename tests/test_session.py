@@ -31,6 +31,12 @@ def test_open_task_keeps_unconfident_answers():
     assert session.route(predict("identity", confident=False)).skill == "cards"
 
 
+def test_open_task_keeps_answers_read_as_small_talk():
+    # "Yes, please." to "Would you like a replacement card?" once scored 0.64 for general.
+    session = Session(verified=True, open_skill="cards")
+    assert session.route(predict("general")).skill == "cards"
+
+
 def test_open_task_switches_on_confident_new_topic():
     session = Session(verified=True, open_skill="cards")
     assert session.route(predict("accounts")).skill == "accounts"

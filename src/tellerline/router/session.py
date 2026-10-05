@@ -5,8 +5,9 @@ Rules, in order:
 1. Before verification only the identity and general skills are reachable, so no banking
    action can run for an unverified caller whatever the model writes.
 2. If a skill asked the caller a question last turn, it keeps the conversation unless the
-   classifier is confident the caller has moved to a different topic. Short answers such as
-   "it ends 4217" or "yes please" are rarely confident, so they stay with the open task.
+   classifier is confident the caller has moved to a different banking topic. Short answers such
+   as "it ends 4217" or "yes please" stay with the open task even when the classifier reads them
+   confidently as small talk: every verified skill can also transfer the caller or end the call.
 3. Otherwise the classifier's intent wins when it is confident; anything else goes to the full
    prompt with every action (``assist``).
 
@@ -48,7 +49,7 @@ class Session:
                 return Route(self.open_skill, "unverified: continuing open task", prediction)
             return Route("identity", "unverified: verify first", prediction)
 
-        if self.open_skill and (intent is None or intent == self.open_skill):
+        if self.open_skill and intent in (None, self.open_skill, "general"):
             return Route(self.open_skill, "continuing open task", prediction)
         if intent and intent != "identity":
             return Route(intent, "confident intent", prediction)
