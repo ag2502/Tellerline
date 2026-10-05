@@ -46,6 +46,30 @@ def power_state() -> dict[str, Any]:
     }
 
 
+def memory_state() -> dict[str, Any]:
+    """How hard macOS is squeezing memory: swap in use and memory held compressed.
+
+    Benchmarks run on a Mac in everyday use; heavy compression or swap slows MLX models, so
+    each result records it.
+    """
+    swap = re.search(r"used = ([\d.]+)M", _sysctl("vm.swapusage"))
+    try:
+        stats = subprocess.run(["vm_stat"], capture_output=True, text=True).stdout
+    except OSError:
+        stats = ""
+    page = re.search(r"page size of (\d+) bytes", stats)
+    compressed = re.search(r"Pages occupied by compressor:\s+(\d+)", stats)
+    gib = 1024**3
+    return {
+        "swap_used_gb": round(float(swap.group(1)) / 1024, 2) if swap else None,
+        "compressed_gb": (
+            round(int(compressed.group(1)) * int(page.group(1)) / gib, 2)
+            if compressed and page
+            else None
+        ),
+    }
+
+
 def machine_info() -> dict[str, Any]:
     """Describe the hardware and software a result was measured on."""
     memsize = _sysctl("hw.memsize")
@@ -57,6 +81,7 @@ def machine_info() -> dict[str, Any]:
             versions[package] = None
     return {
         "power": power_state(),
+        "memory": memory_state(),
         "chip": _sysctl("machdep.cpu.brand_string"),
         "model": _sysctl("hw.model"),
         "memory_gb": round(int(memsize) / 1024**3) if memsize.isdigit() else None,
