@@ -322,14 +322,36 @@ card. A date of birth must be at least ten years back: "the 29th", heard on its 
 29 September 2026. And the caller is muted once the agent has ended the call, so a "bye" over its
 goodbye no longer starts another turn and a second goodbye. The demo script now says each request
 as one sentence, gives the found-card caller a regular voice and says "34 euro and 60 cent".
+A second recording added two more: a turn that's only a greeting ("Hi, it's Niamh", heard as
+"Naim" and taken for a request for a person) can't transfer the caller, and an amount may have a
+full stop after "euro" and "sent" for "cent" ("It was 34 euro. And 60 sent").
 **Why:** The website replays the five scripted demo calls (`bench/data/demo_calls.json`), so each
 has to go through cleanly, and each failure was a defect a real caller could hit. The latency
 gate's calls are short and don't walk through an offer and its answer.
-**Result:** Dialogue accuracy is unchanged on every split after the routing change: held-out 100%
-single-turn and 8 of 8 dialogues, test 95% and 7 of 7, dev 97%. Three problems stay open. The
-first reply of the first call took 11.6 s (Parakeet 3.9 s, Gemma's first token 7.0 s) after the
-caller's lines were rendered in another process while the agent sat idle; later replies took
-about a second. Kokoro's breathy af_nicole voice wasn't detected as speech for its first few
-seconds (Silero VAD at confidence 0.8). And Parakeet, given only "thirty-four euro sixty" cut off
-at a pause, wrote "€3460", which no rule can safely read as €34.60: the dispute reads the amount
-back, but only after opening it, so the next step is to confirm the amount first.
+**Result:** Dialogue accuracy is unchanged on every split after all five changes: held-out 100%
+single-turn and 8 of 8 dialogues, test 95% and 7 of 7, dev 97%. The third recording went through
+on every call. Two problems stay open. Kokoro's breathy af_nicole voice wasn't detected as speech
+for its first few seconds (Silero VAD at confidence 0.8). And Parakeet, given only "thirty-four
+euro sixty" cut off at a pause, once wrote "€3460", which no rule can safely read as €34.60: the
+dispute reads the amount back, but only after opening it, so the next step is to confirm the
+amount first. The slow first reply these calls also showed is D-028.
+
+## D-028 Two latency tails: a lone "Bye." and a cold first reply (2026-10-05)
+
+**Decision:** A caller's turn ends at once when they've stopped and the transcript ends with a
+goodbye ("bye", "bye now", "cheers", "see you"), alongside Smart Turn (`GoodbyeStopStrategy`).
+And when a call starts with no other call in progress, the agent runs one small pass through
+Parakeet, Kokoro, the intent classifier and Gemma while the pre-rendered greeting plays, at the
+lowest MLX priority (`tellerline.agent.warm`).
+**Why:** The two slowest replies of the 220-turn gate (3.29 s and 2.85 s) were "No, it's fine.
+Bye.": Smart Turn was unsure about the lone "Bye." and the turn waited out the 2 s fallback. And
+on a Mac in everyday use, macOS pages out models that sit idle: the first reply of a call placed
+after the caller's lines were rendered in another process took 11.0-11.6 s (D-027).
+**Result:** `bench/data/goodbye_calls.json` rings off five ways, plus a control without a
+goodbye: the closing replies took 0.64-0.92 s, and the control was asked whether there was
+anything else. With the cached lines deleted so they render first, as before, the first reply
+took 1.24 s instead of 11.0 s; the re-warm itself took 11.6 s, but behind the greeting and the
+caller's first sentence instead of in front of the reply. With the models already in memory it
+takes about 0.3 s.
+**Considered:** Keeping the models warm with a timer (costs energy all day on a laptop, and
+doesn't help if a call arrives between ticks); a shorter Smart Turn fallback (adds cut-ins).

@@ -21,6 +21,7 @@ from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.turns.user_turn_strategies import UserTurnStrategies
 from pipecat.workers.runner import WorkerRunner
 
+from tellerline.agent import warm
 from tellerline.agent.observability import TurnLatencyLog
 from tellerline.agent.recorder import CallRecorder, CallTimeline, TimelineObserver
 from tellerline.agent.turns import (
@@ -146,10 +147,15 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         idle_timeout_secs=runner_args.pipeline_idle_timeout_secs,
     )
 
+    connected = False
+
     @transport.event_handler("on_client_connected")
     async def on_client_connected(transport, client):
+        nonlocal connected
         # The AI disclosure is part of the greeting on every call.
         await worker.queue_frames([TTSSpeakFrame(GREETING)])
+        connected = True
+        warm.call_started(lambda: warm.rewarm_models(LLM_MODEL, VOICE))
 
     @transport.event_handler("on_client_disconnected")
     async def on_client_disconnected(transport, client):
@@ -161,6 +167,8 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     try:
         await runner.run()
     finally:
+        if connected:
+            warm.call_ended()
         await bank.close()
         if recorder is not None and (saved := await recorder.save()):
             logger.info(f"{call_id} recorded to {saved}")
