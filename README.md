@@ -25,6 +25,28 @@ memory. No cloud APIs, no running costs.
 5. **Act and speak:** the bank runs the action and a template speaks the result, so balances
    and dates always come from data rather than the model. Kokoro reads it in a British voice.
 
+## Phase 1 results
+
+Measured by phoning the running agent: `bench.caller` speaks scripted caller lines over WebRTC
+and times each reply from the caller's last sample to the agent's first audible one. MacBook Air
+M5 on battery with other apps open (about 7 GB in swap).
+
+| Calls at once | Replies measured | Overlaps | Unanswered | p50 | p90 |
+|---|---:|---:|---:|---:|---:|
+| 1 (the gate) | 182 | 26 | 0 | 1.01 s | 1.40 s |
+| 2 | 27 | 1 | 0 | 1.04 s | 1.43 s |
+| 3 | 35 | 4 | 1 | 0.94 s | 1.11 s |
+| 4 | 44 | 10 | 0 | 0.95 s | 1.22 s |
+| 1, in a noisy room | 27 | 1 | 5 | 5.10 s | 9.95 s |
+
+An overlap is a turn where the agent started talking before the caller had finished; it's
+counted apart rather than as a fast reply. Quiet-room latency holds with four calls at once. A
+noisy room (other people talking 15 dB below the caller) doesn't work yet: the background talk
+keeps the caller's turn open.
+
+On the held-out set, written before this phase's tuning, Gemma 4 E2B with the router now gets
+every single-turn case and all 8 dialogues right (72% and 6 of 8 before; D-023, D-024).
+
 ## Phase 0 results
 
 Held-out test set: 38 single-turn cases and 7 multi-turn dialogues, written before any
