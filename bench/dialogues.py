@@ -31,7 +31,6 @@ from bench.llm import (
     stream_completion,
 )
 from bench.scoring import score_case
-from tellerline.actions import clarifying_question, parse_action
 from tellerline.banking.responses import respond
 from tellerline.brain import RouterBrain, SinglePromptBrain, opening_history
 from tellerline.config import LLM_MODELS, LLM_SERVER_HOST, LLM_SERVER_PORT
@@ -71,11 +70,10 @@ def run_conversation(client: OpenAI, model_id: str, brain, conversation: dict) -
     for index, turn in enumerate(conversation["turns"]):
         plan = brain.plan(turn["user"])
         result = stream_completion(client, model_id, plan.messages, stop=["\n"])
-        action = parse_action(result["text"], plan.allowed)
-        question = None
-        if action and not action.complete:
-            # The right action without everything it needs becomes a follow-up question.
-            question, action = clarifying_question(action), None
+        # The same step the live agent uses: run the action, or say a follow-up question (a
+        # missing value) or a fallback (an action the caller can't have yet) instead.
+        outcome = brain.interpret(plan, result["text"])
+        action, question = outcome.action, outcome.say
         operation = action.tool if action else None
         arguments = action.arguments if action else {}
         score = score_case(turn, operation, arguments)
@@ -102,6 +100,7 @@ def run_conversation(client: OpenAI, model_id: str, brain, conversation: dict) -
                 "kind": conversation["kind"],
                 "turn": index,
                 "user": turn["user"],
+                "understood": plan.text,
                 "step": plan.step,
                 "route_reason": plan.route_reason,
                 "intent": plan.intent,

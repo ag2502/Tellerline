@@ -16,12 +16,13 @@ from pipecat.processors.frame_processor import FrameDirection
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.utils.tracing.service_decorators import traced_llm
 
-from tellerline.actions import Action, ReplySplitter, clarifying_question, parse_action
+from tellerline.actions import Action, ReplySplitter
 from tellerline.banking.responses import respond
-from tellerline.brain import Plan
+from tellerline.brain import DIDNT_CATCH, VERIFY_FIRST, Outcome, Plan
 from tellerline.llm_server import MAX_TOKENS, base_url
 
-DIDNT_CATCH = "Sorry, I didn't quite catch that. Could you say it again?"
+__all__ = ["DIDNT_CATCH", "VERIFY_FIRST", "TellerlineLLMService"]
+
 CANT_DO_NOW = "Sorry, I can't do that right now. I'll transfer you to a colleague."
 NOT_VERIFIED_TRANSFER = (
     "I'm sorry, I still can't verify your details, so I'll transfer you to a colleague."
@@ -31,6 +32,7 @@ ENDS_CALL = frozenset({"end_call", "transfer_to_human"})
 
 class Brain(Protocol):
     def plan(self, text: str) -> Plan: ...
+    def interpret(self, plan: Plan, answer: str) -> Outcome: ...
     def record(self, text: str, plan: Plan, action: Action | None, spoken: str) -> None: ...
 
 
@@ -145,12 +147,11 @@ class TellerlineLLMService(OpenAILLMService):
 
     async def _act(self, plan: Plan, line: str) -> tuple[str, Action | None]:
         """Validate and run an ACTION line; return what to say and the action that happened."""
-        action = parse_action(line, plan.allowed)
-        if action is None:
-            logger.warning(f"Unusable action line: {line!r}")
-            return DIDNT_CATCH, None
-        if not action.complete:
-            return clarifying_question(action), None
+        outcome = self._brain.interpret(plan, line)
+        if outcome.action is None:
+            logger.info(f"Not running {line!r}: {outcome.reason}")
+            return outcome.say or DIDNT_CATCH, None
+        action = outcome.action
         try:
             result = await self._bank.run(action)
         except Exception as error:  # the caller hears an apology, not a stack trace

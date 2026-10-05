@@ -226,3 +226,22 @@ text to first audio went from p50 150 ms / p90 1,105 ms for the whole first sent
 **Considered:** A one-word acknowledgement ("Done.") before each result: faster still, but it
 says nothing and would game the latency measure (D-002). Splitting inside a clause: Kokoro's
 prosody breaks at a seam with no punctuation.
+
+## D-023 Code makes digits, amounts and dates exact before the model reads a turn (2026-10-05)
+
+**Decision:** Each caller turn passes through `tellerline.understanding` before the model sees
+it: digits said as words become figures ("seven two oh six" is 7206, "double oh four one" is
+0041), amounts become euro figures ("34 euro 60" is €34.60), and every date is followed by the
+date it means ("last Tuesday (2026-09-08)", "14/07/1985 (1985-07-14)"). One shared step,
+`Brain.interpret`, then decides what the model's answer leads to, for the live agent and the
+benchmarks alike: a card or customer number the caller never said becomes a follow-up question
+rather than reaching the bank, and an unverified caller whose turn produced a banking action is
+asked for their details instead of hearing "Sorry, I didn't quite catch that".
+**Why:** On a new held-out set (written before this work), Gemma 4 E2B with the router copied
+the prompt example's customer number when the real one was said as "double seven four five...",
+froze card "41" for "double oh four one", dropped the cents from "34 euro 60", got "last
+Tuesday" and "on the 3rd" wrong, and invented card 7890 from the tail of the customer number.
+Each of these is arithmetic or copying, which code does exactly. With this step the dev set went
+to 97% single-turn and 100% of dialogue turns.
+**Considered:** More prompt examples (they grow every prompt and still leave arithmetic to a
+2B model); rejecting ungrounded values silently (the caller would hear nothing useful).

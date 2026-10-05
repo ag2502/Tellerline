@@ -87,11 +87,12 @@ def fixed_phrases() -> list[str]:
     """Everything the agent says word for word on many calls, so its audio is ready in advance."""
     from tellerline.actions import common_questions
     from tellerline.banking.responses import FIXED_PHRASES
-    from tellerline.brain import GREETING
-    from tellerline.services.llm import CANT_DO_NOW, DIDNT_CATCH, NOT_VERIFIED_TRANSFER
+    from tellerline.brain import DIDNT_CATCH, GREETING, VERIFY_FIRST
+    from tellerline.services.llm import CANT_DO_NOW, NOT_VERIFIED_TRANSFER
 
     return [
         GREETING,
+        VERIFY_FIRST,
         *FIXED_PHRASES,
         *common_questions(),
         DIDNT_CATCH,

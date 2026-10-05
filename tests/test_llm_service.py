@@ -9,6 +9,7 @@ from tellerline.brain import SinglePromptBrain
 from tellerline.services.llm import (
     DIDNT_CATCH,
     NOT_VERIFIED_TRANSFER,
+    VERIFY_FIRST,
     TellerlineLLMService,
     last_user_text,
 )
@@ -128,11 +129,35 @@ async def test_incomplete_action_becomes_a_question_without_calling_the_bank():
     assert bank.calls == []
 
 
-async def test_disallowed_action_is_not_run():
+async def test_banking_before_verification_asks_for_the_callers_details():
     service, _, bank, _ = make_service([["ACTION balance account=current"]], {}, verified=False)
     text, _ = await spoken_text(service, "What's my balance?")
+    assert text == VERIFY_FIRST
+    assert bank.calls == []
+
+
+async def test_unknown_action_line_asks_the_caller_to_repeat():
+    service, _, bank, _ = make_service([["ACTION teleport card=4217"]], {})
+    text, _ = await spoken_text(service, "Do something")
     assert text == DIDNT_CATCH
     assert bank.calls == []
+
+
+async def test_a_card_the_caller_never_said_is_asked_for_not_used():
+    # Phase 1 held-out failure: the model took the last four digits of the customer number.
+    service, _, bank, _ = make_service([["ACTION freeze card=7890 reason=lost"]], {})
+    text, _ = await spoken_text(service, "I found the card I lost, can you switch it back on?")
+    assert text == "What are the last four digits of the card?"
+    assert bank.calls == []
+
+
+async def test_the_model_hears_exact_amounts_and_dates():
+    service, _, _, completions = make_service([["Who was the payment to?"]], {})
+    await spoken_text(service, "It was 34 euro 60, yesterday.")
+    assert (
+        completions.requests[0]["messages"][-1]["content"]
+        == "It was €34.60, yesterday (2026-09-13)."
+    )
 
 
 async def test_repeated_failed_verification_transfers_the_caller():
