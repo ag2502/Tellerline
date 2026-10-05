@@ -62,6 +62,8 @@ def test_digits(said, written):
         ("It was 34 euro. And 60 sent last Tuesday.", "It was €34.60 last Tuesday."),
         ("34 euro, and sixty cent", "€34.60"),
         ("I sent 20 euro to my sister", "I sent €20 to my sister"),
+        ("It was €34. And 60 sent last Tuesday.", "It was €34.60 last Tuesday."),
+        ("It was €34 and sixty cent", "It was €34.60"),
         ("49.99 by StreamFlix", "49.99 by StreamFlix"),
     ],
 )

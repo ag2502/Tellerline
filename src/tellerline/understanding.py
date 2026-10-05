@@ -247,6 +247,13 @@ def normalise_money(text: str) -> str:
         text,
         flags=re.I,
     )
+    # The same with the euro sign Parakeet sometimes writes instead: "€34. And 60 sent".
+    text = re.sub(
+        rf"€(\d+)[.,]?\s+and\s+(\d{{1,2}}|{_SPELLED})\s*{_CENT}\b",
+        lambda m: _euro(m[1], m[2] if m[2].isdigit() else str(words_to_number(m[2]) or "")),
+        text,
+        flags=re.I,
+    )
     text = re.sub(
         r"\b(\d+)\s*euros?\s+(\d{1,2})\b(?!\s*(?:st|nd|rd|th|cent|euro))",
         lambda m: _euro(m[1], m[2]),
