@@ -1,0 +1,56 @@
+[
+  {
+    "name": "fine-bye",
+    "voice": "am_michael",
+    "lines": [
+      "My customer number is 45127890 and my date of birth is the 3rd of March 1991.",
+      "What's the balance on my current account?",
+      "No, it's fine. Bye."
+    ]
+  },
+  {
+    "name": "thanks-bye",
+    "voice": "af_heart",
+    "lines": [
+      "My customer number is 45127890 and my date of birth is the 3rd of March 1991.",
+      "What were my last three transactions?",
+      "That's great, thanks. Bye."
+    ]
+  },
+  {
+    "name": "cheers",
+    "voice": "am_eric",
+    "lines": [
+      "My customer number is 45127890 and my date of birth is the 3rd of March 1991.",
+      "How much is in my savings account?",
+      "Grand, cheers."
+    ]
+  },
+  {
+    "name": "bye-now",
+    "voice": "af_bella",
+    "lines": [
+      "My customer number is 45127890 and my date of birth is the 3rd of March 1991.",
+      "Is my card ending 4217 frozen?",
+      "Perfect. Bye now."
+    ]
+  },
+  {
+    "name": "bye-bye",
+    "voice": "am_adam",
+    "lines": [
+      "My customer number is 45127890 and my date of birth is the 3rd of March 1991.",
+      "Read me my last two payments on my current account.",
+      "Lovely, thanks a million. Bye bye."
+    ]
+  },
+  {
+    "name": "no-goodbye",
+    "voice": "af_sarah",
+    "lines": [
+      "My customer number is 45127890 and my date of birth is the 3rd of March 1991.",
+      "What's my current account balance?",
+      "No, I'm sure it'll turn up."
+    ]
+  }
+]

@@ -1,15 +1,20 @@
+import pytest
 from pipecat.frames.frames import (
     BotStartedSpeakingFrame,
     BotStoppedSpeakingFrame,
+    TranscriptionFrame,
     VADUserStartedSpeakingFrame,
+    VADUserStoppedSpeakingFrame,
 )
 from pipecat.turns.types import ProcessFrameResult
 from pipecat.turns.user_start import MinWordsUserTurnStartStrategy
 
 from tellerline.agent.turns import (
+    GoodbyeStopStrategy,
     MuteWhileEndingStrategy,
     VADWhenAgentSilentStartStrategy,
     turn_start_strategies,
+    turn_stop_strategies,
 )
 
 
@@ -56,3 +61,42 @@ async def test_the_caller_is_muted_once_the_agent_has_ended_the_call():
     assert await strategy.process_frame(VADUserStartedSpeakingFrame()) is False
     ending = True
     assert await strategy.process_frame(VADUserStartedSpeakingFrame()) is True
+
+
+async def stopped_after(words: str, still_speaking: bool = False) -> bool:
+    strategy = GoodbyeStopStrategy()
+    stopped = []
+
+    @strategy.event_handler("on_user_turn_stopped")
+    async def on_stopped(*args, **kwargs):
+        stopped.append(True)
+
+    await strategy.handle_user_turn_started()
+    await strategy.process_frame(VADUserStartedSpeakingFrame())
+    if not still_speaking:
+        await strategy.process_frame(VADUserStoppedSpeakingFrame())
+    await strategy.process_frame(TranscriptionFrame(words, "caller", "now"))
+    return bool(stopped)
+
+
+@pytest.mark.parametrize(
+    "words",
+    ["No, it's fine. Bye.", "Thanks, bye bye!", "That's all, bye now.", "Grand, cheers."],
+)
+async def test_a_turn_that_ends_with_a_goodbye_ends_at_once(words):
+    assert await stopped_after(words)
+
+
+@pytest.mark.parametrize("words", ["No, it's fine.", "Bye the way, my card", "Goodbye to my card"])
+async def test_other_turns_wait_for_smart_turn(words):
+    assert not await stopped_after(words)
+
+
+async def test_a_goodbye_while_the_caller_is_still_talking_waits():
+    assert not await stopped_after("Thanks, bye.", still_speaking=True)
+
+
+def test_smart_turn_still_decides_every_other_turn():
+    first, second = turn_stop_strategies()
+    assert type(first).__name__ == "TurnAnalyzerUserTurnStopStrategy"
+    assert isinstance(second, GoodbyeStopStrategy)
