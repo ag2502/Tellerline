@@ -23,6 +23,7 @@ from pipecat.utils.tracing.service_decorators import traced_llm
 from tellerline.actions import Action, ReplySplitter
 from tellerline.banking.responses import respond
 from tellerline.brain import DIDNT_CATCH, VERIFY_FIRST, Outcome, Plan
+from tellerline.config import IDENTITY_HOLD_S
 from tellerline.llm_server import MAX_TOKENS, base_url
 
 __all__ = ["DIDNT_CATCH", "VERIFY_FIRST", "TellerlineLLMService"]
@@ -103,6 +104,7 @@ class TellerlineLLMService(OpenAILLMService):
         llm_url: str | None = None,
         max_failed_verifications: int = 3,
         timeline: Timeline | None = None,
+        identity_hold_s: float = IDENTITY_HOLD_S,
         end_grace_s: float = END_GRACE_S,
         end_timeout_s: float = END_TIMEOUT_S,
         **kwargs,
@@ -120,6 +122,7 @@ class TellerlineLLMService(OpenAILLMService):
         self._max_failed_verifications = max_failed_verifications
         self._failed_verifications = 0
         self._timeline = timeline
+        self._identity_hold_s = identity_hold_s
         self._end_grace_s = end_grace_s
         self._end_timeout_s = end_timeout_s
         self._ending = False
@@ -143,6 +146,17 @@ class TellerlineLLMService(OpenAILLMService):
         splitter = ReplySplitter()
         await self.start_ttfb_metrics()
         asked = time.perf_counter()
+        # Half the identity details: hold the reply briefly. A caller who carries on starts a new
+        # turn, which cancels this one before anything is said over them.
+        hold_until = asked + self._identity_hold_s if plan.hold else 0.0
+
+        async def say(text: str) -> None:
+            nonlocal hold_until
+            if hold_until and (wait := hold_until - time.perf_counter()) > 0:
+                await asyncio.sleep(wait)
+            hold_until = 0.0
+            await self._push_llm_text(text)
+
         first_token_s = None
         stream = await self._client.chat.completions.create(
             model=self._model,
@@ -161,17 +175,17 @@ class TellerlineLLMService(OpenAILLMService):
                     first_token_s = time.perf_counter() - asked
                     await self.stop_ttfb_metrics()
                 if speech := splitter.feed(piece):
-                    await self._push_llm_text(speech)
+                    await say(speech)
         finally:
             await stream.close()
         model_s = time.perf_counter() - asked
         if speech := splitter.finish():
-            await self._push_llm_text(speech)
+            await say(speech)
 
         result = TurnResult(splitter.text.strip())
         if splitter.is_action:
             result = await self._act(plan, splitter.text)
-            await self._push_llm_text(result.spoken)
+            await say(result.spoken)
         action, spoken = result.action, result.spoken
         self._brain.record(text, plan, action, spoken)
         span.set_attribute("tellerline.model_output", splitter.text.strip())

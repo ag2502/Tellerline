@@ -65,6 +65,8 @@ class Plan:
     intent_score: float | None = None
     heard: str = ""  # what speech recognition wrote
     text: str = ""  # the same words with digits, amounts and dates made exact
+    # The caller has probably paused mid-sentence (``mid_sentence``): the reply waits a moment.
+    hold: bool = False
 
 
 @dataclass(frozen=True)
@@ -74,6 +76,34 @@ class Outcome:
     action: Action | None = None
     say: str | None = None
     reason: str = ""  # why the answer wasn't run as written, for logs and traces
+
+
+_CUSTOMER_NUMBER = re.compile(r"(?<!\d)\d{8}(?!\d)")
+_DATE = re.compile(r"\(\d{4}-\d{2}-\d{2}\)")
+
+
+# A label with its value still to come: "My customer number...", "the card ends in...".
+_DANGLING_LABEL = re.compile(
+    r"\b(?:customer number|account number|date of birth|birthday|born(?: on)?"
+    r"|card (?:number|ending|ends)(?: in)?|ending(?: in)?|ends(?: in)?|number is)[\s.,]*$",
+    re.I,
+)
+
+
+def half_identified(text: str) -> bool:
+    """The turn gives a customer number or a date, but not both."""
+    return bool(_CUSTOMER_NUMBER.search(text)) != bool(_DATE.search(text))
+
+
+def mid_sentence(text: str, verified: bool) -> bool:
+    """The caller has probably paused mid-sentence: the reply should wait a moment.
+
+    Either an unverified caller has given half their details, or a turn ends on a label whose
+    value is still to come (questions excepted: "What's my account number?").
+    """
+    if not verified and half_identified(text):
+        return True
+    return not text.rstrip().endswith("?") and bool(_DANGLING_LABEL.search(text))
 
 
 def opening_history() -> list[dict]:
@@ -93,7 +123,15 @@ class SinglePromptBrain:
         text = understand(heard, self.today)
         step = "assist" if self.verified else "identify"
         system = build_system_prompt(self.today, step, "actions")
-        return Plan(self._messages(system, text), NODE_ACTIONS[step], step, heard=heard, text=text)
+        hold = mid_sentence(text, self.verified)
+        return Plan(
+            self._messages(system, text),
+            NODE_ACTIONS[step],
+            step,
+            heard=heard,
+            text=text,
+            hold=hold,
+        )
 
     def interpret(self, plan: Plan, answer: str) -> Outcome:
         """Turn the model's answer into an action to run, or the words to say instead.
@@ -196,6 +234,7 @@ class RouterBrain(SinglePromptBrain):
             route.prediction.score,
             heard,
             text,
+            mid_sentence(text, self.session.verified),
         )
 
     def record(self, text: str, plan: Plan, action: Action | None, spoken: str) -> None:

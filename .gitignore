@@ -18,6 +18,8 @@ results/samples/
 results/caller_audio/
 results/calls/
 results/traces/
+# Call recordings (TELLERLINE_RECORD=1); the website gets compressed exports of chosen calls
+results/recordings/
 
 # Impeccable decision-page sessions (answers live in the surface brief)
 .impeccable/questions/

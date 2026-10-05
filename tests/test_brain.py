@@ -71,3 +71,28 @@ def test_router_falls_back_to_full_prompt_when_unsure():
 def test_unverified_callers_cannot_be_transferred_from_the_identity_step():
     brain = RouterBrain(FakeClassifier("accounts", confident=False), TODAY, verified=False)
     assert brain.plan("Can you check my balance?").allowed == ("verify",)
+
+
+def test_half_the_identity_details_holds_the_reply():
+    from tellerline.brain import half_identified
+
+    assert half_identified("My customer number is 45127890.")
+    assert half_identified("Born the 3rd of March 1991 (1991-03-03).")
+    assert not half_identified("It's 45127890, born the 3rd of March 1991 (1991-03-03).")
+    assert not half_identified("I've lost my card.")
+
+    unverified = SinglePromptBrain(TODAY)
+    assert unverified.plan("My customer number is 4 5 1 2 7 8 9 0").hold
+    assert not unverified.plan("My customer number is 45127890, born 3/3/1991").hold
+    verified = SinglePromptBrain(TODAY, verified=True)
+    assert not verified.plan("My card ending 4217 cost me 45127890 euro").hold
+
+
+def test_a_label_without_its_value_holds_the_reply():
+    from tellerline.brain import mid_sentence
+
+    assert mid_sentence("My customer number.", verified=False)
+    assert mid_sentence("The card ends in", verified=True)
+    assert mid_sentence("It's the card ending", verified=True)
+    assert not mid_sentence("I lost my card.", verified=True)
+    assert not mid_sentence("What's my account number?", verified=True)

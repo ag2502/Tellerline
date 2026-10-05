@@ -20,7 +20,7 @@ from pipecat.transcriptions.language import Language
 from pipecat.utils.time import time_now_iso8601
 from pipecat.utils.tracing.service_decorators import traced_stt
 
-from tellerline.config import STT_MODEL, STT_SAMPLE_RATE
+from tellerline.config import STT_MODEL, STT_SAMPLE_RATE, STT_TTFS_P99_S
 from tellerline.services.mlx_thread import run_mlx
 
 
@@ -76,6 +76,7 @@ class ParakeetMLXSTTService(SegmentedSTTService):
     ):
         super().__init__(
             settings=STTSettings(model=model, language=Language.EN_GB),
+            ttfs_p99_latency=STT_TTFS_P99_S,
             **kwargs,
         )
         self._model_id = model
@@ -125,4 +126,8 @@ class ParakeetMLXSTTService(SegmentedSTTService):
         if text:
             logger.debug(f"Transcription: [{text}]")
             await self._handle_transcription(text, True, Language.EN_GB)
-            yield TranscriptionFrame(text, self._user_id, time_now_iso8601(), Language.EN_GB)
+            # Each segment is transcribed whole, so its transcript is final: turn detection can
+            # release the turn as soon as it arrives instead of waiting out a timer.
+            yield TranscriptionFrame(
+                text, self._user_id, time_now_iso8601(), Language.EN_GB, finalized=True
+            )

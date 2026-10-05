@@ -18,17 +18,16 @@ from pipecat.processors.frameworks.rtvi.frames import RTVIServerMessageFrame
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.transports.base_transport import BaseTransport, TransportParams
-from pipecat.turns.user_start import MinWordsUserTurnStartStrategy
 from pipecat.turns.user_turn_strategies import UserTurnStrategies
 from pipecat.workers.runner import WorkerRunner
 
 from tellerline.agent.observability import TurnLatencyLog
 from tellerline.agent.recorder import CallRecorder, CallTimeline, TimelineObserver
+from tellerline.agent.turns import turn_start_strategies, turn_stop_strategies
 from tellerline.audio.noise import RNNoiseSuppressor
 from tellerline.bank.client import BankClient
 from tellerline.brain import GREETING, RouterBrain
 from tellerline.config import (
-    INTERRUPT_MIN_WORDS,
     LLM_MODELS,
     STT_SAMPLE_RATE,
     TTS_DEFAULT_VOICE,
@@ -78,7 +77,7 @@ def user_params() -> LLMUserAggregatorParams:
     return LLMUserAggregatorParams(
         vad_analyzer=SileroVADAnalyzer(params=vad),
         user_turn_strategies=UserTurnStrategies(
-            start=[MinWordsUserTurnStartStrategy(min_words=INTERRUPT_MIN_WORDS, use_interim=False)],
+            start=turn_start_strategies(), stop=turn_stop_strategies()
         ),
         user_turn_stop_timeout=USER_TURN_STOP_TIMEOUT_S,
     )

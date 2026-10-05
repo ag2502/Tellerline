@@ -316,12 +316,17 @@ async def place_call(
             except TimeoutError:
                 break
             seen = len(reports)
+            speech_s = len(audio[line]) / RATE
             onset = await ear.wait_onset_after(speech_end, REPLY_TIMEOUT_S)
+            # The agent started talking before the caller had finished (it answered at a pause
+            # mid-sentence): there's no reply gap to measure, so the turn is counted apart.
+            overlap = any(speech_end - speech_s + 0.3 < t < speech_end for t in ear.onsets)
             record = {
                 "turn": index,
                 "caller": line,
-                "caller_speech_s": len(audio[line]) / RATE,
-                "latency_s": None if onset is None else onset - speech_end,
+                "caller_speech_s": speech_s,
+                "overlap": overlap,
+                "latency_s": None if onset is None or overlap else onset - speech_end,
             }
             turns.append(record)
             if onset is None:
@@ -378,7 +383,7 @@ async def run(args: argparse.Namespace) -> None:
     audio = render_lines(lines)
     background = None if args.background_db is None else render_background(args.background_db)
     latencies: list[float] = []
-    timeouts = 0
+    timeouts = overlaps = 0
     config = {
         "url": args.url,
         "turns": args.turns,
@@ -394,7 +399,9 @@ async def run(args: argparse.Namespace) -> None:
                 continue
             for turn in turns:
                 writer.sample(call=number, **turn)
-                if turn["latency_s"] is None:
+                if turn["overlap"]:
+                    overlaps += 1
+                elif turn["latency_s"] is None:
                     timeouts += 1
                 else:
                     latencies.append(turn["latency_s"])
@@ -407,11 +414,16 @@ async def run(args: argparse.Namespace) -> None:
         stats = summarize(latencies)
         passed = bool(latencies) and stats["p90"] <= LATENCY_TARGET_P90_S
         writer.summary(
-            latency_s=stats, timeouts=timeouts, target_p90_s=LATENCY_TARGET_P90_S, passed=passed
+            latency_s=stats,
+            timeouts=timeouts,
+            overlaps=overlaps,
+            target_p90_s=LATENCY_TARGET_P90_S,
+            passed=passed,
         )
 
     print(
-        f"\n{stats['n']} turns measured, {timeouts} without a reply: p50 {ms(stats['p50'])} ms, "
+        f"\n{stats['n']} turns measured, {timeouts} without a reply, {overlaps} where the agent "
+        f"spoke before the caller finished: p50 {ms(stats['p50'])} ms, "
         f"p90 {ms(stats['p90'])} ms, p95 {ms(stats['p95'])} ms -> "
         f"{'within' if passed else 'over'} the {LATENCY_TARGET_P90_S} s p90 target"
     )

@@ -19,6 +19,10 @@ LLM_CHAT_TEMPLATE_ARGS = {"enable_thinking": False}
 
 STT_MODEL = "mlx-community/parakeet-tdt-0.6b-v3"
 STT_SAMPLE_RATE = 16_000
+# Time from the end of the caller's speech to Parakeet's transcript at p99: the 0.2 s silence
+# the VAD waits for plus under 0.1 s of transcription (live calls, MacBook Air M5), with margin.
+# Pipecat assumes 1.0 s for an STT it doesn't know and times turn-end fallbacks from it.
+STT_TTFS_P99_S = 0.35
 
 # Kokoro on MLX (GPU), fed with espeak-ng phonemes; see tellerline.tts.kokoro_mlx and D-010.
 KOKORO_MLX_MODELS: dict[str, str] = {
@@ -60,3 +64,12 @@ INTERRUPT_MIN_WORDS = 2
 # If Smart Turn thinks the caller hasn't finished, how long to wait before answering anyway.
 # Pipecat's default is 5 s; on a phone line that silence feels like the call has dropped.
 USER_TURN_STOP_TIMEOUT_S = 2.0
+# When Smart Turn thinks the caller hasn't finished but Parakeet's transcript ends a sentence,
+# how long to wait for more speech before answering (tellerline.agent.turns).
+PUNCTUATED_GRACE_S = 0.5
+PUNCTUATED_MIN_WORDS = 4
+# A caller who has given half their identity details ("My customer number is 45127890 ...") is
+# usually about to give the rest; the agent holds its reply this long, and a caller who carries
+# on cancels it before anything is said over them. It has to cover their pause plus the 0.3 s
+# the VAD needs to confirm speech has resumed (VAD_START_SECS).
+IDENTITY_HOLD_S = 1.0

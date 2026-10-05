@@ -263,3 +263,27 @@ without changes.
 single-turn (72% before D-023), 100% of dialogue turns (89%), 8 of 8 dialogues (6). On the Phase 0
 test set: 95% single-turn (84% in Phase 0) and 7 of 7 dialogues. Decision p90: 376 ms for replies,
 544 ms for actions.
+
+## D-025 Turn-taking: voice starts a turn when the agent is silent; transcripts are final (2026-10-05)
+
+**Decision:** While the agent is silent, the caller's turn starts as soon as Silero VAD hears
+speech; while it talks, the caller needs two words to interrupt (the noise rule from Phase 1,
+now applied only where it was meant to). Parakeet's transcripts are marked final, since each
+VAD segment is transcribed whole, and Pipecat is told Parakeet's real p99 (0.35 s from the end of
+speech) instead of its 1.0 s default. When Smart Turn judges a caller unfinished but Parakeet's
+transcript ends a sentence of four or more words, the turn is released after 0.5 s instead of
+2 s. When an unverified caller has given half their details, or a turn ends on a label whose
+value hasn't come yet ("My customer number..."), the reply is held for 1.0 s; a caller who
+carries on cancels it before a word is spoken over them. `bench.caller` now counts turns where
+the agent spoke before the caller finished as overlaps, apart from latency.
+**Why:** Per-turn traces from live calls (D-021's caller, now with the agent's own report of each
+turn) showed "turn end" taking about 1,070 ms on most turns. The two-word rule started every
+turn from its transcript, after the caller had already finished; that reset Pipecat's stop
+strategy, which then waited out a timer derived from the 1.0 s STT default. The same traces
+showed the agent answering at the pause after a customer number, which the old caller scored as
+20-200 ms "replies".
+**Result:** 30-turn pilots on the MacBook Air M5 (battery, other apps open): before, p50 1.49 s and
+p90 1.76 s with overlap artefacts counted as fast turns; after, 28 turns measured, 2 overlaps,
+none without a reply, p50 0.92 s, p90 1.13 s, p95 1.19 s. The full 220-turn gate follows.
+**Considered:** A shorter VAD silence (0.2 s is already short); disabling the noise rule (it
+protects real calls in noisy rooms).

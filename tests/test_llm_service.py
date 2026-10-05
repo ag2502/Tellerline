@@ -245,3 +245,11 @@ async def test_each_turn_is_reported_to_the_timeline_and_the_call_page():
     assert message["bank"]["outcome"] == "ok"
     assert message["spoken"].startswith("On your current account")
     assert timeline.turns[0]["turn"] == 1
+
+
+async def test_a_held_reply_is_still_spoken():
+    service, _, _, _ = make_service(
+        [["ACTION verify customer=45127890"]], {}, verified=False, identity_hold_s=0.05
+    )
+    text, _ = await spoken_text(service, "My customer number is 45127890.")
+    assert text == "Could you tell me your date of birth, please?"
