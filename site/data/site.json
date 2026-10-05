@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-05T18:52:45+00:00",
+ "generated_at": "2026-10-05T20:13:11+00:00",
  "live": {
   "gate": {
    "file": "caller-20261005T120429Z.jsonl",
@@ -1667,28 +1667,28 @@
    "failures": [
     "Can you just pause my card ending 7780 for now? I think I left it in the car."
    ],
-   "file": "dialogues-20261005T181549Z.jsonl"
+   "file": "dialogues-20261005T194532Z.jsonl"
   },
   "test": {
    "single_turn": 0.9473684210526315,
    "dialogue_turns": 1.0,
    "dialogues": 1.0,
-   "reply_p90_ms": 401,
-   "action_p90_ms": 496,
+   "reply_p90_ms": 399,
+   "action_p90_ms": 489,
    "failures": [
     "There are charges from a website I've never heard of on my card ending 8850.",
     "Can you put a temporary block on my card ending 3317? It's probably down the back of the sofa."
    ],
-   "file": "dialogues-20261005T181509Z.jsonl"
+   "file": "dialogues-20261005T194451Z.jsonl"
   },
   "holdout": {
    "single_turn": 1.0,
    "dialogue_turns": 1.0,
    "dialogues": 1.0,
-   "reply_p90_ms": 381,
-   "action_p90_ms": 530,
+   "reply_p90_ms": 371,
+   "action_p90_ms": 523,
    "failures": [],
-   "file": "dialogues-20261005T181427Z.jsonl"
+   "file": "dialogues-20261005T194410Z.jsonl"
   },
   "holdout_before": {
    "single_turn": 0.7222222222222222,
@@ -2111,31 +2111,25 @@
    "slug": "stolen-card",
    "title": "stolen card",
    "summary": "Aoife's card was taken from her bag on the bus. Tellerline verifies her, freezes the card and orders a replacement.",
-   "duration_s": 63.51
+   "duration_s": 64.16
   },
   {
    "slug": "found-card",
    "title": "found it",
    "summary": "Niamh blocks her card while she looks for it, turns down a replacement, then finds it and has the block lifted.",
-   "duration_s": 61.99
+   "duration_s": 62.51
   },
   {
    "slug": "dispute",
    "title": "dispute",
    "summary": "Róisín disputes a taxi fare she doesn't recognise, giving the amount and the day in her own words.",
-   "duration_s": 52.51
+   "duration_s": 53.09
   },
   {
    "slug": "balance",
    "title": "balance",
    "summary": "Cian checks his current account and hears his last three payments.",
-   "duration_s": 66.81
-  },
-  {
-   "slug": "someone-else",
-   "title": "not his account",
-   "summary": "A caller asks for his wife's balance. Tellerline asks for his own details first, and he asks for a person instead.",
-   "duration_s": 27.7
+   "duration_s": 68.08
   }
  ]
 }

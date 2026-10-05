@@ -29,17 +29,21 @@ export type StageLine = {
   tone?: "action" | "held";
 };
 
-export type GapLine = { kind: "gap"; at: number; until: number; turn: number };
+// A gap is timed at the agent, from the recording; `callerWait` is the same wait as the caller
+// timed it, which includes the audio's trip over WebRTC both ways.
+export type GapLine = {
+  kind: "gap";
+  at: number;
+  until: number;
+  turn: number;
+  callerWait: number | null;
+};
 
 export type Line = SpeechLine | StageLine | GapLine;
 
 export type Timeline = { lines: Line[]; gaps: Span[]; duration: number };
 
 const EPSILON = 0.05;
-
-function spansBetween(spans: Span[], from: number, to: number): Span[] {
-  return spans.filter(([start]) => start >= from - EPSILON && start < to);
-}
 
 export function describeOutput(turn: Turn): { value: string; tone?: "action" | "held" } {
   const output = turn.model.output.trim();
@@ -62,22 +66,39 @@ export function buildTimeline(call: Call): Timeline {
   }
 
   let boundary = greeting.length ? greeting[greeting.length - 1][1] : 0;
-  turns.forEach((turn, index) => {
-    const next = turns[index + 1]?.t ?? call.duration_s + 1;
-    let said = caller.filter(([start, end]) => start >= boundary - EPSILON && end <= turn.t + EPSILON);
-    if (!said.length) said = caller.filter(([, end]) => end <= turn.t + EPSILON).slice(-1);
+  turns.forEach((turn) => {
+    // The caller's speech for this turn: what they started saying since the last reply and
+    // before the agent answered. It can run past the answer when they talk over the reply.
+    let said = caller.filter(
+      ([start]) => start >= boundary - EPSILON && start <= turn.t + EPSILON,
+    );
+    if (!said.length) said = caller.filter(([start]) => start <= turn.t + EPSILON).slice(-1);
     if (!said.length) return;
+    const callerStart = said[0][0];
     const callerEnd = said[said.length - 1][1];
-    lines.push({ kind: "caller", at: said[0][0], spans: said, text: turn.heard, turn: turn.turn });
+    // What the caller said (from the script, when the call had one); what Parakeet heard is
+    // the turn's first stage line.
+    const words = turn.said ?? turn.heard;
+    lines.push({ kind: "caller", at: said[0][0], spans: said, text: words, turn: turn.turn });
 
-    // The reply starts at or just before the turn's report: a pre-rendered opening starts
-    // playing the moment the agent has its answer, before the report is written.
-    const reply = spansBetween(agent, turn.t - 0.5, next).filter(([start]) => start >= callerEnd);
+    // The reply is what Tellerline says between the caller stopping and the caller speaking
+    // again. It can start just before the turn's report: a pre-rendered opening plays the moment
+    // the agent has its answer, before the report is written.
+    const lastSaid = said[said.length - 1][0];
+    const nextCaller = caller.find(([start]) => start > lastSaid + EPSILON)?.[0] ?? Infinity;
+    const reply = agent.filter(
+      ([start]) =>
+        start >= Math.max(callerStart, turn.t - 0.5 - EPSILON) && start < nextCaller,
+    );
     const agentStart = reply[0]?.[0] ?? turn.t;
+    // The agent started before the caller had finished: an overlap, with no wait to show.
+    const overlap = agentStart < callerEnd;
 
     // The agent's own measurements, laid out on the recording's clock and finished before it
     // speaks: it can't say a result before it has one.
-    const answered = Math.max(callerEnd + 0.004, Math.min(turn.t, agentStart));
+    const answered = overlap
+      ? Math.min(turn.t, agentStart)
+      : Math.max(callerEnd + 0.004, Math.min(turn.t, agentStart));
     const heardAt = Math.min(callerEnd + VAD_SILENCE_S + (turn.stt_ms ?? 0) / 1000, answered - 0.004);
     const decideStart = Math.max(
       heardAt,
@@ -143,10 +164,18 @@ export function buildTimeline(call: Call): Timeline {
       });
     }
     if (reply.length) {
-      lines.push({ kind: "gap", at: callerEnd, until: agentStart, turn: turn.turn });
-      gaps.push([callerEnd, agentStart]);
+      if (!overlap) {
+        lines.push({
+          kind: "gap",
+          at: callerEnd,
+          until: agentStart,
+          turn: turn.turn,
+          callerWait: turn.caller_wait_s ?? null,
+        });
+        gaps.push([callerEnd, agentStart]);
+      }
       lines.push({ kind: "agent", at: agentStart, spans: reply, text: turn.spoken, turn: turn.turn });
-      boundary = reply[reply.length - 1][1];
+      boundary = Math.max(callerEnd, reply[reply.length - 1][1]);
     } else {
       boundary = callerEnd;
     }

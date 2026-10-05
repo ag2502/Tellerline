@@ -1,27 +1,34 @@
 {
   "stolen-card": {
-    "recording": "call-bb1d5e70",
+    "recording": "call-75b18972",
     "title": "stolen card",
-    "summary": "Aoife's card was taken from her bag on the bus. Tellerline verifies her, freezes the card and orders a replacement."
+    "summary": "Aoife's card was taken from her bag on the bus. Tellerline verifies her, freezes the card and orders a replacement.",
+    "script": "stolen-card",
+    "caller_run": "caller-20261005T194740Z.jsonl",
+    "caller_call": 1
   },
   "found-card": {
-    "recording": "call-b788b409",
+    "recording": "call-46ac8027",
     "title": "found it",
-    "summary": "Niamh blocks her card while she looks for it, turns down a replacement, then finds it and has the block lifted."
+    "summary": "Niamh blocks her card while she looks for it, turns down a replacement, then finds it and has the block lifted.",
+    "script": "found-card",
+    "caller_run": "caller-20261005T194740Z.jsonl",
+    "caller_call": 4
   },
   "dispute": {
-    "recording": "call-edc3f8e7",
+    "recording": "call-266c5760",
     "title": "dispute",
-    "summary": "Róisín disputes a taxi fare she doesn't recognise, giving the amount and the day in her own words."
+    "summary": "Róisín disputes a taxi fare she doesn't recognise, giving the amount and the day in her own words.",
+    "script": "dispute",
+    "caller_run": "caller-20261005T194740Z.jsonl",
+    "caller_call": 3
   },
   "balance": {
-    "recording": "call-25a5f753",
+    "recording": "call-7a73002f",
     "title": "balance",
-    "summary": "Cian checks his current account and hears his last three payments."
-  },
-  "someone-else": {
-    "recording": "call-3d59589b",
-    "title": "not his account",
-    "summary": "A caller asks for his wife's balance. Tellerline asks for his own details first, and he asks for a person instead."
+    "summary": "Cian checks his current account and hears his last three payments.",
+    "script": "balance",
+    "caller_run": "caller-20261005T194740Z.jsonl",
+    "caller_call": 2
   }
 }

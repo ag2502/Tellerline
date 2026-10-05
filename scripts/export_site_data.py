@@ -29,6 +29,7 @@ ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results"
 SITE = ROOT / "site"
 CALLS_MANIFEST = ROOT / "scripts" / "site_calls.json"
+DEMO_SCRIPT = ROOT / "bench" / "data" / "demo_calls.json"
 ENVELOPE_HZ = 40  # waveform columns per second of audio
 
 
@@ -376,18 +377,86 @@ def read_track(path: Path) -> tuple[np.ndarray, int]:
     return data, rate
 
 
-def speaking_intervals(events: list[dict], who: str, duration: float) -> list[list[float]]:
-    """[start, end] pairs from the recorded speaking events of the caller or the agent."""
-    intervals, start = [], None
-    for event in events:
-        if event["event"] == f"{who}_started" and start is None:
-            start = event["t"]
-        elif event["event"] == f"{who}_stopped" and start is not None:
-            intervals.append([round(start, 3), round(event["t"], 3)])
-            start = None
-    if start is not None:
-        intervals.append([round(start, 3), round(duration, 3)])
-    return intervals
+FRAME_S = 0.02
+AUDIBLE_DBFS = -45.0  # a 20 ms frame louder than this is speech
+PAUSE_S = 0.35  # quieter gaps than this are pauses inside one stretch of speech
+SHORTEST_S = 0.1  # anything briefer is a click, not speech
+
+
+def audible_intervals(samples: np.ndarray, rate: int) -> list[list[float]]:
+    """[start, end] of each stretch of speech in a track, from the audio itself.
+
+    The agent's speaking events come from voice activity detection, which reports a stop only
+    after 0.2 s of silence and a start after 0.3 s of speech; timing the replay's gaps from them
+    would shave 0.2 s off every wait. The recording says exactly when each voice was audible.
+    """
+    step = int(rate * FRAME_S)
+    frames = len(samples) // step
+    if frames == 0:
+        return []
+    chunks = samples[: frames * step].astype(np.float32).reshape(frames, step) / 32768.0
+    level = 10 * np.log10(np.mean(chunks**2, axis=1) + 1e-12)
+    loud = np.flatnonzero(level > AUDIBLE_DBFS)
+    intervals: list[list[float]] = []
+    for index in loud:
+        start, end = index * FRAME_S, (index + 1) * FRAME_S
+        if intervals and start - intervals[-1][1] <= PAUSE_S:
+            intervals[-1][1] = end
+        else:
+            intervals.append([start, end])
+    return [
+        [round(start, 3), round(end, 3)] for start, end in intervals if end - start >= SHORTEST_S
+    ]
+
+
+TARGET_SPEECH_DBFS = -20.0  # the mix's speech level: clear on a laptop speaker
+PEAK_DBFS = -1.0
+
+
+def stereo_mix(caller: np.ndarray, agent: np.ndarray) -> np.ndarray:
+    """Both voices as one stereo track, float32: the caller left of centre and Tellerline right
+    (a gentle pan; hard left and right is tiring on headphones), with speech brought to a
+    comfortable level and peaks kept below full scale."""
+    length = max(len(caller), len(agent))
+    caller = np.pad(caller.astype(np.float32), (0, length - len(caller))) / 32768.0
+    agent = np.pad(agent.astype(np.float32), (0, length - len(agent))) / 32768.0
+    stereo = np.stack([0.8 * caller + 0.35 * agent, 0.35 * caller + 0.8 * agent], axis=1)
+    frames = stereo[: len(stereo) // 480 * 480].reshape(-1, 480, 2)
+    power = np.mean(frames**2, axis=(1, 2))
+    speech = power[power > 10 ** (AUDIBLE_DBFS / 10)]
+    peak = float(np.abs(stereo).max())
+    if speech.size and peak > 0:
+        gain = min(
+            10 ** (TARGET_SPEECH_DBFS / 20) / float(np.sqrt(speech.mean())),
+            10 ** (PEAK_DBFS / 20) / peak,
+        )
+        stereo *= gain
+    return np.clip(stereo, -1.0, 1.0).astype(np.float32)
+
+
+def caller_waits(entry: dict[str, Any]) -> dict[int, float | None]:
+    """The automated caller's own timing of each turn of the call, by turn number.
+
+    The recording is made at the agent, so its gaps leave out the audio's trip over WebRTC to
+    the caller and back; the caller timed each reply from its last sample to the first audible
+    sample of the answer, as in every latency run.
+    """
+    if not entry.get("caller_run"):
+        return {}
+    records = rows(RESULTS / entry["caller_run"])
+    return {
+        r["turn"]: r.get("latency_s")
+        for r in records
+        if r.get("type") == "sample" and r.get("call") == entry["caller_call"]
+    }
+
+
+def script_lines(name: str | None) -> list[str] | None:
+    """What the caller of a scripted demo call said, line by line."""
+    if not name:
+        return None
+    calls = json.loads(DEMO_SCRIPT.read_text())
+    return next((call["lines"] for call in calls if call["name"] == name), None)
 
 
 def export_call(slug: str, entry: dict[str, Any]) -> dict[str, Any]:
@@ -396,11 +465,7 @@ def export_call(slug: str, entry: dict[str, Any]) -> dict[str, Any]:
     caller, rate = read_track(folder / "caller.wav")
     agent, _ = read_track(folder / "agent.wav")
     duration = len(agent) / rate
-
-    # A gentle pan rather than hard left and right, which is tiring on headphones.
-    left = 0.8 * caller.astype(np.float32) + 0.35 * agent.astype(np.float32)
-    right = 0.35 * caller.astype(np.float32) + 0.8 * agent.astype(np.float32)
-    stereo = np.clip(np.stack([left, right], axis=1), -32768, 32767).astype(np.int16)
+    stereo = stereo_mix(caller, agent)
     out = SITE / "public" / "calls"
     out.mkdir(parents=True, exist_ok=True)
     # 80 kbps constant: plenty for speech at 24 kHz, half the size of the default.
@@ -413,8 +478,15 @@ def export_call(slug: str, entry: dict[str, Any]) -> dict[str, Any]:
         bitrate_mode="CONSTANT",
     )
 
+    # Each turn of a scripted call answers one line of its script, so the replay can show what
+    # the caller said beside what Parakeet heard. Only when every line got exactly one turn.
+    lines = script_lines(entry.get("script"))
+    if lines is not None and len(lines) != len(call["turns"]):
+        print(f"call {slug}: {len(lines)} script lines for {len(call['turns'])} turns, not paired")
+        lines = None
+    waits = caller_waits(entry)
     turns = []
-    for turn in call["turns"]:
+    for index, turn in enumerate(call["turns"]):
         turns.append(
             {
                 key: turn.get(key)
@@ -434,6 +506,10 @@ def export_call(slug: str, entry: dict[str, Any]) -> dict[str, Any]:
                     "stages_ms",
                 )
             }
+            | {
+                "said": lines[index] if lines else None,
+                "caller_wait_s": round(w, 3) if (w := waits.get(index)) is not None else None,
+            }
         )
     record = {
         "slug": slug,
@@ -445,8 +521,8 @@ def export_call(slug: str, entry: dict[str, Any]) -> dict[str, Any]:
         "llm": call.get("llm"),
         "voice": call.get("voice"),
         "duration_s": round(duration, 2),
-        "caller_speaking": speaking_intervals(call["events"], "caller", duration),
-        "agent_speaking": speaking_intervals(call["events"], "agent", duration),
+        "caller_speaking": audible_intervals(caller, rate),
+        "agent_speaking": audible_intervals(agent, rate),
         "turns": turns,
         "envelope_hz": ENVELOPE_HZ,
         "envelope": {"caller": envelope(caller, rate), "agent": envelope(agent, rate)},

@@ -164,9 +164,9 @@ export function CallReplay({ calls, initial }: Props) {
       </div>
 
       <p className="dim text-[0.9em] leading-snug">
-        {call.summary} Recorded {formatDate(call.recorded_at)} on a MacBook Air M5 with 16 GB. The
-        caller is a synthetic voice played into the agent over WebRTC; every word from Tellerline
-        was generated live on the Mac.
+        {call.summary} Recorded {formatDate(call.recorded_at)} on a MacBook Air M5 with 16 GB: a
+        synthetic caller over WebRTC, and every word from Tellerline generated live. Each wait is
+        timed at the agent; the caller&apos;s own timing beside it adds WebRTC both ways.
       </p>
 
       <Waveform
@@ -295,7 +295,10 @@ function TranscriptLine({
         <span className="hidden sm:block" />
         <span className="bloom tabular">
           {waiting ? "waiting " : "replied after "}
-          {seconds.toFixed(2)} s
+          {seconds.toFixed(2)}&nbsp;s
+          {!waiting && line.callerWait !== null ? (
+            <span className="dim whitespace-nowrap"> · {line.callerWait.toFixed(2)}&nbsp;s for the caller</span>
+          ) : null}
         </span>
       </li>
     );
@@ -347,8 +350,11 @@ function WholeCall({ call }: { call: Call }) {
       {call.turns.map((turn) => (
         <li key={turn.turn} className="space-y-1">
           <p>
-            <span className="dim">Caller:</span> {turn.heard}
+            <span className="dim">Caller:</span> {turn.said ?? turn.heard}
           </p>
+          {turn.said && turn.said !== turn.heard ? (
+            <p className="dim">Parakeet heard: {turn.heard}</p>
+          ) : null}
           <p className="dim">
             Gemma 4: {turn.model.output.startsWith("ACTION") ? turn.model.output : "a spoken reply"}
             {turn.instead ? `, not run: ${turn.instead}` : ""}

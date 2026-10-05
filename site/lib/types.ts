@@ -96,6 +96,8 @@ export type SiteData = {
 export type Turn = {
   turn: number;
   t: number; // when the agent had its answer, seconds from the start of the recording
+  said: string | null; // the caller's line, from the call's script
+  caller_wait_s: number | null; // the wait as the automated caller timed it, WebRTC included
   heard: string;
   understood: string;
   stt_ms: number | null;
