@@ -1,0 +1,321 @@
+@import "tailwindcss";
+
+/*
+ * Tellerline: a green-phosphor terminal in a midnight machine room.
+ * One face (IBM 3270, two widths), one colour (P1 phosphor) at a few intensities, inverse video
+ * for what's active. Nothing else exists.
+ */
+
+@theme {
+  --color-tube: #020805; /* tube ground: the page */
+  --color-glass: #07210f; /* deep glass: panes, pressed keys */
+  --color-scan: #0b331e; /* scanline dim: rules and frames */
+  --color-after: #176e3a; /* afterimage: decoration only (3.2:1) */
+  --color-dim: #23a14b; /* secondary text (6:1) */
+  --color-p1: #33ff66; /* phosphor: text (14:1) */
+  --color-bloom: #b6ffb6; /* bloom: the live line, the cursor, display type */
+
+  --font-mono: var(--font-3270-semi), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: var(--font-3270), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --animate-blink: blink 1.06s steps(1, end) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+:root {
+  color-scheme: dark;
+  --glow: 0 0 1px rgb(51 255 102 / 0.55), 0 0 7px rgb(51 255 102 / 0.22);
+  --glow-strong: 0 0 2px rgb(182 255 182 / 0.85), 0 0 14px rgb(51 255 102 / 0.5),
+    0 0 40px rgb(51 255 102 / 0.22);
+  --status-h: 2.25rem;
+  --gutter: 1rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 2rem;
+  }
+}
+
+/* Element defaults sit in the base layer, so Tailwind's utilities can override them. */
+@layer base {
+  html {
+    background: var(--color-tube);
+    scroll-padding-bottom: calc(var(--status-h) + 1rem);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background: var(--color-tube);
+    color: var(--color-p1);
+    font-family: var(--font-mono);
+    font-size: 1.0625rem;
+    line-height: 1.5;
+    text-shadow: var(--glow);
+    -webkit-font-smoothing: antialiased;
+    font-variant-ligatures: none;
+    caret-color: var(--color-bloom);
+    scrollbar-color: var(--color-after) var(--color-tube);
+  }
+
+  @media (min-width: 768px) {
+    body {
+      font-size: 1.125rem;
+    }
+  }
+
+  code,
+  kbd,
+  samp {
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  ::selection {
+    background: var(--color-p1);
+    color: var(--color-tube);
+    text-shadow: none;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-bloom);
+    outline-offset: 3px;
+  }
+
+  a {
+    color: inherit;
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.28em;
+    text-decoration-color: var(--color-after);
+  }
+
+  a:hover {
+    text-decoration-color: currentColor;
+  }
+
+  details > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+@layer components {
+  /* ---------------------------------------------------------------- the glass */
+
+  /* Scanlines, the curved glass's edge fade and fine grain sit over everything, fixed, and never
+     take a pointer or a repaint of the scrolling page. */
+  .crt {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    pointer-events: none;
+  }
+
+  .crt::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0 2px,
+      rgb(0 0 0 / 0.28) 2px 3px
+    );
+  }
+
+  .crt::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(130% 110% at 50% 45%, transparent 62%, rgb(0 0 0 / 0.62) 100%);
+    box-shadow: inset 0 0 6rem rgb(0 0 0 / 0.55);
+  }
+
+  .crt > i {
+    position: absolute;
+    inset: 0;
+    opacity: 0.07;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 1 0 0 0 0 .4 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------------------------------------------------------------- type */
+
+  .display {
+    font-family: var(--font-display);
+    color: var(--color-bloom);
+    text-shadow: var(--glow-strong);
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+    line-height: 1.05;
+    text-wrap: balance;
+  }
+
+  .cmd {
+    font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+    line-height: 1.25;
+    color: var(--color-bloom);
+    text-shadow: var(--glow-strong);
+    text-wrap: balance;
+  }
+
+  .cmd .prompt {
+    color: var(--color-dim);
+    text-shadow: var(--glow);
+  }
+
+  .dim {
+    color: var(--color-dim);
+    text-shadow: none;
+  }
+
+  .after {
+    color: var(--color-after);
+    text-shadow: none;
+  }
+
+  .bloom {
+    color: var(--color-bloom);
+    text-shadow: var(--glow-strong);
+  }
+
+  .inverse {
+    background: var(--color-p1);
+    color: var(--color-tube);
+    text-shadow: none;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A dashed rule, as a terminal draws one. */
+  .rule {
+    height: 1px;
+    background-image: repeating-linear-gradient(
+      to right,
+      var(--color-after) 0 0.45em,
+      transparent 0.45em 0.75em
+    );
+  }
+
+  /* ---------------------------------------------------------------- keys */
+
+  .key {
+    display: inline-flex;
+    align-items: center;
+    gap: 1ch;
+    padding: 0.55em 1.2ch;
+    border: 1px solid var(--color-p1);
+    background: transparent;
+    color: var(--color-p1);
+    font: inherit;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background-color 120ms ease-out,
+      color 120ms ease-out,
+      box-shadow 160ms ease-out;
+  }
+
+  .key::before {
+    content: "[";
+  }
+
+  .key::after {
+    content: "]";
+  }
+
+  .key:hover {
+    background: var(--color-glass);
+  }
+
+  .key:active {
+    transform: translateY(1px);
+  }
+
+  .key[data-primary] {
+    background: var(--color-p1);
+    color: var(--color-tube);
+    text-shadow: none;
+    box-shadow: 0 0 1.25rem rgb(51 255 102 / 0.32);
+  }
+
+  .key[data-primary]:hover {
+    background: var(--color-bloom);
+    box-shadow: 0 0 1.75rem rgb(182 255 182 / 0.45);
+  }
+
+  .key:disabled {
+    opacity: 0.45;
+    cursor: default;
+    transform: none;
+  }
+
+  .cursor {
+    display: inline-block;
+    width: 0.62em;
+    height: 1.05em;
+    margin-left: 0.1em;
+    vertical-align: -0.15em;
+    background: var(--color-bloom);
+    box-shadow: var(--glow-strong);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .cursor {
+      animation: var(--animate-blink);
+    }
+  }
+
+  /* ---------------------------------------------------------------- panes and windows */
+
+  .pane-title {
+    display: flex;
+    align-items: center;
+    gap: 1ch;
+    color: var(--color-dim);
+    text-shadow: none;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .pane-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--color-scan);
+  }
+
+  .window {
+    padding-block: clamp(4rem, 3rem + 5vw, 7.5rem);
+    padding-inline: var(--gutter);
+  }
+
+  /* Scrollable regions take the phosphor too. */
+  .scroll-y {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-after) transparent;
+  }
+}
