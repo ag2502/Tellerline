@@ -7,7 +7,7 @@ collector running.
 """
 
 import json
-from collections.abc import Sequence
+from collections.abc import Awaitable, Callable, Sequence
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -24,12 +24,18 @@ TRACES_DIR = RESULTS_DIR / "traces"
 class TurnLatencyLog:
     """Writes one JSON line per measured turn for a call."""
 
-    def __init__(self, call_id: str, directory: Path = CALLS_DIR):
+    def __init__(
+        self,
+        call_id: str,
+        directory: Path = CALLS_DIR,
+        on_latency: Callable[[float, dict | None], Awaitable[None]] | None = None,
+    ):
         directory.mkdir(parents=True, exist_ok=True)
         self.path = directory / f"{call_id}.jsonl"
         self.call_id = call_id
         self.observer = UserBotLatencyObserver()
         self._pending_breakdown: dict | None = None
+        self._on_latency = on_latency
 
         @self.observer.event_handler("on_latency_breakdown")
         async def on_breakdown(_, breakdown):
@@ -46,6 +52,8 @@ class TurnLatencyLog:
                 }
             )
             logger.info(f"Turn latency {latency_seconds * 1000:.0f} ms")
+            if self._on_latency is not None:
+                await self._on_latency(latency_seconds, self._pending_breakdown)
             self._pending_breakdown = None
 
     def _write(self, record: dict) -> None:

@@ -19,6 +19,7 @@ import argparse
 import asyncio
 import fractions
 import hashlib
+import json
 import re
 import subprocess
 import sys
@@ -262,7 +263,20 @@ async def place_call(
     url: str, lines: list[str], audio: dict[str, np.ndarray], background: np.ndarray | None = None
 ) -> list[dict]:
     pc = RTCPeerConnection()
-    pc.createDataChannel("chat")
+    channel = pc.createDataChannel("chat")
+    reports: list[dict] = []
+
+    @channel.on("message")
+    def on_message(message):
+        # The agent's own account of each turn (tellerline.agent.recorder), kept with the
+        # latency this caller measured.
+        try:
+            data = json.loads(message)
+        except (TypeError, ValueError):
+            return
+        if data.get("type") == "server-message" and isinstance(data.get("data"), dict):
+            reports.append(data["data"])
+
     caller = CallerTrack(background)
     pc.addTrack(caller)
     pc.addTransceiver("video", direction="recvonly")
@@ -301,23 +315,52 @@ async def place_call(
                 )
             except TimeoutError:
                 break
+            seen = len(reports)
             onset = await ear.wait_onset_after(speech_end, REPLY_TIMEOUT_S)
-            turns.append(
-                {
-                    "turn": index,
-                    "caller": line,
-                    "caller_speech_s": len(audio[line]) / RATE,
-                    "latency_s": None if onset is None else onset - speech_end,
-                }
-            )
+            record = {
+                "turn": index,
+                "caller": line,
+                "caller_speech_s": len(audio[line]) / RATE,
+                "latency_s": None if onset is None else onset - speech_end,
+            }
+            turns.append(record)
             if onset is None:
                 break
             await ear.wait_quiet(BOT_DONE_SILENCE_S)
+            record["agent"] = agent_report(reports[seen:])
     finally:
         for task in listening:
             task.cancel()
         await pc.close()
     return turns
+
+
+def agent_report(messages: list[dict]) -> dict | None:
+    """The agent's last turn report and its measured latency, from the messages of one turn."""
+    turn = next((m for m in reversed(messages) if m.get("type") == "tellerline-turn"), None)
+    if turn is None:
+        return None
+    latency = next(
+        (
+            m
+            for m in messages
+            if m.get("type") == "tellerline-latency" and m.get("turn") == turn.get("turn")
+        ),
+        {},
+    )
+    return {
+        "heard": turn.get("heard"),
+        "understood": turn.get("understood"),
+        "skill": (turn.get("route") or {}).get("skill"),
+        "output": (turn.get("model") or {}).get("output"),
+        "action": (turn.get("action") or {}).get("tool"),
+        "spoken": turn.get("spoken"),
+        "stt_ms": turn.get("stt_ms"),
+        "model_ms": (turn.get("model") or {}).get("ms"),
+        "bank_ms": (turn.get("bank") or {}).get("ms"),
+        "reply_s": latency.get("reply_s"),
+        "stages_ms": latency.get("stages_ms"),
+    }
 
 
 # ---------------------------------------------------------------- main

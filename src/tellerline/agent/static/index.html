@@ -47,6 +47,13 @@
   .agent { background: var(--agent); align-self: flex-start; border-bottom-left-radius: 4px; }
   .caller { background: var(--caller); color: var(--caller-ink); align-self: flex-end; border-bottom-right-radius: 4px; }
   .empty { color: var(--muted); margin: auto; text-align: center; }
+  .trace { align-self: stretch; font: 12px/1.55 var(--mono); color: var(--muted);
+           border-left: 2px solid var(--rule); padding: 2px 0 2px 12px; margin: -2px 0 4px; }
+  .trace div { display: grid; grid-template-columns: 7.5em 1fr; gap: 8px; }
+  .trace b { color: var(--ink); font-weight: 500; }
+  .trace .act { color: var(--accent); }
+  .trace .gap { color: var(--ink); }
+  .glass-off .trace { display: none; }
   details { font-size: 14px; color: var(--muted); }
   details table { border-collapse: collapse; margin-top: 8px; font: 13px/1.5 var(--mono); }
   details td, details th { padding: 2px 12px 2px 0; text-align: left; }
@@ -62,6 +69,7 @@
   <section class="panel controls">
     <button id="call">Call</button>
     <button id="mute" disabled>Mute</button>
+    <label><input type="checkbox" id="glass" checked> Show each turn's trace</label>
     <div class="meter" title="Your microphone level"><div id="level"></div></div>
   </section>
 
@@ -113,11 +121,60 @@ function recordLatency(ms) {
   $("turns").textContent = latencies.length;
 }
 
+const traces = new Map();
+
+function traceRow(label, value, cls = "") {
+  const row = document.createElement("div");
+  const name = document.createElement("span");
+  name.textContent = label;
+  const text = document.createElement("b");
+  if (cls) text.className = cls;
+  text.textContent = value;
+  row.append(name, text);
+  return row;
+}
+
+function ms(value) { return value == null ? "–" : `${Math.round(value)} ms`; }
+
+// The agent sends one message per turn: what it heard, how it routed, what the model wrote and
+// what the bank did; then one with the measured gap before its reply started.
+function showTurn(turn) {
+  const box = document.createElement("div");
+  box.className = "trace";
+  box.append(traceRow("heard", `"${turn.heard}"  ·  ${ms(turn.stt_ms)}`));
+  if (turn.understood && turn.understood !== turn.heard) box.append(traceRow("understood", `"${turn.understood}"`));
+  const route = turn.route || {};
+  const intent = route.intent ? `  (${route.intent} ${route.score?.toFixed(2)})` : "";
+  box.append(traceRow("routed", `${route.skill}${intent}  ·  ${ms(route.ms)}`));
+  const model = turn.model || {};
+  const output = model.output?.startsWith("ACTION") ? model.output : "a spoken reply";
+  box.append(traceRow("decided", `${output}  ·  ${ms(model.ms)}`, model.output?.startsWith("ACTION") ? "act" : ""));
+  if (turn.instead) box.append(traceRow("not run", turn.instead));
+  if (turn.bank) box.append(traceRow("bank", `${turn.bank.outcome}  ·  ${ms(turn.bank.ms)}`));
+  $("transcript").append(box);
+  traces.set(turn.turn, box);
+  $("transcript").scrollTop = $("transcript").scrollHeight;
+}
+
+function showLatency(message) {
+  const box = traces.get(message.turn);
+  if (!box) return;
+  const stages = Object.entries(message.stages_ms || {})
+    .map(([name, value]) => `${name.replaceAll("_", " ")} ${Math.round(value)}`)
+    .join(" · ");
+  box.append(traceRow("replied after", `${message.reply_s.toFixed(2)} s${stages ? `  (${stages} ms)` : ""}`, "gap"));
+}
+
 function onMessage(raw) {
   let msg;
   try { msg = JSON.parse(raw); } catch { return; }
   if (msg.label !== "rtvi-ai") return;
   const data = msg.data || {};
+  if (msg.type === "server-message") {
+    if (data.type === "tellerline-turn") showTurn(data);
+    if (data.type === "tellerline-latency") showLatency(data);
+    return;
+  }
   switch (msg.type) {
     case "user-stopped-speaking":
       userStoppedAt = performance.now();
@@ -209,6 +266,9 @@ function hangUp(label = "Not connected") {
 }
 
 $("call").addEventListener("click", () => (pc ? hangUp("Call ended") : call()));
+$("glass").addEventListener("change", (event) => {
+  $("transcript").classList.toggle("glass-off", !event.target.checked);
+});
 $("mute").addEventListener("click", () => {
   const track = stream?.getAudioTracks()[0];
   if (!track) return;

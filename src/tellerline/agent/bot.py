@@ -14,6 +14,7 @@ from pipecat.processors.aggregators.llm_response_universal import (
     LLMContextAggregatorPair,
     LLMUserAggregatorParams,
 )
+from pipecat.processors.frameworks.rtvi.frames import RTVIServerMessageFrame
 from pipecat.runner.types import RunnerArguments
 from pipecat.runner.utils import create_transport
 from pipecat.transports.base_transport import BaseTransport, TransportParams
@@ -22,6 +23,7 @@ from pipecat.turns.user_turn_strategies import UserTurnStrategies
 from pipecat.workers.runner import WorkerRunner
 
 from tellerline.agent.observability import TurnLatencyLog
+from tellerline.agent.recorder import CallRecorder, CallTimeline, TimelineObserver
 from tellerline.audio.noise import RNNoiseSuppressor
 from tellerline.bank.client import BankClient
 from tellerline.brain import GREETING, RouterBrain
@@ -47,6 +49,9 @@ VOICE = os.environ.get("TELLERLINE_VOICE", TTS_DEFAULT_VOICE)
 TRACING = os.environ.get("TELLERLINE_TRACING", "1") == "1"
 # Noise handling can be switched off to measure its effect: TELLERLINE_NOISE=0.
 NOISE_HANDLING = os.environ.get("TELLERLINE_NOISE", "1") == "1"
+# Save each call's timeline and both voices under results/recordings/ (off by default: a real
+# person's voice shouldn't be kept unless they choose to).
+RECORDING = os.environ.get("TELLERLINE_RECORD", "0") == "1"
 
 transport_params = {
     "webrtc": lambda: TransportParams(
@@ -83,29 +88,45 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     call_id = f"call-{uuid.uuid4().hex[:8]}"
     logger.info(f"Starting {call_id}")
 
+    timeline = CallTimeline(
+        call_id, metadata={"llm": LLM_MODEL, "voice": VOICE, "noise_handling": NOISE_HANDLING}
+    )
+    recorder = CallRecorder(timeline) if RECORDING else None
     bank = BankClient()
     brain = RouterBrain(default_classifier(), today=_today())
-    llm = TellerlineLLMService(brain=brain, bank=bank, model=LLM_MODEL)
-    stt = ParakeetMLXSTTService()
+    llm = TellerlineLLMService(brain=brain, bank=bank, model=LLM_MODEL, timeline=timeline)
+    stt = ParakeetMLXSTTService(timeline=timeline)
     tts = KokoroMLXTTSService(voice=VOICE)
 
     context = LLMContext()
     user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
         context, user_params=user_params()
     )
-    pipeline = Pipeline(
-        [
-            transport.input(),
-            stt,
-            user_aggregator,
-            llm,
-            tts,
-            transport.output(),
-            assistant_aggregator,
-        ]
-    )
+    processors = [
+        transport.input(),
+        stt,
+        user_aggregator,
+        llm,
+        tts,
+        transport.output(),
+        assistant_aggregator,
+    ]
+    if recorder is not None:
+        processors.append(recorder.processor)
+    pipeline = Pipeline(processors)
 
-    latency_log = TurnLatencyLog(call_id)
+    async def on_latency(seconds: float, breakdown: dict | None) -> None:
+        record = timeline.add_latency(seconds, breakdown)
+        if record is not None:
+            message = {
+                "type": "tellerline-latency",
+                "turn": record["turn"],
+                "reply_s": record["reply_s"],
+                "stages_ms": record["stages_ms"],
+            }
+            await worker.queue_frames([RTVIServerMessageFrame(data=message)])
+
+    latency_log = TurnLatencyLog(call_id, on_latency=on_latency)
     worker = PipelineWorker(
         pipeline,
         params=PipelineParams(
@@ -113,7 +134,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
             audio_out_sample_rate=TTS_SAMPLE_RATE,
             enable_metrics=True,
         ),
-        observers=[latency_log.observer],
+        observers=[latency_log.observer, TimelineObserver(timeline)],
         enable_tracing=TRACING,
         conversation_id=call_id,
         idle_timeout_secs=runner_args.pipeline_idle_timeout_secs,
@@ -135,6 +156,8 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
         await runner.run()
     finally:
         await bank.close()
+        if recorder is not None and (saved := await recorder.save()):
+            logger.info(f"{call_id} recorded to {saved}")
 
 
 def _today():

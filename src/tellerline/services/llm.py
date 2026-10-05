@@ -5,6 +5,8 @@ for any LLM, but replaces how a response is produced. The service talks to the l
 server; it never uses tool calling.
 """
 
+import time
+from dataclasses import dataclass, field
 from datetime import date
 from typing import Any, Protocol
 
@@ -13,6 +15,7 @@ from opentelemetry import trace
 from pipecat.frames.frames import EndTaskFrame
 from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.frame_processor import FrameDirection
+from pipecat.processors.frameworks.rtvi.frames import RTVIServerMessageFrame
 from pipecat.services.openai.llm import OpenAILLMService
 from pipecat.utils.tracing.service_decorators import traced_llm
 
@@ -38,6 +41,24 @@ class Brain(Protocol):
 
 class Bank(Protocol):
     async def run(self, action: Action) -> dict[str, Any]: ...
+
+
+class Timeline(Protocol):
+    def add_turn(self, record: dict[str, Any]) -> dict[str, Any]: ...
+
+
+@dataclass
+class TurnResult:
+    """What an ACTION line led to: the words spoken, the action that ran, and how."""
+
+    spoken: str
+    action: Action | None = None
+    instead: str | None = None  # why the line wasn't run as written
+    bank: dict[str, Any] = field(default_factory=dict)
+
+
+def _ms(seconds: float) -> float:
+    return round(seconds * 1000, 1)
 
 
 def _text(content) -> str:
@@ -75,6 +96,7 @@ class TellerlineLLMService(OpenAILLMService):
         today: date | None = None,
         llm_url: str | None = None,
         max_failed_verifications: int = 3,
+        timeline: Timeline | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -89,6 +111,7 @@ class TellerlineLLMService(OpenAILLMService):
         self._today = today
         self._max_failed_verifications = max_failed_verifications
         self._failed_verifications = 0
+        self._timeline = timeline
 
     @traced_llm
     async def _process_context(self, context: LLMContext):
@@ -107,6 +130,8 @@ class TellerlineLLMService(OpenAILLMService):
 
         splitter = ReplySplitter()
         await self.start_ttfb_metrics()
+        asked = time.perf_counter()
+        first_token_s = None
         stream = await self._client.chat.completions.create(
             model=self._model,
             messages=plan.messages,
@@ -115,54 +140,103 @@ class TellerlineLLMService(OpenAILLMService):
             max_tokens=MAX_TOKENS,
             stop=["\n"],  # an action is one line; replies are one or two sentences
         )
-        first = True
         try:
             async for chunk in stream:
                 piece = chunk.choices[0].delta.content if chunk.choices else None
                 if not piece:
                     continue
-                if first:
+                if first_token_s is None:
+                    first_token_s = time.perf_counter() - asked
                     await self.stop_ttfb_metrics()
-                    first = False
                 if speech := splitter.feed(piece):
                     await self._push_llm_text(speech)
         finally:
             await stream.close()
+        model_s = time.perf_counter() - asked
         if speech := splitter.finish():
             await self._push_llm_text(speech)
 
-        action = None
-        spoken = splitter.text.strip()
+        result = TurnResult(splitter.text.strip())
         if splitter.is_action:
-            spoken, action = await self._act(plan, splitter.text)
-            await self._push_llm_text(spoken)
+            result = await self._act(plan, splitter.text)
+            await self._push_llm_text(result.spoken)
+        action, spoken = result.action, result.spoken
         self._brain.record(text, plan, action, spoken)
         span.set_attribute("tellerline.model_output", splitter.text.strip())
         span.set_attribute("tellerline.action", action.tool if action else "")
         span.set_attribute("tellerline.spoken", spoken)
+        await self._report(plan, text, splitter.text.strip(), first_token_s, model_s, result)
 
         if action and action.tool in ENDS_CALL:
             # Ends after what's already queued has been spoken.
             await self.push_frame(EndTaskFrame(), FrameDirection.UPSTREAM)
 
-    async def _act(self, plan: Plan, line: str) -> tuple[str, Action | None]:
-        """Validate and run an ACTION line; return what to say and the action that happened."""
+    async def _report(
+        self,
+        plan: Plan,
+        heard: str,
+        output: str,
+        first_token_s: float | None,
+        model_s: float,
+        result: TurnResult,
+    ) -> None:
+        """Add the turn to the call's timeline and send it to the call page's glass-box view."""
+        record = {
+            "heard": plan.heard or heard,
+            "understood": plan.text or heard,
+            "route": {
+                "skill": plan.step,
+                "reason": plan.route_reason,
+                "intent": plan.intent,
+                "score": None if plan.intent_score is None else round(plan.intent_score, 3),
+                "ms": _ms(plan.route_s),
+            },
+            "model": {
+                "output": output,
+                "first_token_ms": None if first_token_s is None else _ms(first_token_s),
+                "ms": _ms(model_s),
+            },
+            "action": (
+                {"tool": result.action.tool, "arguments": result.action.arguments}
+                if result.action
+                else None
+            ),
+            "instead": result.instead,
+            "bank": result.bank or None,
+            "spoken": result.spoken,
+        }
+        if self._timeline is not None:
+            record = self._timeline.add_turn(record)
+        await self.push_frame(RTVIServerMessageFrame(data={"type": "tellerline-turn", **record}))
+
+    async def _act(self, plan: Plan, line: str) -> TurnResult:
+        """Validate and run an ACTION line: what to say, the action that happened, and how."""
         outcome = self._brain.interpret(plan, line)
         if outcome.action is None:
             logger.info(f"Not running {line!r}: {outcome.reason}")
-            return outcome.say or DIDNT_CATCH, None
+            return TurnResult(outcome.say or DIDNT_CATCH, instead=outcome.reason)
         action = outcome.action
+        started = time.perf_counter()
         try:
             result = await self._bank.run(action)
         except Exception as error:  # the caller hears an apology, not a stack trace
             logger.exception(f"Bank call failed for {action.tool}: {error}")
-            return CANT_DO_NOW, Action("transfer_to_human", {})
+            bank = {"ms": _ms(time.perf_counter() - started), "outcome": "failed"}
+            return TurnResult(CANT_DO_NOW, Action("transfer_to_human", {}), bank=bank)
+        bank = {
+            "ms": _ms(time.perf_counter() - started),
+            "outcome": result.get("error") or result.get("status") or "ok",
+        }
 
         today = self._today or date.today()
         if action.tool == "verify_identity" and not result.get("verified"):
+            bank["outcome"] = "not verified"
             self._failed_verifications += 1
             if self._failed_verifications >= self._max_failed_verifications:
                 await self._bank.run(Action("transfer_to_human", {"reason": "verification failed"}))
-                return NOT_VERIFIED_TRANSFER, Action("transfer_to_human", {})
-            return respond(action.tool, action.arguments, result, today), None
-        return respond(action.tool, action.arguments, result, today), action
+                return TurnResult(NOT_VERIFIED_TRANSFER, Action("transfer_to_human", {}), bank=bank)
+            return TurnResult(respond(action.tool, action.arguments, result, today), bank=bank)
+        if action.tool == "verify_identity":
+            bank["outcome"] = "verified"
+        spoken = respond(action.tool, action.arguments, result, today)
+        return TurnResult(spoken, action, bank=bank)

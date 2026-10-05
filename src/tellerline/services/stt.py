@@ -5,6 +5,7 @@ talking; the whole segment is transcribed at once, which Parakeet does in well u
 """
 
 import re
+import time
 from collections.abc import AsyncGenerator, Callable
 from functools import lru_cache
 from typing import Protocol
@@ -25,6 +26,10 @@ from tellerline.services.mlx_thread import run_mlx
 
 class Transcriber(Protocol):
     def generate(self, audio): ...
+
+
+class Timeline(Protocol):
+    def note_transcription(self, milliseconds: float) -> None: ...
 
 
 @lru_cache(maxsize=2)
@@ -66,6 +71,7 @@ class ParakeetMLXSTTService(SegmentedSTTService):
         *,
         model: str = STT_MODEL,
         loader: Callable[[str], Transcriber] = load_parakeet,
+        timeline: "Timeline | None" = None,
         **kwargs,
     ):
         super().__init__(
@@ -74,6 +80,7 @@ class ParakeetMLXSTTService(SegmentedSTTService):
         )
         self._model_id = model
         self._loader = loader
+        self._timeline = timeline
         self._model: Transcriber | None = None
 
     @property
@@ -106,11 +113,14 @@ class ParakeetMLXSTTService(SegmentedSTTService):
             return
 
         await self.start_processing_metrics()
+        started = time.perf_counter()
         samples = np.frombuffer(audio, dtype=np.int16).astype(np.float32) / 32768.0
         if self.sample_rate != STT_SAMPLE_RATE:
             samples = soxr.resample(samples, self.sample_rate, STT_SAMPLE_RATE).astype(np.float32)
         text = await run_mlx(self._transcribe, samples)
         await self.stop_processing_metrics()
+        if self._timeline is not None:
+            self._timeline.note_transcription((time.perf_counter() - started) * 1000)
 
         if text:
             logger.debug(f"Transcription: [{text}]")

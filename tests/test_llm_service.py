@@ -197,3 +197,27 @@ async def test_the_call_ends_only_after_a_goodbye():
     text, up = await spoken_text(service, "Grand, that's all I needed. Cheers.")
     assert text == "Thanks for calling Tellerline Bank. Goodbye."
     assert any(isinstance(frame, EndTaskFrame) for frame in up)
+
+
+async def test_each_turn_is_reported_to_the_timeline_and_the_call_page():
+    from pipecat.processors.frameworks.rtvi.frames import RTVIServerMessageFrame
+
+    from tellerline.agent.recorder import CallTimeline
+
+    timeline = CallTimeline("call-test")
+    service, _, _, _ = make_service(
+        [["ACTION balance account=current"]],
+        {"get_balance": {"balance_eur": 12.5, "available_eur": 12.5}},
+        timeline=timeline,
+    )
+    down, _ = await run_test(
+        service, frames_to_send=[LLMContextFrame(context_with("What's my balance?"))]
+    )
+    [message] = [f.data for f in down if isinstance(f, RTVIServerMessageFrame)]
+    assert message["type"] == "tellerline-turn"
+    assert message["route"]["skill"] == "assist"
+    assert message["model"]["output"] == "ACTION balance account=current"
+    assert message["action"] == {"tool": "get_balance", "arguments": {"account": "current"}}
+    assert message["bank"]["outcome"] == "ok"
+    assert message["spoken"].startswith("On your current account")
+    assert timeline.turns[0]["turn"] == 1
