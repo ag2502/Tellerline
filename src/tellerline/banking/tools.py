@@ -78,6 +78,21 @@ TOOLS: list[dict] = [
         ["card_last_four"],
     ),
     _tool(
+        "unfreeze_card",
+        "Unfreeze one of the caller's frozen cards so it can be used again. Call it when the "
+        "caller says they found a card they had frozen, as soon as you know its last four "
+        "digits. The bank refuses cards frozen as stolen or for suspicious activity.",
+        {"card_last_four": {"type": "string", "description": "Last 4 digits of the card."}},
+        ["card_last_four"],
+    ),
+    _tool(
+        "get_card_status",
+        "Check whether one of the caller's cards is active or frozen, and when a replacement "
+        "will arrive. Call it as soon as you know the card's last four digits.",
+        {"card_last_four": {"type": "string", "description": "Last 4 digits of the card."}},
+        ["card_last_four"],
+    ),
+    _tool(
         "dispute_transaction",
         "Open a dispute for a payment the caller says they didn't make or that was wrong. Call it "
         "as soon as you know the merchant, amount and date. If the caller gives no year, use "
@@ -115,6 +130,8 @@ NODE_TOOLS: dict[str, tuple[str, ...]] = {
         "get_balance",
         "get_recent_transactions",
         "freeze_card",
+        "unfreeze_card",
+        "get_card_status",
         "order_replacement_card",
         "dispute_transaction",
         "transfer_to_human",

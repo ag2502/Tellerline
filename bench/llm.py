@@ -114,6 +114,13 @@ MOCK_TOOL_RESULTS: dict[str, dict[str, Any]] = {
         ]
     },
     "freeze_card": {"status": "frozen"},
+    "unfreeze_card": {"status": "active"},
+    "get_card_status": {
+        "status": "frozen",
+        "freeze_reason": "lost",
+        "replacement_ordered_on": "2026-09-11",
+        "replacement_arrives_by": "2026-09-18",
+    },
     "order_replacement_card": {"status": "ordered", "arrives_in_working_days": 5},
     "dispute_transaction": {"status": "opened", "case_reference": "DSP-20417"},
     "transfer_to_human": {"status": "queued", "estimated_wait_minutes": 3},

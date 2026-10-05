@@ -53,6 +53,10 @@ class BankClient:
                 f"{base}/cards/{args['card_last_four']}/freeze",
                 json={"reason": args["reason"]},
             )
+        if action.tool == "unfreeze_card":
+            return await self._call("POST", f"{base}/cards/{args['card_last_four']}/unfreeze")
+        if action.tool == "get_card_status":
+            return await self._call("GET", f"{base}/cards/{args['card_last_four']}")
         if action.tool == "order_replacement_card":
             return await self._call("POST", f"{base}/cards/{args['card_last_four']}/replacement")
         if action.tool == "dispute_transaction":

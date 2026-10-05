@@ -93,3 +93,47 @@ def test_card_and_dispute_responses_speak_codes_as_words():
         in dispute
     )
     assert not any(ch.isdigit() for ch in dispute)
+
+
+def test_unfreeze_responses():
+    card = {"card_last_four": "7364"}
+    done = respond("unfreeze_card", card, {"status": "active", "changed": True}, TODAY)
+    assert done == (
+        "I've unfrozen that card for you. The card ending seven three six four can be used again."
+    )
+    refused = respond(
+        "unfreeze_card",
+        card,
+        {"status": "frozen", "changed": False, "freeze_reason": "stolen"},
+        TODAY,
+    )
+    assert refused.startswith("Sorry, I can't unfreeze that card. It was frozen because it was")
+    assert refused.endswith("?")  # offers a replacement, so the cards task stays open
+    active = respond("unfreeze_card", card, {"status": "active", "changed": False}, TODAY)
+    assert active.startswith("That card isn't frozen.")
+
+
+def test_card_status_responses_speak_dates_and_digits_as_words():
+    frozen = respond(
+        "get_card_status",
+        {"card_last_four": "0418"},
+        {
+            "status": "frozen",
+            "freeze_reason": "lost",
+            "replacement_ordered_on": "2026-09-14",
+            "replacement_arrives_by": "2026-09-21",
+        },
+        TODAY,
+    )
+    assert frozen == (
+        "That card is frozen. The card ending zero four one eight was frozen because it was "
+        "reported lost. A replacement is on its way and should arrive by the twenty-first of "
+        "September."
+    )
+    active = respond(
+        "get_card_status",
+        {"card_last_four": "0418"},
+        {"status": "active", "freeze_reason": None, "replacement_arrives_by": None},
+        TODAY,
+    )
+    assert active == "That card is active. The card ending zero four one eight is working normally."

@@ -122,3 +122,49 @@ async def test_other_customers_cards_are_not_reachable(bank):
 
 async def test_handoff_works_before_verification(bank):
     assert (await bank.run(Action("transfer_to_human", {})))["status"] == "queued"
+
+
+def test_found_cards_can_be_unfrozen_but_stolen_ones_cannot(api):
+    base = "/v1/customers/cus_0001/cards"
+    api.post(f"{base}/4217/freeze", json={"reason": "temporary"})
+    assert api.post(f"{base}/4217/unfreeze").json() == {"status": "active", "changed": True}
+    assert api.post(f"{base}/4217/unfreeze").json() == {"status": "active", "changed": False}
+
+    api.post(f"{base}/0093/freeze", json={"reason": "stolen"})
+    refused = api.post(f"{base}/0093/unfreeze").json()
+    assert refused == {"status": "frozen", "changed": False, "freeze_reason": "stolen"}
+
+
+def test_card_status_reports_the_freeze_and_the_replacement(api):
+    base = "/v1/customers/cus_0001/cards/4217"
+    assert api.get(base).json() == {
+        "status": "active",
+        "freeze_reason": None,
+        "replacement_ordered_on": None,
+        "replacement_arrives_by": None,
+    }
+    api.post(f"{base}/freeze", json={"reason": "lost"})
+    api.post(f"{base}/replacement")
+    status = api.get(base).json()
+    assert status["status"] == "frozen" and status["freeze_reason"] == "lost"
+    # Ordered Monday 14 September: five working days later is Monday 21 September.
+    assert status["replacement_ordered_on"] == "2026-09-14"
+    assert status["replacement_arrives_by"] == "2026-09-21"
+
+
+def test_working_days_skip_the_weekend():
+    from tellerline.bank.api import add_working_days
+
+    assert add_working_days(date(2026, 9, 11), 1) == date(2026, 9, 14)  # Friday -> Monday
+    assert add_working_days(date(2026, 9, 14), 5) == date(2026, 9, 21)
+
+
+async def test_client_unfreezes_and_reads_card_status(bank):
+    await bank.run(
+        Action("verify_identity", {"customer_number": "45127890", "date_of_birth": "1991-03-03"})
+    )
+    await bank.run(Action("freeze_card", {"card_last_four": "4217", "reason": "temporary"}))
+    status = await bank.run(Action("get_card_status", {"card_last_four": "4217"}))
+    assert status["status"] == "frozen"
+    unfrozen = await bank.run(Action("unfreeze_card", {"card_last_four": "4217"}))
+    assert unfrozen == {"status": "active", "changed": True}

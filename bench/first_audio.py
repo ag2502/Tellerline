@@ -29,6 +29,8 @@ ARGUMENTS = {
     "get_balance": {"account": "current"},
     "get_recent_transactions": {"account": "current", "count": 3},
     "freeze_card": {"card_last_four": "4217", "reason": "stolen"},
+    "unfreeze_card": {"card_last_four": "4217"},
+    "get_card_status": {"card_last_four": "4217"},
     "order_replacement_card": {"card_last_four": "4217"},
     "dispute_transaction": {"merchant": "Pizza Palace", "amount": 22.5, "date": "2026-09-12"},
     "transfer_to_human": {},
@@ -47,8 +49,8 @@ FIVE_TRANSACTIONS = {
 
 def replies() -> dict[str, str]:
     spoken = {
-        tool: respond(tool, ARGUMENTS[tool], result, BENCH_TODAY)
-        for tool, result in MOCK_TOOL_RESULTS.items()
+        tool: respond(tool, arguments, MOCK_TOOL_RESULTS[tool], BENCH_TODAY)
+        for tool, arguments in ARGUMENTS.items()
     }
     spoken["get_recent_transactions (five)"] = respond(
         "get_recent_transactions", {"account": "current"}, FIVE_TRANSACTIONS, BENCH_TODAY

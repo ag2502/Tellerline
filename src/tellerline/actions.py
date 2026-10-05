@@ -68,6 +68,22 @@ ACTIONS: dict[str, ActionSpec] = {
             {"card": "card_last_four", "reason": "reason"},
         ),
         ActionSpec(
+            "unfreeze",
+            "unfreeze_card",
+            "unfreeze card=<last 4 digits>",
+            "when the caller has found a card that was frozen and wants to use it again; the bank "
+            "decides whether it can be unfrozen",
+            {"card": "card_last_four"},
+        ),
+        ActionSpec(
+            "status",
+            "get_card_status",
+            "status card=<last 4 digits>",
+            "when the caller asks whether a card is frozen or working, or when a replacement "
+            "will arrive",
+            {"card": "card_last_four"},
+        ),
+        ActionSpec(
             "replace",
             "order_replacement_card",
             "replace card=<last 4 digits>",
@@ -133,6 +149,8 @@ REQUIRED: dict[str, tuple[str, ...]] = {
     "get_balance": ("account",),
     "get_recent_transactions": ("account",),
     "freeze_card": ("card_last_four",),
+    "unfreeze_card": ("card_last_four",),
+    "get_card_status": ("card_last_four",),
     "order_replacement_card": ("card_last_four",),
     "dispute_transaction": ("merchant", "amount", "date"),
     "transfer_to_human": (),

@@ -22,6 +22,9 @@ FreezeReason = Literal["lost", "stolen", "suspicious_activity", "temporary"]
 
 REPLACEMENT_WORKING_DAYS = 5
 QUEUE_WAIT_MINUTES = 3
+# A caller who finds a card can unfreeze it. A card frozen as stolen or for suspicious payments
+# may have been copied, so it stays blocked and is replaced instead.
+UNFREEZABLE_REASONS = ("lost", "temporary")
 
 
 class VerifyRequest(BaseModel):
@@ -46,6 +49,16 @@ class HandoffRequest(BaseModel):
 
 def _not_found(error: str) -> HTTPException:
     return HTTPException(status_code=404, detail={"error": error})
+
+
+def add_working_days(start: date, days: int) -> date:
+    """The date ``days`` working days (Monday to Friday) after ``start``."""
+    current = start
+    while days:
+        current += timedelta(days=1)
+        if current.weekday() < 5:
+            days -= 1
+    return current
 
 
 def create_app(db_path: Path | str = ":memory:", today: date | None = None) -> FastAPI:
@@ -130,6 +143,35 @@ def create_app(db_path: Path | str = ":memory:", today: date | None = None) -> F
         )
         db.commit()
         return {"status": "frozen", "reason": request.reason}
+
+    @app.post("/v1/customers/{customer_id}/cards/{last_four}/unfreeze")
+    def unfreeze(customer_id: str, last_four: str) -> dict:
+        card = card_or_404(customer_id, last_four)
+        if card["status"] != "frozen":
+            return {"status": card["status"], "changed": False}
+        if card["freeze_reason"] not in UNFREEZABLE_REASONS:
+            return {"status": "frozen", "changed": False, "freeze_reason": card["freeze_reason"]}
+        db.execute(
+            "UPDATE cards SET status = 'active', freeze_reason = NULL WHERE id = ?", (card["id"],)
+        )
+        db.commit()
+        return {"status": "active", "changed": True}
+
+    @app.get("/v1/customers/{customer_id}/cards/{last_four}")
+    def card_status(customer_id: str, last_four: str) -> dict:
+        card = card_or_404(customer_id, last_four)
+        ordered = card["replacement_ordered_on"]
+        arrives = (
+            add_working_days(date.fromisoformat(ordered), REPLACEMENT_WORKING_DAYS).isoformat()
+            if ordered
+            else None
+        )
+        return {
+            "status": card["status"],
+            "freeze_reason": card["freeze_reason"],
+            "replacement_ordered_on": ordered,
+            "replacement_arrives_by": arrives,
+        }
 
     @app.post("/v1/customers/{customer_id}/cards/{last_four}/replacement")
     def replacement(customer_id: str, last_four: str) -> dict:

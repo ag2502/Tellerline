@@ -28,6 +28,11 @@ NOT_MATCHED = (
 )
 FROZEN = "I've frozen that card for you."
 OFFER_REPLACEMENT = "Would you like me to order a replacement?"
+UNFROZEN = "I've unfrozen that card for you."
+NOT_FROZEN = "That card isn't frozen."
+CANT_UNFREEZE = "Sorry, I can't unfreeze that card."
+CARD_ACTIVE = "That card is active."
+CARD_FROZEN = "That card is frozen."
 REPLACEMENT_ORDERED = "I've ordered you a replacement card."
 DISPUTE_OPENED = "I've opened a dispute for that payment."
 TRANSFERRING = "I'm transferring you to a colleague now."
@@ -86,6 +91,42 @@ def _freeze_card(args: dict, result: dict, today: date) -> str:
     return f"{FROZEN} It's the card ending {card}, so it can't be used now. {OFFER_REPLACEMENT}"
 
 
+_WHY_FROZEN = {
+    "lost": "it was reported lost",
+    "stolen": "it was reported stolen",
+    "suspicious_activity": "of payments that looked suspicious",
+    "temporary": "you asked for a temporary block",
+}
+
+
+def _why_frozen(result: dict) -> str:
+    return _WHY_FROZEN.get(result.get("freeze_reason"), "of a security block")
+
+
+def _unfreeze_card(args: dict, result: dict, today: date) -> str:
+    card = speech.digits(args["card_last_four"])
+    if result.get("changed"):
+        return f"{UNFROZEN} The card ending {card} can be used again."
+    if result.get("status") == "frozen":
+        return (
+            f"{CANT_UNFREEZE} It was frozen because {_why_frozen(result)}, so for your safety it "
+            f"has to be replaced instead. {OFFER_REPLACEMENT}"
+        )
+    return f"{NOT_FROZEN} The card ending {card} is working normally."
+
+
+def _get_card_status(args: dict, result: dict, today: date) -> str:
+    card = speech.digits(args["card_last_four"])
+    if result.get("status") == "frozen":
+        text = f"{CARD_FROZEN} The card ending {card} was frozen because {_why_frozen(result)}."
+    else:
+        text = f"{CARD_ACTIVE} The card ending {card} is working normally."
+    if result.get("replacement_arrives_by"):
+        when = speech.spoken_date(result["replacement_arrives_by"], today)
+        text += f" A replacement is on its way and should arrive by {when}."
+    return text
+
+
 def _order_replacement_card(args: dict, result: dict, today: date) -> str:
     card = speech.digits(args["card_last_four"])
     days = speech.number(result.get("arrives_in_working_days", 5))
@@ -120,6 +161,8 @@ TEMPLATES: dict[str, Template] = {
     "get_balance": _get_balance,
     "get_recent_transactions": _get_recent_transactions,
     "freeze_card": _freeze_card,
+    "unfreeze_card": _unfreeze_card,
+    "get_card_status": _get_card_status,
     "order_replacement_card": _order_replacement_card,
     "dispute_transaction": _dispute_transaction,
     "transfer_to_human": _transfer_to_human,
@@ -152,6 +195,11 @@ FIXED_PHRASES: tuple[str, ...] = (
     NOT_MATCHED,
     FROZEN,
     OFFER_REPLACEMENT,
+    UNFROZEN,
+    NOT_FROZEN,
+    CANT_UNFREEZE,
+    CARD_ACTIVE,
+    CARD_FROZEN,
     REPLACEMENT_ORDERED,
     DISPUTE_OPENED,
     TRANSFERRING,
