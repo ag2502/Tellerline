@@ -116,7 +116,17 @@ ACTIONS: dict[str, ActionSpec] = {
 
 NODE_ACTIONS: dict[str, tuple[str, ...]] = {
     "identify": ("verify", "transfer", "end"),
-    "assist": ("balance", "transactions", "freeze", "replace", "dispute", "transfer", "end"),
+    "assist": (
+        "balance",
+        "transactions",
+        "freeze",
+        "unfreeze",
+        "status",
+        "replace",
+        "dispute",
+        "transfer",
+        "end",
+    ),
 }
 
 _REASONS = {"suspicious": "suspicious_activity"}

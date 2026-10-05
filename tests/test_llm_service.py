@@ -185,3 +185,15 @@ def test_fragments_since_the_agent_last_spoke_are_joined():
     assert last_user_text(context) == (
         "My customer number is 45127890. and my date of birth is the 3rd of March 1991."
     )
+
+
+async def test_the_call_ends_only_after_a_goodbye():
+    service, _, bank, _ = make_service([["ACTION end"]], {})
+    text, up = await spoken_text(service, "No, I'm sure it'll turn up.")
+    assert text == "No problem. Is there anything else I can help with?"
+    assert not any(isinstance(frame, EndTaskFrame) for frame in up)
+
+    service, _, bank, _ = make_service([["ACTION end"]], {"end_call": {"status": "ending"}})
+    text, up = await spoken_text(service, "Grand, that's all I needed. Cheers.")
+    assert text == "Thanks for calling Tellerline Bank. Goodbye."
+    assert any(isinstance(frame, EndTaskFrame) for frame in up)

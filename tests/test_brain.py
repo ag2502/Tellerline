@@ -44,7 +44,7 @@ def test_router_picks_skill_prompt_and_actions():
     brain = RouterBrain(FakeClassifier("cards"), TODAY, verified=True)
     plan = brain.plan("I lost my card")
     assert plan.step == "cards"
-    assert plan.allowed == ("freeze", "replace", "transfer", "end")
+    assert plan.allowed == ("freeze", "unfreeze", "status", "replace", "transfer", "end")
     assert "help with the caller's card" in plan.messages[0]["content"]
 
 

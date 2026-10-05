@@ -58,6 +58,11 @@ EXAMPLES: dict[str, list[str]] = {
         "The card ending 5678 is missing.",
         "When will my replacement card arrive?",
         "I gave my card number to a scam caller.",
+        "I've found my card, can you unblock it?",
+        "Please turn my card back on.",
+        "Is my card still blocked?",
+        "Has my new card been sent out yet?",
+        "Is my card working?",
     ],
     "disputes": [
         "There's a payment I don't recognise.",

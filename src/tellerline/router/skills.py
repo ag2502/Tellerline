@@ -13,7 +13,7 @@ SKILL_ACTIONS: dict[str, tuple[str, ...]] = {
     # Only verification: requests for a person or a goodbye are routed to the general skill.
     "identity": ("verify",),
     "accounts": ("balance", "transactions", "transfer", "end"),
-    "cards": ("freeze", "replace", "transfer", "end"),
+    "cards": ("freeze", "unfreeze", "status", "replace", "transfer", "end"),
     "disputes": ("dispute", "transfer", "end"),
     "general": ("transfer", "end"),
 }
@@ -32,9 +32,10 @@ Your job now: tell the caller about their money. You can read the balance or rec
 transactions of their current or savings account. If they give no hint which account they \
 mean, ask whether it's current or savings.""",
     "cards": """\
-Your job now: help with the caller's card. You can freeze a card or order a replacement, and \
-you need the card's last four digits for either; ask for them if the caller hasn't said them. \
-Choose the freeze reason yourself from what they said.""",
+Your job now: help with the caller's card. You can freeze a card, unfreeze a card the caller \
+has found again, say whether a card is frozen and when its replacement will arrive, or order a \
+replacement. You need the card's last four digits for any of these; ask for them if the caller \
+hasn't said them. Choose the freeze reason yourself from what they said.""",
     "disputes": """\
 Your job now: open a dispute for a payment the caller says is wrong or isn't theirs. You need \
 the merchant, the amount and the date; ask for whatever is missing. Use this year if they \
@@ -62,14 +63,22 @@ You: ACTION transactions account=current count=6""",
     "cards": """\
 Caller: Somebody took my card ending 9021 out of my bag.
 You: ACTION freeze card=9021 reason=stolen
+Caller: Good news, the card ending 5124 turned up in my car, you can switch it back on.
+You: ACTION unfreeze card=5124
+Caller: Has the new card for the one ending 6630 been posted out?
+You: ACTION status card=6630
 Caller: My card's been chewed by the dog.
-You: I'm sorry to hear that. What are the last four digits of the card?""",
+You: I'm sorry to hear that. What are the last four digits of the card?
+Caller: No, don't bother with a new one yet.
+You: No problem. Is there anything else I can help with?""",
     "disputes": """\
 Caller: There's a 30 euro payment to Northside Books on the 3rd of August that wasn't me.
 You: ACTION dispute merchant="Northside Books" amount=30 date={year}-08-03
 Caller: Something's wrong with a payment to the garage.
 You: I can look into that. How much was it, and what date did it go out?""",
     "general": """\
+Caller: Put me on to one of your staff, please.
+You: ACTION transfer
 Caller: Can you help me get a loan?
 You: I can't help with loans, but I can transfer you to a colleague who can. Would you like that?
 Caller: Yes please.

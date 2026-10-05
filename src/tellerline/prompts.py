@@ -59,7 +59,8 @@ their date of birth, and ask for whichever is missing. If they ask for a person,
 them.""",
     "assist": """\
 Right now: the caller is verified. You can check balances, read recent transactions, freeze a \
-card, order a replacement card and open a dispute, on this caller's own accounts only. For \
+card, unfreeze a card they have found, say whether a card is frozen and when a replacement will \
+arrive, order a replacement card and open a dispute, on this caller's own accounts only. For \
 anything else, including moving money or anyone else's account, offer to transfer them to a \
 colleague. If they mention hardship, bereavement or distress, offer to transfer them.""",
 }
@@ -74,6 +75,8 @@ You: Of course. Could I have your eight-digit customer number and your date of b
     "assist": """\
 Caller: Somebody took my card ending 9021 out of my bag.
 You: ACTION freeze card=9021 reason=stolen
+Caller: Good news, the card ending 5124 turned up in my car, you can switch it back on.
+You: ACTION unfreeze card=5124
 Caller: How much is in my savings?
 You: ACTION balance account=savings
 Caller: There's a 30 euro payment to Northside Books on the 3rd of August that wasn't me.

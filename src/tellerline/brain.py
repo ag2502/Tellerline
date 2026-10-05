@@ -32,6 +32,18 @@ VERIFY_FIRST = (
     "I can help with that once I've checked it's you. Could you tell me your eight-digit "
     "customer number and your date of birth, please?"
 )
+ANYTHING_ELSE = "No problem. Is there anything else I can help with?"
+# Ending the call can't be undone, so the caller has to have said goodbye or that they're done;
+# a model that hears "No, I'm sure it'll turn up" as a goodbye would hang up on them.
+_GOODBYE = re.compile(
+    r"\b(?:good)?bye\b|\bcheers\b|\bthat'?s (?:all|everything|it|me)\b"
+    r"|\bthat (?:is|was|will be|'ll be) (?:all|everything)\b"
+    r"|\bnothing else\b|\ball (?:done|sorted)\b"
+    r"|\bi'?m (?:all )?(?:done|finished|sorted|grand now)\b"
+    r"|\bhave a (?:good|nice|great) (?:day|one|evening)\b"
+    r"|\btalk (?:to you )?soon\b|\bsee you\b",
+    re.I,
+)
 # Values the bank acts on that only the caller can supply. The model must not invent them, copy
 # them from an example or work them out from another number (the last four digits of a customer
 # number are not a card), so each must appear in something the caller actually said.
@@ -101,6 +113,8 @@ class SinglePromptBrain:
             if not self.verified and name in ACTIONS:
                 return Outcome(say=VERIFY_FIRST, reason=f"{name} needs a verified caller")
             return Outcome(say=DIDNT_CATCH, reason="unusable action line")
+        if action.tool == "end_call" and not _GOODBYE.search(plan.text):
+            return Outcome(say=ANYTHING_ELSE, reason="the caller hasn't said goodbye")
         action = self._grounded(action, plan.text)
         if not action.complete:
             return Outcome(
