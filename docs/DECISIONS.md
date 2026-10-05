@@ -319,8 +319,10 @@ words required (Parakeet punctuates long fragments too).
 answers the classifier reads confidently as small talk: "Yes, please." to the replacement offer
 had moved the call to the general skill, which transferred the caller instead of ordering the
 card. A date of birth must be at least ten years back: "the 29th", heard on its own, became
-29 September 2026. And the caller is muted once the agent has ended the call, so a "bye" over its
-goodbye no longer starts another turn and a second goodbye. The demo script now says each request
+29 September 2026. And once the agent has ended the call, nothing the caller says starts a turn
+and the agent answers nothing more, so a "bye" over its goodbye no longer brings a second
+goodbye. (This was first a Pipecat user-mute strategy, which also dropped the caller's audio
+before it reached the call recording; the turn-start rules now hold off instead.) The demo script now says each request
 as one sentence, gives the found-card caller a regular voice and says "34 euro and 60 cent".
 A second recording added two more: a turn that's only a greeting ("Hi, it's Niamh", heard as
 "Naim" and taken for a request for a person) can't transfer the caller, and an amount may have a
@@ -355,3 +357,25 @@ caller's first sentence instead of in front of the reply. With the models alread
 takes about 0.3 s.
 **Considered:** Keeping the models warm with a timer (costs energy all day on a laptop, and
 doesn't help if a call arrives between ticks); a shorter Smart Turn fallback (adds cut-ins).
+
+## D-029 The website shows only what was measured or recorded (2026-10-05)
+
+**Decision:** The project website (`site/`, Next.js on Vercel) is generated from the repository.
+`scripts/export_site_data.py` reads every benchmark result and this log into
+`site/data/site.json`, and turns calls the agent recorded (`TELLERLINE_RECORD=1`) into a replay:
+both voices, when each was audible (found in the audio, not from voice activity events, which
+arrive 0.2 s late), the agent's own report of each turn, the caller's script line, and the wait
+the automated caller timed. The film is rendered frame by frame from one recording with its own
+audio (`scripts/render_film.py`). Nothing on the site is typed in by hand, and the hourly rebuild
+only adds the repository's latest commits.
+**Why:** The site is for engineers and hiring managers, who need to hear a real call and trace
+every number to a run they could repeat. A screen recording would show one call at whatever the
+recorder caught and drift from the data, and a hosted live demo would contradict the point: the
+agent needs the Mac. Each replayed wait is shown twice because the two honest measurements differ:
+at the agent the recording shows the answer, and the caller hears it a median 0.35 s later on
+these calls, after WebRTC both ways, which is what every latency number on the site includes.
+**Result:** Recording the demo calls found seven defects, fixed in D-027 and D-028 before the
+calls were recorded for the site.
+**Considered:** A live demo through a tunnel to the Mac (works only while the Mac is awake and
+serving); a screen-recorded video (not reproducible); showing only the agent-side gaps (they look
+faster than the measured numbers, for a reason a visitor can't see).

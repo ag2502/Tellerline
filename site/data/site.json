@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-10-05T20:13:12+00:00",
+ "generated_at": "2026-10-05T20:13:42+00:00",
  "live": {
   "gate": {
    "file": "caller-20261005T120429Z.jsonl",
@@ -2001,7 +2001,7 @@
    "title": "What recording the demo calls found",
    "date": "2026-10-05",
    "note": "",
-   "decision": "Three fixes, each from a recorded demo call. A verified caller's open task keeps answers the classifier reads confidently as small talk: \"Yes, please.\" to the replacement offer had moved the call to the general skill, which transferred the caller instead of ordering the card. A date of birth must be at least ten years back: \"the 29th\", heard on its own, became 29 September 2026. And the caller is muted once the agent has ended the call, so a \"bye\" over its goodbye no longer starts another turn and a second goodbye. The demo script now says each request as one sentence, gives the found-card caller a regular voice and says \"34 euro and 60 cent\". A second recording added two more: a turn that's only a greeting (\"Hi, it's Niamh\", heard as \"Naim\" and taken for a request for a person) can't transfer the caller, and an amount may have a full stop after \"euro\" and \"sent\" for \"cent\" (\"It was 34 euro. And 60 sent\").",
+   "decision": "Three fixes, each from a recorded demo call. A verified caller's open task keeps answers the classifier reads confidently as small talk: \"Yes, please.\" to the replacement offer had moved the call to the general skill, which transferred the caller instead of ordering the card. A date of birth must be at least ten years back: \"the 29th\", heard on its own, became 29 September 2026. And once the agent has ended the call, nothing the caller says starts a turn and the agent answers nothing more, so a \"bye\" over its goodbye no longer brings a second goodbye. (This was first a Pipecat user-mute strategy, which also dropped the caller's audio before it reached the call recording; the turn-start rules now hold off instead.) The demo script now says each request as one sentence, gives the found-card caller a regular voice and says \"34 euro and 60 cent\". A second recording added two more: a turn that's only a greeting (\"Hi, it's Niamh\", heard as \"Naim\" and taken for a request for a person) can't transfer the caller, and an amount may have a full stop after \"euro\" and \"sent\" for \"cent\" (\"It was 34 euro. And 60 sent\").",
    "why": "The website replays the five scripted demo calls (`bench/data/demo_calls.json`), so each has to go through cleanly, and each failure was a defect a real caller could hit. The latency gate's calls are short and don't walk through an offer and its answer.",
    "result": "Dialogue accuracy is unchanged on every split after all five changes: held-out 100% single-turn and 8 of 8 dialogues, test 95% and 7 of 7, dev 97%. The third recording went through on every call. Two problems stay open. Kokoro's breathy af_nicole voice wasn't detected as speech for its first few seconds (Silero VAD at confidence 0.8). And Parakeet, given only \"thirty-four euro sixty\" cut off at a pause, once wrote \"€3460\", which no rule can safely read as €34.60: the dispute reads the amount back, but only after opening it, so the next step is to confirm the amount first. The slow first reply these calls also showed is D-028."
   },
@@ -2014,6 +2014,16 @@
    "why": "The two slowest replies of the 220-turn gate (3.29 s and 2.85 s) were \"No, it's fine. Bye.\": Smart Turn was unsure about the lone \"Bye.\" and the turn waited out the 2 s fallback. And on a Mac in everyday use, macOS pages out models that sit idle: the first reply of a call placed after the caller's lines were rendered in another process took 11.0-11.6 s (D-027).",
    "result": "`bench/data/goodbye_calls.json` rings off five ways, plus a control without a goodbye: the closing replies took 0.64-0.92 s, and the control was asked whether there was anything else. With the cached lines deleted so they render first, as before, the first reply took 1.24 s instead of 11.0 s; the re-warm itself took 11.6 s, but behind the greeting and the caller's first sentence instead of in front of the reply. With the models already in memory it takes about 0.3 s.",
    "considered": "Keeping the models warm with a timer (costs energy all day on a laptop, and doesn't help if a call arrives between ticks); a shorter Smart Turn fallback (adds cut-ins)."
+  },
+  {
+   "id": "D-029",
+   "title": "The website shows only what was measured or recorded",
+   "date": "2026-10-05",
+   "note": "",
+   "decision": "The project website (`site/`, Next.js on Vercel) is generated from the repository. `scripts/export_site_data.py` reads every benchmark result and this log into `site/data/site.json`, and turns calls the agent recorded (`TELLERLINE_RECORD=1`) into a replay: both voices, when each was audible (found in the audio, not from voice activity events, which arrive 0.2 s late), the agent's own report of each turn, the caller's script line, and the wait the automated caller timed. The film is rendered frame by frame from one recording with its own audio (`scripts/render_film.py`). Nothing on the site is typed in by hand, and the hourly rebuild only adds the repository's latest commits.",
+   "why": "The site is for engineers and hiring managers, who need to hear a real call and trace every number to a run they could repeat. A screen recording would show one call at whatever the recorder caught and drift from the data, and a hosted live demo would contradict the point: the agent needs the Mac. Each replayed wait is shown twice because the two honest measurements differ: at the agent the recording shows the answer, and the caller hears it a median 0.35 s later on these calls, after WebRTC both ways, which is what every latency number on the site includes.",
+   "result": "Recording the demo calls found seven defects, fixed in D-027 and D-028 before the calls were recorded for the site.",
+   "considered": "A live demo through a tunnel to the Mac (works only while the Mac is awake and serving); a screen-recorded video (not reproducible); showing only the agent-side gaps (they look faster than the measured numbers, for a reason a visitor can't see)."
   }
  ],
  "examples": [
