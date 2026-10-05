@@ -168,3 +168,17 @@ async def test_client_unfreezes_and_reads_card_status(bank):
     assert status["status"] == "frozen"
     unfrozen = await bank.run(Action("unfreeze_card", {"card_last_four": "4217"}))
     assert unfrozen == {"status": "active", "changed": True}
+
+
+def test_simultaneous_disputes_get_different_references(app):
+    from concurrent.futures import ThreadPoolExecutor
+
+    client = TestClient(app)
+    body = {"merchant": "StreamFlix", "amount": 9.99, "date": "2026-09-02"}
+
+    def open_dispute(_):
+        return client.post("/v1/customers/cus_0001/disputes", json=body).json()["case_reference"]
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        references = list(pool.map(open_dispute, range(24)))
+    assert len(set(references)) == 24

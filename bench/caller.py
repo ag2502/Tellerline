@@ -43,6 +43,7 @@ FRAME = 960  # 20 ms at 48 kHz
 SPEECH_RMS = 0.01  # about -40 dBFS; Kokoro speech sits well above, WebRTC silence well below
 BOT_DONE_SILENCE_S = 1.2
 CALLER_PAUSE_S = 0.5
+STAGGER_S = 2.7  # seconds between the first calls of concurrent lines
 REPLY_TIMEOUT_S = 12.0
 AUDIO_CACHE = RESULTS_DIR / "caller_audio"
 CALLER_VOICES = ("am_michael", "af_heart")
@@ -389,16 +390,23 @@ async def run(args: argparse.Namespace) -> None:
         "turns": args.turns,
         "calls": len(scripts),
         "background_db": args.background_db,
+        "concurrency": args.concurrency,
     }
-    with ResultWriter("caller", config) as writer:
-        for number, lines in enumerate(scripts, start=1):
+    waiting = list(enumerate(scripts, start=1))
+
+    async def line_worker(line_number: int) -> None:
+        nonlocal timeouts, overlaps
+        # Lines start a few seconds apart so their turns don't fall in step.
+        await asyncio.sleep(line_number * STAGGER_S)
+        while waiting:
+            number, lines = waiting.pop(0)
             try:
                 turns = await place_call(args.url, lines, audio, background)
             except Exception as error:
                 print(f"call {number}/{len(scripts)} failed: {type(error).__name__}: {error}")
                 continue
             for turn in turns:
-                writer.sample(call=number, **turn)
+                writer.sample(call=number, line=line_number, **turn)
                 if turn["overlap"]:
                     overlaps += 1
                 elif turn["latency_s"] is None:
@@ -407,10 +415,13 @@ async def run(args: argparse.Namespace) -> None:
                     latencies.append(turn["latency_s"])
             done = [t["latency_s"] for t in turns if t["latency_s"] is not None]
             print(
-                f"call {number}/{len(scripts)}: {len(done)}/{len(lines)} turns, "
-                f"latencies {[round(v * 1000) for v in done]} ms"
+                f"call {number}/{len(scripts)} (line {line_number}): {len(done)}/{len(lines)} "
+                f"turns, latencies {[round(v * 1000) for v in done]} ms"
             )
             await asyncio.sleep(1.0)
+
+    with ResultWriter("caller", config) as writer:
+        await asyncio.gather(*(line_worker(n) for n in range(args.concurrency)))
         stats = summarize(latencies)
         passed = bool(latencies) and stats["p90"] <= LATENCY_TARGET_P90_S
         writer.summary(
@@ -436,6 +447,9 @@ def main() -> None:
     )
     parser.add_argument("--url", default="http://localhost:7860")
     parser.add_argument("--turns", type=int, default=220)
+    parser.add_argument(
+        "--concurrency", type=int, default=1, help="calls in progress at once (default 1)"
+    )
     parser.add_argument(
         "--background-db",
         type=float,

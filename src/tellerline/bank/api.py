@@ -8,7 +8,9 @@ Run it with:
 """
 
 import sqlite3
+import threading
 from datetime import date, timedelta
+from functools import wraps
 from pathlib import Path
 from typing import Literal
 
@@ -61,11 +63,38 @@ def add_working_days(start: date, days: int) -> date:
     return current
 
 
+class _LockedConnection:
+    """The bank's SQLite connection, one request at a time.
+
+    FastAPI runs these endpoints on a thread pool, so with several calls at once two requests
+    could use the connection together, and two disputes opened at the same moment could draw the
+    same reference. Each endpoint holds the lock for its whole read-modify-write.
+    """
+
+    def __init__(self, connection: sqlite3.Connection):
+        self.connection = connection
+        self.lock = threading.RLock()
+
+    def execute(self, *args):
+        return self.connection.execute(*args)
+
+    def commit(self):
+        self.connection.commit()
+
+
 def create_app(db_path: Path | str = ":memory:", today: date | None = None) -> FastAPI:
     today = today or date.today()
-    db = connect(db_path)
-    seed(db, today)
+    db = _LockedConnection(connect(db_path))
+    seed(db.connection, today)
     app = FastAPI(title="Tellerline mock bank", version="1.0")
+
+    def locked(endpoint):
+        @wraps(endpoint)
+        def run(*args, **kwargs):
+            with db.lock:
+                return endpoint(*args, **kwargs)
+
+        return run
 
     def customer_or_404(customer_id: str) -> sqlite3.Row:
         row = db.execute("SELECT * FROM customers WHERE id = ?", (customer_id,)).fetchone()
@@ -96,6 +125,7 @@ def create_app(db_path: Path | str = ":memory:", today: date | None = None) -> F
         return {"status": "ok"}
 
     @app.post("/v1/identity/verify")
+    @locked
     def verify(request: VerifyRequest) -> dict:
         row = db.execute(
             "SELECT id, first_name FROM customers WHERE customer_number = ? AND date_of_birth = ?",
@@ -106,6 +136,7 @@ def create_app(db_path: Path | str = ":memory:", today: date | None = None) -> F
         return {"verified": True, "customer_id": row["id"], "first_name": row["first_name"]}
 
     @app.get("/v1/customers/{customer_id}/accounts/{kind}/balance")
+    @locked
     def balance(customer_id: str, kind: Account) -> dict:
         account = account_or_404(customer_id, kind)
         return {
@@ -115,6 +146,7 @@ def create_app(db_path: Path | str = ":memory:", today: date | None = None) -> F
         }
 
     @app.get("/v1/customers/{customer_id}/accounts/{kind}/transactions")
+    @locked
     def transactions(customer_id: str, kind: Account, count: int = 3) -> dict:
         account = account_or_404(customer_id, kind)
         rows = db.execute(
@@ -135,6 +167,7 @@ def create_app(db_path: Path | str = ":memory:", today: date | None = None) -> F
         }
 
     @app.post("/v1/customers/{customer_id}/cards/{last_four}/freeze")
+    @locked
     def freeze(customer_id: str, last_four: str, request: FreezeRequest) -> dict:
         card = card_or_404(customer_id, last_four)
         db.execute(
@@ -145,6 +178,7 @@ def create_app(db_path: Path | str = ":memory:", today: date | None = None) -> F
         return {"status": "frozen", "reason": request.reason}
 
     @app.post("/v1/customers/{customer_id}/cards/{last_four}/unfreeze")
+    @locked
     def unfreeze(customer_id: str, last_four: str) -> dict:
         card = card_or_404(customer_id, last_four)
         if card["status"] != "frozen":
@@ -158,6 +192,7 @@ def create_app(db_path: Path | str = ":memory:", today: date | None = None) -> F
         return {"status": "active", "changed": True}
 
     @app.get("/v1/customers/{customer_id}/cards/{last_four}")
+    @locked
     def card_status(customer_id: str, last_four: str) -> dict:
         card = card_or_404(customer_id, last_four)
         ordered = card["replacement_ordered_on"]
@@ -174,6 +209,7 @@ def create_app(db_path: Path | str = ":memory:", today: date | None = None) -> F
         }
 
     @app.post("/v1/customers/{customer_id}/cards/{last_four}/replacement")
+    @locked
     def replacement(customer_id: str, last_four: str) -> dict:
         card = card_or_404(customer_id, last_four)
         db.execute(
@@ -184,6 +220,7 @@ def create_app(db_path: Path | str = ":memory:", today: date | None = None) -> F
         return {"status": "ordered", "arrives_in_working_days": REPLACEMENT_WORKING_DAYS}
 
     @app.post("/v1/customers/{customer_id}/disputes")
+    @locked
     def dispute(customer_id: str, request: DisputeRequest) -> dict:
         customer_or_404(customer_id)
         if request.date > today or request.date < today - timedelta(days=365):
@@ -206,6 +243,7 @@ def create_app(db_path: Path | str = ":memory:", today: date | None = None) -> F
         return {"status": "opened", "case_reference": reference}
 
     @app.post("/v1/handoffs")
+    @locked
     def handoff(request: HandoffRequest) -> dict:
         if request.customer_id is not None:
             customer_or_404(request.customer_id)

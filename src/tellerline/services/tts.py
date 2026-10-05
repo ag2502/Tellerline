@@ -24,7 +24,7 @@ from pipecat.transcriptions.language import Language
 from pipecat.utils.tracing.service_decorators import traced_tts
 
 from tellerline.config import KOKORO_MLX_MODELS, TTS_DEFAULT_VOICE, TTS_LANG, TTS_MLX_VARIANT
-from tellerline.services.mlx_thread import run_mlx
+from tellerline.services.mlx_thread import Priority, run_mlx
 from tellerline.tts.chunks import SENTENCE_PAUSE_S, speech_chunks
 from tellerline.tts.kokoro_mlx import SAMPLE_RATE as KOKORO_SAMPLE_RATE
 
@@ -154,7 +154,8 @@ class KokoroMLXTTSService(TTSService):
             return
         await self.start_tts_usage_metrics(text)
         voice = self._settings.voice
-        if context_id == self._last_context_id:
+        later_sentence = context_id == self._last_context_id
+        if later_sentence:
             # A later sentence of the same reply gets the pause a listener expects.
             for frame in self._silence(SENTENCE_PAUSE_S, context_id):
                 yield frame
@@ -162,10 +163,16 @@ class KokoroMLXTTSService(TTSService):
 
         waiting = True
         try:
-            for chunk in speech_chunks(text):
+            for index, chunk in enumerate(speech_chunks(text)):
                 pcm = self._cache.get(voice, self._speed, chunk.text)
                 if pcm is None:
-                    audio = await run_mlx(self._engine.synthesize, chunk.text, voice, self._speed)
+                    # Only a reply's opening is on the caller's critical path; the rest renders
+                    # while it plays, so other calls' transcripts may go first.
+                    first = index == 0 and not later_sentence
+                    priority = Priority.FIRST_AUDIO if first else Priority.LATER_AUDIO
+                    audio = await run_mlx(
+                        self._engine.synthesize, chunk.text, voice, self._speed, priority=priority
+                    )
                     pcm = to_pcm(audio)
                     self._cache.put(voice, self._speed, chunk.text, pcm)
                 if waiting:

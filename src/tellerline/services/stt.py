@@ -21,7 +21,7 @@ from pipecat.utils.time import time_now_iso8601
 from pipecat.utils.tracing.service_decorators import traced_stt
 
 from tellerline.config import STT_MODEL, STT_SAMPLE_RATE, STT_TTFS_P99_S
-from tellerline.services.mlx_thread import run_mlx
+from tellerline.services.mlx_thread import Priority, run_mlx
 
 
 class Transcriber(Protocol):
@@ -118,7 +118,7 @@ class ParakeetMLXSTTService(SegmentedSTTService):
         samples = np.frombuffer(audio, dtype=np.int16).astype(np.float32) / 32768.0
         if self.sample_rate != STT_SAMPLE_RATE:
             samples = soxr.resample(samples, self.sample_rate, STT_SAMPLE_RATE).astype(np.float32)
-        text = await run_mlx(self._transcribe, samples)
+        text = await run_mlx(self._transcribe, samples, priority=Priority.TRANSCRIBE)
         await self.stop_processing_metrics()
         if self._timeline is not None:
             self._timeline.note_transcription((time.perf_counter() - started) * 1000)

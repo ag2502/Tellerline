@@ -62,7 +62,11 @@ class CallTimeline:
         self.last_transcription_ms = round(milliseconds, 1)
 
     def event(self, kind: str, moment: float | None = None) -> None:
-        self.events.append({"t": self.at(moment), "event": kind})
+        t = self.at(moment)
+        last = self.events[-1] if self.events else None
+        if last and last["event"] == kind and t - last["t"] < 0.05:
+            return  # Pipecat pushes some of these frames twice
+        self.events.append({"t": t, "event": kind})
 
     def add_turn(self, record: dict[str, Any]) -> dict[str, Any]:
         """Number and timestamp a turn's record, attach the transcription time, keep it."""

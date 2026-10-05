@@ -110,3 +110,21 @@ def test_transcripts_lose_digit_group_commas():
     )
     assert clean_transcript("It cost 1,250 euro, thanks") == "It cost 1250 euro, thanks"
     assert clean_transcript("Yes, 12, 13") == "Yes, 12, 13"
+
+
+async def test_mlx_work_runs_most_urgent_first():
+    import asyncio
+    import threading
+
+    from tellerline.services.mlx_thread import Priority, run_mlx
+
+    gate, order = threading.Event(), []
+    blocker = asyncio.ensure_future(run_mlx(gate.wait, priority=Priority.TRANSCRIBE))
+    await asyncio.sleep(0.05)  # the worker is now busy, so the next three queue up
+    later = asyncio.ensure_future(run_mlx(order.append, "later", priority=Priority.LATER_AUDIO))
+    first = asyncio.ensure_future(run_mlx(order.append, "first", priority=Priority.FIRST_AUDIO))
+    stt = asyncio.ensure_future(run_mlx(order.append, "stt", priority=Priority.TRANSCRIBE))
+    await asyncio.sleep(0.05)
+    gate.set()
+    await asyncio.gather(blocker, later, first, stt)
+    assert order == ["stt", "first", "later"]
