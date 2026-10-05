@@ -4,7 +4,7 @@
     "voice": "af_heart",
     "lines": [
       "Hi, I think my bank card has been stolen.",
-      "Sure, my customer number is 45127890, and my date of birth is the 3rd of March 1991.",
+      "Sure, my customer number is 45127890 and my date of birth is the 3rd of March 1991.",
       "My card ending 4217 was taken out of my bag on the bus.",
       "Yes please.",
       "That's everything, thanks. Bye."
@@ -25,7 +25,7 @@
     "voice": "af_bella",
     "lines": [
       "Hi, my customer number is 22904718 and I was born on the 1st of April 2001.",
-      "I don't recognise a charge from Corrib Taxis on my account.",
+      "I want to dispute a charge from Corrib Taxis.",
       "It was 34 euro and 60 cent last Tuesday.",
       "No, that's everything. Thanks, bye."
     ]
@@ -34,7 +34,7 @@
     "name": "found-card",
     "voice": "af_sarah",
     "lines": [
-      "Hi, it's Niamh. My customer number is 77451102 and my date of birth is the 29th of February 1996.",
+      "Hi, my customer number is 77451102 and my date of birth is the 29th of February 1996.",
       "Can you put a temporary block on my card ending 7780 while I look for it?",
       "No, I don't need a new one yet.",
       "I've just found it so please unfreeze it.",

@@ -1,0 +1,2141 @@
+{
+ "generated_at": "2026-10-05T18:52:45+00:00",
+ "live": {
+  "gate": {
+   "file": "caller-20261005T120429Z.jsonl",
+   "calls": 68,
+   "turns": 208,
+   "measured": 182,
+   "overlaps": 26,
+   "without_reply": 0,
+   "concurrency": 1,
+   "background_db": null,
+   "latency_s": {
+    "n": 182,
+    "p50": 1.008,
+    "p90": 1.402,
+    "p95": 1.481,
+    "max": 3.287
+   },
+   "histogram": [
+    {
+     "from": 0.1,
+     "to": 0.2,
+     "count": 1
+    },
+    {
+     "from": 0.2,
+     "to": 0.3,
+     "count": 1
+    },
+    {
+     "from": 0.3,
+     "to": 0.4,
+     "count": 0
+    },
+    {
+     "from": 0.4,
+     "to": 0.5,
+     "count": 0
+    },
+    {
+     "from": 0.5,
+     "to": 0.6,
+     "count": 1
+    },
+    {
+     "from": 0.6,
+     "to": 0.7,
+     "count": 12
+    },
+    {
+     "from": 0.7,
+     "to": 0.8,
+     "count": 23
+    },
+    {
+     "from": 0.8,
+     "to": 0.9,
+     "count": 26
+    },
+    {
+     "from": 0.9,
+     "to": 1.0,
+     "count": 17
+    },
+    {
+     "from": 1.0,
+     "to": 1.1,
+     "count": 50
+    },
+    {
+     "from": 1.1,
+     "to": 1.2,
+     "count": 17
+    },
+    {
+     "from": 1.2,
+     "to": 1.3,
+     "count": 8
+    },
+    {
+     "from": 1.3,
+     "to": 1.4,
+     "count": 6
+    },
+    {
+     "from": 1.4,
+     "to": 1.5,
+     "count": 11
+    },
+    {
+     "from": 1.5,
+     "to": 1.6,
+     "count": 4
+    },
+    {
+     "from": 1.6,
+     "to": 1.7,
+     "count": 1
+    },
+    {
+     "from": 1.7,
+     "to": 1.8,
+     "count": 2
+    },
+    {
+     "from": 1.8,
+     "to": 1.9,
+     "count": 0
+    },
+    {
+     "from": 1.9,
+     "to": 2.0,
+     "count": 0
+    },
+    {
+     "from": 2.0,
+     "to": 2.1,
+     "count": 0
+    },
+    {
+     "from": 2.1,
+     "to": 2.2,
+     "count": 0
+    },
+    {
+     "from": 2.2,
+     "to": 2.3,
+     "count": 0
+    },
+    {
+     "from": 2.3,
+     "to": 2.4,
+     "count": 0
+    },
+    {
+     "from": 2.4,
+     "to": 2.5,
+     "count": 0
+    },
+    {
+     "from": 2.5,
+     "to": 2.6,
+     "count": 0
+    },
+    {
+     "from": 2.6,
+     "to": 2.7,
+     "count": 0
+    },
+    {
+     "from": 2.7,
+     "to": 2.8,
+     "count": 0
+    },
+    {
+     "from": 2.8,
+     "to": 2.9,
+     "count": 1
+    },
+    {
+     "from": 2.9,
+     "to": 3.0,
+     "count": 0
+    },
+    {
+     "from": 3.0,
+     "to": 3.1,
+     "count": 0
+    },
+    {
+     "from": 3.1,
+     "to": 3.2,
+     "count": 0
+    },
+    {
+     "from": 3.2,
+     "to": 3.3,
+     "count": 1
+    }
+   ],
+   "stages_ms": {
+    "bank_ms": {
+     "p50": 1.7,
+     "p90": 4.1
+    },
+    "endpointing_wait": {
+     "p50": 200.0,
+     "p90": 200.0
+    },
+    "llm_inference": {
+     "p50": 370.9,
+     "p90": 661.5
+    },
+    "model_ms": {
+     "p50": 444.4,
+     "p90": 657.1
+    },
+    "output_transport": {
+     "p50": 6.1,
+     "p90": 7.0
+    },
+    "sentence_aggregation": {
+     "p50": 97.5,
+     "p90": 189.8
+    },
+    "speech_synthesis": {
+     "p50": 3.0,
+     "p90": 145.9
+    },
+    "stt_ms": {
+     "p50": 51.7,
+     "p90": 162.5
+    },
+    "transcription": {
+     "p50": 52.3,
+     "p90": 76.5
+    },
+    "turn_detection": {
+     "p50": 6.4,
+     "p90": 15.9
+    },
+    "turn_end": {
+     "p50": 254.9,
+     "p90": 375.1
+    }
+   },
+   "machine": {
+    "chip": "Apple M5",
+    "memory_gb": 16,
+    "power": {
+     "on_battery": true,
+     "battery_percent": 47,
+     "low_power_mode": false
+    },
+    "memory": {
+     "swap_used_gb": 6.9,
+     "compressed_gb": 5.08
+    }
+   },
+   "started_at": "20261005T120429Z"
+  },
+  "capacity": [
+   {
+    "file": "caller-20261005T120429Z.jsonl",
+    "calls": 68,
+    "turns": 208,
+    "measured": 182,
+    "overlaps": 26,
+    "without_reply": 0,
+    "concurrency": 1,
+    "background_db": null,
+    "latency_s": {
+     "n": 182,
+     "p50": 1.008,
+     "p90": 1.402,
+     "p95": 1.481,
+     "max": 3.287
+    },
+    "histogram": [
+     {
+      "from": 0.1,
+      "to": 0.2,
+      "count": 1
+     },
+     {
+      "from": 0.2,
+      "to": 0.3,
+      "count": 1
+     },
+     {
+      "from": 0.3,
+      "to": 0.4,
+      "count": 0
+     },
+     {
+      "from": 0.4,
+      "to": 0.5,
+      "count": 0
+     },
+     {
+      "from": 0.5,
+      "to": 0.6,
+      "count": 1
+     },
+     {
+      "from": 0.6,
+      "to": 0.7,
+      "count": 12
+     },
+     {
+      "from": 0.7,
+      "to": 0.8,
+      "count": 23
+     },
+     {
+      "from": 0.8,
+      "to": 0.9,
+      "count": 26
+     },
+     {
+      "from": 0.9,
+      "to": 1.0,
+      "count": 17
+     },
+     {
+      "from": 1.0,
+      "to": 1.1,
+      "count": 50
+     },
+     {
+      "from": 1.1,
+      "to": 1.2,
+      "count": 17
+     },
+     {
+      "from": 1.2,
+      "to": 1.3,
+      "count": 8
+     },
+     {
+      "from": 1.3,
+      "to": 1.4,
+      "count": 6
+     },
+     {
+      "from": 1.4,
+      "to": 1.5,
+      "count": 11
+     },
+     {
+      "from": 1.5,
+      "to": 1.6,
+      "count": 4
+     },
+     {
+      "from": 1.6,
+      "to": 1.7,
+      "count": 1
+     },
+     {
+      "from": 1.7,
+      "to": 1.8,
+      "count": 2
+     },
+     {
+      "from": 1.8,
+      "to": 1.9,
+      "count": 0
+     },
+     {
+      "from": 1.9,
+      "to": 2.0,
+      "count": 0
+     },
+     {
+      "from": 2.0,
+      "to": 2.1,
+      "count": 0
+     },
+     {
+      "from": 2.1,
+      "to": 2.2,
+      "count": 0
+     },
+     {
+      "from": 2.2,
+      "to": 2.3,
+      "count": 0
+     },
+     {
+      "from": 2.3,
+      "to": 2.4,
+      "count": 0
+     },
+     {
+      "from": 2.4,
+      "to": 2.5,
+      "count": 0
+     },
+     {
+      "from": 2.5,
+      "to": 2.6,
+      "count": 0
+     },
+     {
+      "from": 2.6,
+      "to": 2.7,
+      "count": 0
+     },
+     {
+      "from": 2.7,
+      "to": 2.8,
+      "count": 0
+     },
+     {
+      "from": 2.8,
+      "to": 2.9,
+      "count": 1
+     },
+     {
+      "from": 2.9,
+      "to": 3.0,
+      "count": 0
+     },
+     {
+      "from": 3.0,
+      "to": 3.1,
+      "count": 0
+     },
+     {
+      "from": 3.1,
+      "to": 3.2,
+      "count": 0
+     },
+     {
+      "from": 3.2,
+      "to": 3.3,
+      "count": 1
+     }
+    ],
+    "stages_ms": {
+     "bank_ms": {
+      "p50": 1.7,
+      "p90": 4.1
+     },
+     "endpointing_wait": {
+      "p50": 200.0,
+      "p90": 200.0
+     },
+     "llm_inference": {
+      "p50": 370.9,
+      "p90": 661.5
+     },
+     "model_ms": {
+      "p50": 444.4,
+      "p90": 657.1
+     },
+     "output_transport": {
+      "p50": 6.1,
+      "p90": 7.0
+     },
+     "sentence_aggregation": {
+      "p50": 97.5,
+      "p90": 189.8
+     },
+     "speech_synthesis": {
+      "p50": 3.0,
+      "p90": 145.9
+     },
+     "stt_ms": {
+      "p50": 51.7,
+      "p90": 162.5
+     },
+     "transcription": {
+      "p50": 52.3,
+      "p90": 76.5
+     },
+     "turn_detection": {
+      "p50": 6.4,
+      "p90": 15.9
+     },
+     "turn_end": {
+      "p50": 254.9,
+      "p90": 375.1
+     }
+    },
+    "machine": {
+     "chip": "Apple M5",
+     "memory_gb": 16,
+     "power": {
+      "on_battery": true,
+      "battery_percent": 47,
+      "low_power_mode": false
+     },
+     "memory": {
+      "swap_used_gb": 6.9,
+      "compressed_gb": 5.08
+     }
+    },
+    "started_at": "20261005T120429Z"
+   },
+   {
+    "file": "caller-20261005T130123Z.jsonl",
+    "calls": 8,
+    "turns": 28,
+    "measured": 27,
+    "overlaps": 1,
+    "without_reply": 0,
+    "concurrency": 2,
+    "background_db": null,
+    "latency_s": {
+     "n": 27,
+     "p50": 1.042,
+     "p90": 1.426,
+     "p95": 1.488,
+     "max": 1.665
+    },
+    "histogram": [
+     {
+      "from": 0.6,
+      "to": 0.7,
+      "count": 3
+     },
+     {
+      "from": 0.7,
+      "to": 0.8,
+      "count": 3
+     },
+     {
+      "from": 0.8,
+      "to": 0.9,
+      "count": 3
+     },
+     {
+      "from": 0.9,
+      "to": 1.0,
+      "count": 3
+     },
+     {
+      "from": 1.0,
+      "to": 1.1,
+      "count": 5
+     },
+     {
+      "from": 1.1,
+      "to": 1.2,
+      "count": 4
+     },
+     {
+      "from": 1.2,
+      "to": 1.3,
+      "count": 1
+     },
+     {
+      "from": 1.3,
+      "to": 1.4,
+      "count": 1
+     },
+     {
+      "from": 1.4,
+      "to": 1.5,
+      "count": 3
+     },
+     {
+      "from": 1.5,
+      "to": 1.6,
+      "count": 0
+     },
+     {
+      "from": 1.6,
+      "to": 1.7,
+      "count": 1
+     }
+    ],
+    "stages_ms": {
+     "bank_ms": {
+      "p50": 1.7,
+      "p90": 2.5
+     },
+     "endpointing_wait": {
+      "p50": 200.0,
+      "p90": 200.0
+     },
+     "llm_inference": {
+      "p50": 484.1,
+      "p90": 613.1
+     },
+     "model_ms": {
+      "p50": 477.8,
+      "p90": 890.1
+     },
+     "sentence_aggregation": {
+      "p50": 118.5,
+      "p90": 170.3
+     },
+     "speech_synthesis": {
+      "p50": 2.2,
+      "p90": 23.4
+     },
+     "stt_ms": {
+      "p50": 44.5,
+      "p90": 52.7
+     },
+     "transcription": {
+      "p50": 44.8,
+      "p90": 50.0
+     },
+     "turn_detection": {
+      "p50": 4.5,
+      "p90": 6.8
+     },
+     "turn_end": {
+      "p50": 245.8,
+      "p90": 271.4
+     }
+    },
+    "machine": {
+     "chip": "Apple M5",
+     "memory_gb": 16,
+     "power": {
+      "on_battery": true,
+      "battery_percent": 40,
+      "low_power_mode": false
+     },
+     "memory": {
+      "swap_used_gb": 7.28,
+      "compressed_gb": 8.05
+     }
+    },
+    "started_at": "20261005T130123Z"
+   },
+   {
+    "file": "caller-20261005T130506Z.jsonl",
+    "calls": 9,
+    "turns": 40,
+    "measured": 35,
+    "overlaps": 4,
+    "without_reply": 1,
+    "concurrency": 3,
+    "background_db": null,
+    "latency_s": {
+     "n": 35,
+     "p50": 0.942,
+     "p90": 1.113,
+     "p95": 1.129,
+     "max": 1.46
+    },
+    "histogram": [
+     {
+      "from": 0.6,
+      "to": 0.7,
+      "count": 3
+     },
+     {
+      "from": 0.7,
+      "to": 0.8,
+      "count": 4
+     },
+     {
+      "from": 0.8,
+      "to": 0.9,
+      "count": 7
+     },
+     {
+      "from": 0.9,
+      "to": 1.0,
+      "count": 6
+     },
+     {
+      "from": 1.0,
+      "to": 1.1,
+      "count": 10
+     },
+     {
+      "from": 1.1,
+      "to": 1.2,
+      "count": 4
+     },
+     {
+      "from": 1.2,
+      "to": 1.3,
+      "count": 0
+     },
+     {
+      "from": 1.3,
+      "to": 1.4,
+      "count": 0
+     },
+     {
+      "from": 1.4,
+      "to": 1.5,
+      "count": 1
+     }
+    ],
+    "stages_ms": {
+     "bank_ms": {
+      "p50": 1.7,
+      "p90": 5.2
+     },
+     "endpointing_wait": {
+      "p50": 200.0,
+      "p90": 200.0
+     },
+     "llm_inference": {
+      "p50": 382.6,
+      "p90": 547.0
+     },
+     "model_ms": {
+      "p50": 397.6,
+      "p90": 563.6
+     },
+     "output_transport": {
+      "p50": 7.5,
+      "p90": 8.9
+     },
+     "sentence_aggregation": {
+      "p50": 161.4,
+      "p90": 179.5
+     },
+     "speech_synthesis": {
+      "p50": 2.1,
+      "p90": 5.9
+     },
+     "stt_ms": {
+      "p50": 42.2,
+      "p90": 47.7
+     },
+     "transcription": {
+      "p50": 43.8,
+      "p90": 51.3
+     },
+     "turn_detection": {
+      "p50": 5.4,
+      "p90": 8.6
+     },
+     "turn_end": {
+      "p50": 245.6,
+      "p90": 253.2
+     }
+    },
+    "machine": {
+     "chip": "Apple M5",
+     "memory_gb": 16,
+     "power": {
+      "on_battery": true,
+      "battery_percent": 40,
+      "low_power_mode": false
+     },
+     "memory": {
+      "swap_used_gb": 7.31,
+      "compressed_gb": 8.02
+     }
+    },
+    "started_at": "20261005T130506Z"
+   },
+   {
+    "file": "caller-20261005T130949Z.jsonl",
+    "calls": 11,
+    "turns": 54,
+    "measured": 44,
+    "overlaps": 10,
+    "without_reply": 0,
+    "concurrency": 4,
+    "background_db": null,
+    "latency_s": {
+     "n": 44,
+     "p50": 0.953,
+     "p90": 1.221,
+     "p95": 1.316,
+     "max": 1.481
+    },
+    "histogram": [
+     {
+      "from": 0.5,
+      "to": 0.6,
+      "count": 1
+     },
+     {
+      "from": 0.6,
+      "to": 0.7,
+      "count": 2
+     },
+     {
+      "from": 0.7,
+      "to": 0.8,
+      "count": 9
+     },
+     {
+      "from": 0.8,
+      "to": 0.9,
+      "count": 6
+     },
+     {
+      "from": 0.9,
+      "to": 1.0,
+      "count": 6
+     },
+     {
+      "from": 1.0,
+      "to": 1.1,
+      "count": 10
+     },
+     {
+      "from": 1.1,
+      "to": 1.2,
+      "count": 4
+     },
+     {
+      "from": 1.2,
+      "to": 1.3,
+      "count": 3
+     },
+     {
+      "from": 1.3,
+      "to": 1.4,
+      "count": 1
+     },
+     {
+      "from": 1.4,
+      "to": 1.5,
+      "count": 2
+     }
+    ],
+    "stages_ms": {
+     "bank_ms": {
+      "p50": 1.6,
+      "p90": 4.3
+     },
+     "endpointing_wait": {
+      "p50": 200.0,
+      "p90": 200.0
+     },
+     "llm_inference": {
+      "p50": 403.1,
+      "p90": 643.5
+     },
+     "model_ms": {
+      "p50": 427.9,
+      "p90": 686.4
+     },
+     "output_transport": {
+      "p50": 5.4,
+      "p90": 5.4
+     },
+     "sentence_aggregation": {
+      "p50": 83.4,
+      "p90": 163.3
+     },
+     "speech_synthesis": {
+      "p50": 2.2,
+      "p90": 4.4
+     },
+     "stt_ms": {
+      "p50": 42.5,
+      "p90": 48.7
+     },
+     "transcription": {
+      "p50": 43.6,
+      "p90": 48.6
+     },
+     "turn_detection": {
+      "p50": 4.7,
+      "p90": 6.8
+     },
+     "turn_end": {
+      "p50": 244.6,
+      "p90": 312.6
+     }
+    },
+    "machine": {
+     "chip": "Apple M5",
+     "memory_gb": 16,
+     "power": {
+      "on_battery": true,
+      "battery_percent": 39,
+      "low_power_mode": false
+     },
+     "memory": {
+      "swap_used_gb": 7.31,
+      "compressed_gb": 4.36
+     }
+    },
+    "started_at": "20261005T130949Z"
+   }
+  ],
+  "noisy": {
+   "file": "caller-20261005T131352Z.jsonl",
+   "calls": 9,
+   "turns": 33,
+   "measured": 27,
+   "overlaps": 1,
+   "without_reply": 5,
+   "concurrency": 1,
+   "background_db": -15.0,
+   "latency_s": {
+    "n": 27,
+    "p50": 5.101,
+    "p90": 9.949,
+    "p95": 11.0,
+    "max": 11.802
+   },
+   "histogram": [
+    {
+     "from": 1.0,
+     "to": 1.1,
+     "count": 1
+    },
+    {
+     "from": 1.1,
+     "to": 1.2,
+     "count": 1
+    },
+    {
+     "from": 1.2,
+     "to": 1.3,
+     "count": 1
+    },
+    {
+     "from": 1.3,
+     "to": 1.4,
+     "count": 0
+    },
+    {
+     "from": 1.4,
+     "to": 1.5,
+     "count": 0
+    },
+    {
+     "from": 1.5,
+     "to": 1.6,
+     "count": 0
+    },
+    {
+     "from": 1.6,
+     "to": 1.7,
+     "count": 0
+    },
+    {
+     "from": 1.7,
+     "to": 1.8,
+     "count": 1
+    },
+    {
+     "from": 1.8,
+     "to": 1.9,
+     "count": 0
+    },
+    {
+     "from": 1.9,
+     "to": 2.0,
+     "count": 0
+    },
+    {
+     "from": 2.0,
+     "to": 2.1,
+     "count": 0
+    },
+    {
+     "from": 2.1,
+     "to": 2.2,
+     "count": 0
+    },
+    {
+     "from": 2.2,
+     "to": 2.3,
+     "count": 0
+    },
+    {
+     "from": 2.3,
+     "to": 2.4,
+     "count": 0
+    },
+    {
+     "from": 2.4,
+     "to": 2.5,
+     "count": 1
+    },
+    {
+     "from": 2.5,
+     "to": 2.6,
+     "count": 0
+    },
+    {
+     "from": 2.6,
+     "to": 2.7,
+     "count": 0
+    },
+    {
+     "from": 2.7,
+     "to": 2.8,
+     "count": 0
+    },
+    {
+     "from": 2.8,
+     "to": 2.9,
+     "count": 0
+    },
+    {
+     "from": 2.9,
+     "to": 3.0,
+     "count": 0
+    },
+    {
+     "from": 3.0,
+     "to": 3.1,
+     "count": 0
+    },
+    {
+     "from": 3.1,
+     "to": 3.2,
+     "count": 0
+    },
+    {
+     "from": 3.2,
+     "to": 3.3,
+     "count": 0
+    },
+    {
+     "from": 3.3,
+     "to": 3.4,
+     "count": 3
+    },
+    {
+     "from": 3.4,
+     "to": 3.5,
+     "count": 1
+    },
+    {
+     "from": 3.5,
+     "to": 3.6,
+     "count": 0
+    },
+    {
+     "from": 3.6,
+     "to": 3.7,
+     "count": 1
+    },
+    {
+     "from": 3.7,
+     "to": 3.8,
+     "count": 0
+    },
+    {
+     "from": 3.8,
+     "to": 3.9,
+     "count": 0
+    },
+    {
+     "from": 3.9,
+     "to": 4.0,
+     "count": 0
+    },
+    {
+     "from": 4.0,
+     "to": 4.1,
+     "count": 0
+    },
+    {
+     "from": 4.1,
+     "to": 4.2,
+     "count": 1
+    },
+    {
+     "from": 4.2,
+     "to": 4.3,
+     "count": 1
+    },
+    {
+     "from": 4.3,
+     "to": 4.4,
+     "count": 0
+    },
+    {
+     "from": 4.4,
+     "to": 4.5,
+     "count": 0
+    },
+    {
+     "from": 4.5,
+     "to": 4.6,
+     "count": 0
+    },
+    {
+     "from": 4.6,
+     "to": 4.7,
+     "count": 0
+    },
+    {
+     "from": 4.7,
+     "to": 4.8,
+     "count": 0
+    },
+    {
+     "from": 4.8,
+     "to": 4.9,
+     "count": 1
+    },
+    {
+     "from": 4.9,
+     "to": 5.0,
+     "count": 0
+    },
+    {
+     "from": 5.0,
+     "to": 5.1,
+     "count": 0
+    },
+    {
+     "from": 5.1,
+     "to": 5.2,
+     "count": 1
+    },
+    {
+     "from": 5.2,
+     "to": 5.3,
+     "count": 1
+    },
+    {
+     "from": 5.3,
+     "to": 5.4,
+     "count": 1
+    },
+    {
+     "from": 5.4,
+     "to": 5.5,
+     "count": 0
+    },
+    {
+     "from": 5.5,
+     "to": 5.6,
+     "count": 0
+    },
+    {
+     "from": 5.6,
+     "to": 5.7,
+     "count": 0
+    },
+    {
+     "from": 5.7,
+     "to": 5.8,
+     "count": 0
+    },
+    {
+     "from": 5.8,
+     "to": 5.9,
+     "count": 0
+    },
+    {
+     "from": 5.9,
+     "to": 6.0,
+     "count": 0
+    },
+    {
+     "from": 6.0,
+     "to": 6.1,
+     "count": 1
+    },
+    {
+     "from": 6.1,
+     "to": 6.2,
+     "count": 0
+    },
+    {
+     "from": 6.2,
+     "to": 6.3,
+     "count": 0
+    },
+    {
+     "from": 6.3,
+     "to": 6.4,
+     "count": 0
+    },
+    {
+     "from": 6.4,
+     "to": 6.5,
+     "count": 1
+    },
+    {
+     "from": 6.5,
+     "to": 6.6,
+     "count": 1
+    },
+    {
+     "from": 6.6,
+     "to": 6.7,
+     "count": 0
+    },
+    {
+     "from": 6.7,
+     "to": 6.8,
+     "count": 0
+    },
+    {
+     "from": 6.8,
+     "to": 6.9,
+     "count": 0
+    },
+    {
+     "from": 6.9,
+     "to": 7.0,
+     "count": 0
+    },
+    {
+     "from": 7.0,
+     "to": 7.1,
+     "count": 0
+    },
+    {
+     "from": 7.1,
+     "to": 7.2,
+     "count": 0
+    },
+    {
+     "from": 7.2,
+     "to": 7.3,
+     "count": 0
+    },
+    {
+     "from": 7.3,
+     "to": 7.4,
+     "count": 0
+    },
+    {
+     "from": 7.4,
+     "to": 7.5,
+     "count": 0
+    },
+    {
+     "from": 7.5,
+     "to": 7.6,
+     "count": 0
+    },
+    {
+     "from": 7.6,
+     "to": 7.7,
+     "count": 0
+    },
+    {
+     "from": 7.7,
+     "to": 7.8,
+     "count": 1
+    },
+    {
+     "from": 7.8,
+     "to": 7.9,
+     "count": 0
+    },
+    {
+     "from": 7.9,
+     "to": 8.0,
+     "count": 0
+    },
+    {
+     "from": 8.0,
+     "to": 8.1,
+     "count": 0
+    },
+    {
+     "from": 8.1,
+     "to": 8.2,
+     "count": 0
+    },
+    {
+     "from": 8.2,
+     "to": 8.3,
+     "count": 1
+    },
+    {
+     "from": 8.3,
+     "to": 8.4,
+     "count": 1
+    },
+    {
+     "from": 8.4,
+     "to": 8.5,
+     "count": 0
+    },
+    {
+     "from": 8.5,
+     "to": 8.6,
+     "count": 0
+    },
+    {
+     "from": 8.6,
+     "to": 8.7,
+     "count": 0
+    },
+    {
+     "from": 8.7,
+     "to": 8.8,
+     "count": 0
+    },
+    {
+     "from": 8.8,
+     "to": 8.9,
+     "count": 0
+    },
+    {
+     "from": 8.9,
+     "to": 9.0,
+     "count": 0
+    },
+    {
+     "from": 9.0,
+     "to": 9.1,
+     "count": 0
+    },
+    {
+     "from": 9.1,
+     "to": 9.2,
+     "count": 0
+    },
+    {
+     "from": 9.2,
+     "to": 9.3,
+     "count": 0
+    },
+    {
+     "from": 9.3,
+     "to": 9.4,
+     "count": 0
+    },
+    {
+     "from": 9.4,
+     "to": 9.5,
+     "count": 1
+    },
+    {
+     "from": 9.5,
+     "to": 9.6,
+     "count": 0
+    },
+    {
+     "from": 9.6,
+     "to": 9.7,
+     "count": 0
+    },
+    {
+     "from": 9.7,
+     "to": 9.8,
+     "count": 0
+    },
+    {
+     "from": 9.8,
+     "to": 9.9,
+     "count": 0
+    },
+    {
+     "from": 9.9,
+     "to": 10.0,
+     "count": 1
+    },
+    {
+     "from": 10.0,
+     "to": 10.1,
+     "count": 1
+    },
+    {
+     "from": 10.1,
+     "to": 10.2,
+     "count": 0
+    },
+    {
+     "from": 10.2,
+     "to": 10.3,
+     "count": 0
+    },
+    {
+     "from": 10.3,
+     "to": 10.4,
+     "count": 0
+    },
+    {
+     "from": 10.4,
+     "to": 10.5,
+     "count": 0
+    },
+    {
+     "from": 10.5,
+     "to": 10.6,
+     "count": 0
+    },
+    {
+     "from": 10.6,
+     "to": 10.7,
+     "count": 0
+    },
+    {
+     "from": 10.7,
+     "to": 10.8,
+     "count": 0
+    },
+    {
+     "from": 10.8,
+     "to": 10.9,
+     "count": 0
+    },
+    {
+     "from": 10.9,
+     "to": 11.0,
+     "count": 0
+    },
+    {
+     "from": 11.0,
+     "to": 11.1,
+     "count": 0
+    },
+    {
+     "from": 11.1,
+     "to": 11.2,
+     "count": 0
+    },
+    {
+     "from": 11.2,
+     "to": 11.3,
+     "count": 0
+    },
+    {
+     "from": 11.3,
+     "to": 11.4,
+     "count": 0
+    },
+    {
+     "from": 11.4,
+     "to": 11.5,
+     "count": 1
+    },
+    {
+     "from": 11.5,
+     "to": 11.6,
+     "count": 0
+    },
+    {
+     "from": 11.6,
+     "to": 11.7,
+     "count": 0
+    },
+    {
+     "from": 11.7,
+     "to": 11.8,
+     "count": 0
+    },
+    {
+     "from": 11.8,
+     "to": 11.9,
+     "count": 1
+    }
+   ],
+   "stages_ms": {
+    "endpointing_wait": {
+     "p50": 200.0,
+     "p90": 200.0
+    },
+    "llm_inference": {
+     "p50": 214.8,
+     "p90": 999.6
+    },
+    "model_ms": {
+     "p50": 323.5,
+     "p90": 520.7
+    },
+    "output_transport": {
+     "p50": 5.3,
+     "p90": 5.5
+    },
+    "sentence_aggregation": {
+     "p50": 104.8,
+     "p90": 171.2
+    },
+    "speech_synthesis": {
+     "p50": 1.7,
+     "p90": 157.3
+    },
+    "stt_ms": {
+     "p50": 70.7,
+     "p90": 99.1
+    },
+    "transcription": {
+     "p50": 61.6,
+     "p90": 111.7
+    },
+    "turn_detection": {
+     "p50": 6.9,
+     "p90": 2018.2
+    },
+    "turn_end": {
+     "p50": 283.1,
+     "p90": 2265.3
+    }
+   },
+   "machine": {
+    "chip": "Apple M5",
+    "memory_gb": 16,
+    "power": {
+     "on_battery": true,
+     "battery_percent": 38,
+     "low_power_mode": false
+    },
+    "memory": {
+     "swap_used_gb": 7.36,
+     "compressed_gb": 3.47
+    }
+   },
+   "started_at": "20261005T131352Z"
+  },
+  "before": {
+   "file": "caller-20261005T004952Z.jsonl",
+   "calls": 8,
+   "turns": 30,
+   "measured": 28,
+   "overlaps": 0,
+   "without_reply": 2,
+   "concurrency": 1,
+   "background_db": null,
+   "latency_s": {
+    "n": 28,
+    "p50": 1.491,
+    "p90": 1.761,
+    "p95": 1.762,
+    "max": 1.912
+   },
+   "histogram": [
+    {
+     "from": 0.0,
+     "to": 0.1,
+     "count": 4
+    },
+    {
+     "from": 0.1,
+     "to": 0.2,
+     "count": 3
+    },
+    {
+     "from": 0.2,
+     "to": 0.3,
+     "count": 0
+    },
+    {
+     "from": 0.3,
+     "to": 0.4,
+     "count": 0
+    },
+    {
+     "from": 0.4,
+     "to": 0.5,
+     "count": 0
+    },
+    {
+     "from": 0.5,
+     "to": 0.6,
+     "count": 0
+    },
+    {
+     "from": 0.6,
+     "to": 0.7,
+     "count": 0
+    },
+    {
+     "from": 0.7,
+     "to": 0.8,
+     "count": 1
+    },
+    {
+     "from": 0.8,
+     "to": 0.9,
+     "count": 1
+    },
+    {
+     "from": 0.9,
+     "to": 1.0,
+     "count": 2
+    },
+    {
+     "from": 1.0,
+     "to": 1.1,
+     "count": 1
+    },
+    {
+     "from": 1.1,
+     "to": 1.2,
+     "count": 0
+    },
+    {
+     "from": 1.2,
+     "to": 1.3,
+     "count": 0
+    },
+    {
+     "from": 1.3,
+     "to": 1.4,
+     "count": 0
+    },
+    {
+     "from": 1.4,
+     "to": 1.5,
+     "count": 2
+    },
+    {
+     "from": 1.5,
+     "to": 1.6,
+     "count": 6
+    },
+    {
+     "from": 1.6,
+     "to": 1.7,
+     "count": 3
+    },
+    {
+     "from": 1.7,
+     "to": 1.8,
+     "count": 4
+    },
+    {
+     "from": 1.8,
+     "to": 1.9,
+     "count": 0
+    },
+    {
+     "from": 1.9,
+     "to": 2.0,
+     "count": 1
+    }
+   ],
+   "stages_ms": {
+    "bank_ms": {
+     "p50": 1.6,
+     "p90": 4.7
+    },
+    "endpointing_wait": {
+     "p50": 200.0,
+     "p90": 200.0
+    },
+    "llm_inference": {
+     "p50": 428.7,
+     "p90": 530.2
+    },
+    "model_ms": {
+     "p50": 440.6,
+     "p90": 531.8
+    },
+    "sentence_aggregation": {
+     "p50": 124.0,
+     "p90": 167.9
+    },
+    "speech_synthesis": {
+     "p50": 2.5,
+     "p90": 126.5
+    },
+    "stt_ms": {
+     "p50": 63.8,
+     "p90": 74.0
+    },
+    "transcription": {
+     "p50": 62.9,
+     "p90": 77.2
+    },
+    "turn_detection": {
+     "p50": 4.9,
+     "p90": 5.0
+    },
+    "turn_end": {
+     "p50": 1064.5,
+     "p90": 1074.3
+    }
+   },
+   "machine": {
+    "chip": "Apple M5",
+    "memory_gb": 16,
+    "power": {
+     "on_battery": true,
+     "battery_percent": 63,
+     "low_power_mode": false
+    },
+    "memory": null
+   },
+   "started_at": "20261005T004952Z"
+  }
+ },
+ "accuracy": {
+  "dev": {
+   "single_turn": 0.9705882352941176,
+   "dialogue_turns": 1.0,
+   "dialogues": 1.0,
+   "reply_p90_ms": 415,
+   "action_p90_ms": 486,
+   "failures": [
+    "Can you just pause my card ending 7780 for now? I think I left it in the car."
+   ],
+   "file": "dialogues-20261005T181549Z.jsonl"
+  },
+  "test": {
+   "single_turn": 0.9473684210526315,
+   "dialogue_turns": 1.0,
+   "dialogues": 1.0,
+   "reply_p90_ms": 401,
+   "action_p90_ms": 496,
+   "failures": [
+    "There are charges from a website I've never heard of on my card ending 8850.",
+    "Can you put a temporary block on my card ending 3317? It's probably down the back of the sofa."
+   ],
+   "file": "dialogues-20261005T181509Z.jsonl"
+  },
+  "holdout": {
+   "single_turn": 1.0,
+   "dialogue_turns": 1.0,
+   "dialogues": 1.0,
+   "reply_p90_ms": 381,
+   "action_p90_ms": 530,
+   "failures": [],
+   "file": "dialogues-20261005T181427Z.jsonl"
+  },
+  "holdout_before": {
+   "single_turn": 0.7222222222222222,
+   "dialogue_turns": 0.8888888888888888,
+   "dialogues": 0.75,
+   "file": "dialogues-20261005T003221Z.jsonl"
+  },
+  "counts": {
+   "dev": {
+    "cases": 34,
+    "dialogues": 7
+   },
+   "test": {
+    "cases": 38,
+    "dialogues": 7
+   },
+   "holdout": {
+    "cases": 36,
+    "dialogues": 8
+   }
+  }
+ },
+ "first_audio": {
+  "sentence": {
+   "p50": 144,
+   "p90": 901
+  },
+  "clause": {
+   "p50": 125,
+   "p90": 150
+  },
+  "clause_cached": {
+   "p50": 0,
+   "p90": 0
+  },
+  "file": "first_audio-20261005T014943Z.jsonl"
+ },
+ "memory": {
+  "llm-e2b": {
+   "weights_gb": 2.43,
+   "peak_gb": 3.03,
+   "rss_peak_gb": 2.85
+  },
+  "llm-e4b": {
+   "weights_gb": 3.91,
+   "peak_gb": 4.55,
+   "rss_peak_gb": 2.31
+  },
+  "stt": {
+   "weights_gb": 1.21,
+   "peak_gb": 2.89,
+   "rss_peak_gb": 2.47
+  },
+  "tts": {
+   "weights_gb": 0.3,
+   "peak_gb": 1.91,
+   "rss_peak_gb": 0.43
+  },
+  "router": {
+   "weights_gb": null,
+   "peak_gb": null,
+   "rss_peak_gb": 0.31,
+   "rss_before_gb": 0.07
+  },
+  "file": "memory-20261005T120317Z.jsonl"
+ },
+ "router": {
+  "dev": {
+   "accuracy": 0.894,
+   "confident_rate": 0.809,
+   "confident_accuracy": 1.0
+  },
+  "test": {
+   "accuracy": 0.944,
+   "confident_rate": 0.778,
+   "confident_accuracy": 1.0
+  },
+  "latency_p90_ms": 2.4,
+  "file": "router-20260914T224900Z.jsonl"
+ },
+ "decisions": [
+  {
+   "id": "D-001",
+   "title": "English only, in a British voice",
+   "date": "2026-09-14",
+   "note": "",
+   "decision": "The agent speaks UK-style English. Irish (Gaeilge) is parked.",
+   "why": "Open Irish speech models are the hard part: the best small open recognisers get roughly a third to half of words wrong on the BlasBench benchmark, and only one open TTS model (OmniVoice, non-commercial weights) speaks Irish. Shipping a solid English agent first gives a working, measurable product.",
+   "considered": "A bilingual agent from day one; kept as a later phase."
+  },
+  {
+   "id": "D-002",
+   "title": "Latency target: p90 ≤ 1.5 s",
+   "date": "2026-09-14",
+   "note": "",
+   "decision": "90% of turns must reach the first audio of the reply within 1.5 s of the caller finishing speaking, measured over 200+ turns on a MacBook Air M5 (16 GB).",
+   "why": "A median hides slow turns, and slow turns are what callers notice. Filler sounds such as \"mm-hmm\" don't count as a reply.",
+   "considered": "Median-only target."
+  },
+  {
+   "id": "D-003",
+   "title": "Speech to text: Parakeet TDT 0.6B v3 on MLX",
+   "date": "2026-09-14",
+   "note": "",
+   "decision": "`mlx-community/parakeet-tdt-0.6b-v3` via mlx-audio.",
+   "why": "More accurate on English than Whisper small, fast on Apple Silicon, and less prone to inventing text on short or silent clips. Licence CC-BY-4.0 (attribution in the README).",
+   "considered": "Whisper small, Whisper large-v3-turbo, Nemotron 3.5 streaming."
+  },
+  {
+   "id": "D-004",
+   "title": "LLM: Gemma 4 E2B or E4B, 4-bit, on mlx-lm server",
+   "date": "2026-09-14",
+   "note": "",
+   "decision": "Benchmark both in Phase 0 and keep the one that meets the latency target with the better tool-calling accuracy. Thinking mode is off.",
+   "why": "Apache-2.0, native tool calling, and only 2.3B (E2B) or 4.5B (E4B) parameters do the heavy work per token, so both are fast on the M5. `mlx_lm.server` exposes an OpenAI-compatible API that Pipecat already speaks, and reuses the cached system prompt.",
+   "considered": "Qwen3.5-4B, EuroLLM-9B, Qomhrá-8B (needed only for Irish)."
+  },
+  {
+   "id": "D-005",
+   "title": "Text to speech: Kokoro-82M with British voices",
+   "date": "2026-09-14",
+   "note": "",
+   "decision": "Kokoro v1.0 via kokoro-onnx, Pipecat's built-in `KokoroTTSService`, language `en-gb`, voices `bf_emma`, `bf_isabella`, `bm_george`, `bm_lewis` under evaluation.",
+   "why": "The fastest open TTS model, Apache-2.0, streams sentence by sentence, and runs on the CPU so it doesn't compete with the LLM for the GPU. It has no voice cloning, so the voice is a British preset rather than a cloned accent.",
+   "considered": "OmniVoice (slower, non-streaming, non-commercial weights), Chatterbox-Turbo, Qwen3-TTS."
+  },
+  {
+   "id": "D-006",
+   "title": "Calls: browser WebRTC and self-hosted telephony",
+   "date": "2026-09-14",
+   "note": "",
+   "decision": "Two ways to call the same agent: a browser call over Pipecat's SmallWebRTC transport, and a phone call through Asterisk 23 (open-source phone system, in Docker via Colima) with a free SIP softphone app, connected with `pipecat-asterisk` over Asterisk's WebSocket channel. A Twilio trial number may be added later for a demo.",
+   "why": "No provider offers a permanently free phone number. A local phone system is free forever, uses the same SIP and phone codecs as real contact centres, and needs no account.",
+   "considered": "Twilio, Telnyx or Plivo trials only (temporary credit, account needed); LiveKit SIP (heavier: server, SIP service and Redis)."
+  },
+  {
+   "id": "D-007",
+   "title": "Observability: OpenTelemetry",
+   "date": "2026-09-14",
+   "note": "",
+   "decision": "Pipecat's built-in OpenTelemetry tracing, exported locally, with per-stage timings stored for the latency reports.",
+   "why": "Vendor-neutral, free, and the same instrumentation used in production at work."
+  },
+  {
+   "id": "D-008",
+   "title": "Name: Tellerline",
+   "date": "2026-09-14",
+   "note": "",
+   "decision": "The project is called Tellerline, and the fictional bank is Tellerline Bank.",
+   "why": "A bank teller on a phone line: self-explanatory on a CV, and the fictional bank name avoids imitating any real bank.",
+   "considered": "Parley, Quay, Glór."
+  },
+  {
+   "id": "D-009",
+   "title": "Currency and data",
+   "date": "2026-09-14",
+   "note": "",
+   "decision": "Amounts are in euro and all customers, cards and transactions are synthetic.",
+   "why": "The project is built in Ireland. No real customer or employer data is used anywhere."
+  },
+  {
+   "id": "D-010",
+   "title": "Kokoro runs on MLX, not ONNX Runtime",
+   "date": "2026-09-14",
+   "note": "supersedes the runtime in D-005",
+   "decision": "Kokoro-82M runs as the MLX model on the GPU (`mlx-community/Kokoro-82M-bf16`), fed with the same espeak-ng phonemes kokoro-onnx uses (`tellerline.tts.kokoro_mlx`), with leading and trailing silence trimmed.",
+   "why": "Measured on the MacBook Air M5, kokoro-onnx on the CPU needed 1.2 s (fp16) to 1.4 s (fp32) before the first audio of a medium sentence; CoreML was slower and int8 about 2.5× slower. MLX bf16 needs about 0.6 s at p90 across four British voices, a real-time factor of 0.07. The 8-bit MLX build was no faster, so full precision stays. mlx-audio's own Kokoro pipeline needs misaki, whose English module imports PyTorch; phonemising with espeak-ng avoids that. Kokoro pads its output with about 0.3 s of silence, which callers would hear as delay, so it is trimmed.",
+   "considered": "kokoro-onnx fp32/fp16/int8 on CPU and CoreML, MLX 8-bit, misaki + PyTorch."
+  },
+  {
+   "id": "D-011",
+   "title": "Tool results are spoken from templates",
+   "date": "2026-09-14",
+   "note": "",
+   "decision": "The LLM decides what to do; code runs the operation and speaks the result from a template (`tellerline.banking.responses`), with amounts, dates, card digits and references written out in words (`tellerline.speech`).",
+   "why": "Speaking results through a second LLM pass cost about 0.8 s more per action (E4B tool turn p90 2.66 s in the first benchmark). Templates also mean the caller never hears a balance or date the model made up, and text-to-speech never has to guess how to read \"€1,250.40\".",
+   "considered": "A second LLM pass over the tool result."
+  },
+  {
+   "id": "D-012",
+   "title": "Prompt-only actions instead of native tool calling",
+   "date": "2026-09-14",
+   "note": "",
+   "decision": "No tool-calling API. The prompt lists actions with their exact syntax and a few made-up examples, and the model either replies or writes one line such as `ACTION freeze card=4217 reason=lost`, which code parses (`tellerline.actions`).",
+   "why": "Asked for by the product owner, and confirmed by measurement on the 30-case dev set. Native tool calling peaked at 80% (E2B) and 77% (E4B) even with a logit bias on the tool-call token; Gemma 4's small models tend to say \"I can freeze that for you\" instead of calling. The same cases in prompt-only form scored 87% (E2B) and 97% (E4B), and an action line is shorter to generate than a tool call.",
+   "considered": "Native tool calling with and without a tool-call logit bias (0, 2, 4, 6), and with per-step tool subsets."
+  },
+  {
+   "id": "D-013",
+   "title": "Evaluation method: dev for tuning, held-out test for results",
+   "date": "2026-09-14",
+   "note": "",
+   "decision": "Prompts, examples and thresholds are tuned only on the dev cases and dialogues. Results are reported on a separate test set that was written before any tuning, with different wording, card numbers, merchants and date formats. A test checks the two sets never share a sentence, and that prompt examples never repeat a benchmark sentence.",
+   "why": "Tuning prompts against the cases you report inflates accuracy; with 30 cases that effect is large."
+  },
+  {
+   "id": "D-014",
+   "title": "Code checks every action before it runs",
+   "date": "2026-09-14",
+   "note": "",
+   "decision": "Action values are validated (8-digit customer number, real dates, 4-digit card number, known account and reason). When the model picks the right action but a value is missing or invalid, the agent asks a fixed follow-up question instead of running it. The prompt lists the past week's dates explicitly.",
+   "why": "On dev, models copied syntax placeholders (`customer=<8 digits>`) or wrote a verification with an empty date of birth, and got relative dates (\"on Saturday\") wrong. Validation turns those into correct slot-filling questions, and the date list removes arithmetic from the model. Together they took E2B dialogue turns on dev from 59% to 100%."
+  },
+  {
+   "id": "D-015",
+   "title": "Intent router with sticky tasks",
+   "date": "2026-09-15",
+   "note": "",
+   "decision": "Each caller turn is classified on the CPU by bge-small-en-v1.5 embeddings against hand-written example sentences (about 2 ms). The call's state then picks one focused skill prompt (identity, accounts, cards, disputes, general): banking skills are unreachable before verification; a skill that just asked a question keeps the conversation unless the classifier is confident the topic changed; unsure turns use the full single prompt.",
+   "why": "Proposed by the product owner as prompt-per-use-case routing, with an LLM deciding whether to classify. An LLM classifier would add one or two LLM calls per turn (250–550 ms each on this Mac), so the classifier is an embedding model instead, and \"don't reclassify mid-conversation\" becomes \"classify every turn, but only switch on a confident signal\". On the held-out test set the classifier was never confidently wrong (100% accuracy on the 78% of turns it was confident about). With Gemma 4 E2B the router got every multi-turn dialogue fully right (7/7, against 5/7 for the single prompt), at the cost of single-turn accuracy (84% against 92%) and about 0.1 s of p90 latency from switching between prompts. Test failures to address in Phase 1, with a fresh held-out set: the identity skill sometimes transfers unverified callers instead of asking for their details, relative dates (\"last Friday\"), amounts spoken as \"63 euro 20\", and freeze reasons the case labels treat more strictly than the bank would.",
+   "considered": "One prompt with every action (best single-turn accuracy, weaker in conversations and grows with every use case); an LLM intent classifier (too slow)."
+  },
+  {
+   "id": "D-016",
+   "title": "Gemma 4 E2B",
+   "date": "2026-09-15",
+   "note": "",
+   "decision": "Ship Gemma 4 E2B (4-bit).",
+   "why": "On the held-out test set E2B was within a few turns of E4B on accuracy (and ahead in multi-turn dialogues with the router), while its decision latency was about half: reply p90 0.34–0.45 s against 0.92–1.18 s. The conservative projected turn latency is 1.36–1.47 s for replies with E2B and 1.94–2.20 s with E4B, which misses the target in every configuration. The E4B test runs came last in a long benchmark session on a fanless laptop, so some of its gap may be heat; its dev-set reply p90 was 0.69 s, still too slow."
+  },
+  {
+   "id": "D-017",
+   "title": "The bank is a separate HTTP service scoped by verified customer",
+   "date": "2026-09-15",
+   "note": "",
+   "decision": "The mock bank is a FastAPI + SQLite service the agent calls over HTTP. Account, card and dispute endpoints take a customer id, which the agent only receives from a successful identity check; the agent's client refuses banking calls before then.",
+   "why": "It mirrors how a voice agent integrates with core banking, and it makes \"another customer's data\" unreachable by construction rather than by prompt: a caller who names someone else's card gets \"I can't find a card ending ... on your account\"."
+  },
+  {
+   "id": "D-018",
+   "title": "The agent's turn is a subclass of Pipecat's OpenAI LLM service",
+   "date": "2026-09-15",
+   "note": "",
+   "decision": "`TellerlineLLMService` extends Pipecat's OpenAI-compatible service and overrides only how a response is produced: route the turn, stream Gemma from the local server, pass speech straight to text-to-speech, hold back an `ACTION` line, validate it, call the bank and speak the template.",
+   "why": "Interruptions, metrics and OpenTelemetry tracing keep working as for any Pipecat LLM, while none of Pipecat's tool-calling machinery is involved (D-012). Only text that could still become \"ACTION\" is ever delayed."
+  },
+  {
+   "id": "D-019",
+   "title": "Memory: capped MLX cache, Parakeet in bfloat16, models warmed once",
+   "date": "2026-09-15",
+   "note": "",
+   "decision": "Every MLX process caps its freed-buffer cache at 512 MB; Parakeet loads in bfloat16; the launcher loads and warms every model and primes the LLM's prompt cache before the first call.",
+   "why": "The first live calls took up to 9 s per turn because the Mac was swapping: MLX's cache had grown to 5.4 GB in the agent, Parakeet's float32 weights took 2.3 GB, and each call re-ran a warm-up that compiled kernels for 11 s. bfloat16 Parakeet matched float32 on 23 of 24 test clips (WER 0.8%). Memory pressure from other apps is treated as normal: capacity such as the LLM prompt cache is not reduced to avoid it."
+  },
+  {
+   "id": "D-020",
+   "title": "Turn-taking settings for a phone line",
+   "date": "2026-09-15",
+   "note": "",
+   "decision": "Silero VAD waits 0.2 s of silence, Smart Turn v3.2 judges whether the caller has finished, and if it thinks they haven't, the agent answers anyway after 2 s (Pipecat's default is 5 s). When a caller pauses mid-sentence and the pause is taken as the end of a turn, everything they said since the agent last spoke is sent to the model as one message.",
+   "why": "In pilot calls, sentences with pauses (\"My customer number is ... and my date of birth is ...\") were split into fragments and the model only saw the last one. Five seconds of silence on a phone line sounds like a dropped call."
+  },
+  {
+   "id": "D-021",
+   "title": "Latency is measured by phoning the agent",
+   "date": "2026-09-15",
+   "note": "",
+   "decision": "The Phase 1 gate uses an automated WebRTC caller (`bench.caller`) that connects like the browser page, speaks benchmark caller lines (numbers digit by digit, as callers say them), and times each turn from its last speech sample to the first audible reply sample.",
+   "why": "It measures what a caller experiences, including WebRTC buffering, the silence wait, turn detection and playback, which stage benchmarks can't. The caller's audio is rendered in a separate process before calls so it never competes with the agent for memory or the GPU."
+  },
+  {
+   "id": "D-022",
+   "title": "Replies are spoken clause by clause, with fixed phrases rendered in advance",
+   "date": "2026-10-05",
+   "note": "",
+   "decision": "Kokoro renders each sentence one clause at a time: the first clause alone, the rest merged up to 140 characters, with the pause a comma or full stop implies put back as silence (`tellerline.tts.chunks`). Rendered clauses go into a cache shared by every call, and the fixed phrases (greeting, follow-up questions, the opening of every spoken result) are rendered at start-up. Result templates now open with a fixed clause that already says what happened (\"I've frozen that card for you.\", \"On your savings account,\") and give the details after it.",
+   "why": "Kokoro renders a whole text before any of it plays, at about 60 ms plus 2.7 ms per character on the M5. Live calls showed the cost: a balance sentence took 0.3 s to start, and five transactions read as one sentence 1.25 s. Across every template (`bench.first_audio`), time from text to first audio went from p50 150 ms / p90 1,105 ms for the whole first sentence to p50 127 ms / p90 151 ms for the first clause, and p50 0 ms / p90 54 ms with the cache.",
+   "considered": "A one-word acknowledgement (\"Done.\") before each result: faster still, but it says nothing and would game the latency measure (D-002). Splitting inside a clause: Kokoro's prosody breaks at a seam with no punctuation."
+  },
+  {
+   "id": "D-023",
+   "title": "Code makes digits, amounts and dates exact before the model reads a turn",
+   "date": "2026-10-05",
+   "note": "",
+   "decision": "Each caller turn passes through `tellerline.understanding` before the model sees it: digits said as words become figures (\"seven two oh six\" is 7206, \"double oh four one\" is 0041), amounts become euro figures (\"34 euro 60\" is €34.60), and every date is followed by the date it means (\"last Tuesday (2026-09-08)\", \"14/07/1985 (1985-07-14)\"). One shared step, `Brain.interpret`, then decides what the model's answer leads to, for the live agent and the benchmarks alike: a card or customer number the caller never said becomes a follow-up question rather than reaching the bank, and an unverified caller whose turn produced a banking action is asked for their details instead of hearing \"Sorry, I didn't quite catch that\".",
+   "why": "On a new held-out set (written before this work), Gemma 4 E2B with the router copied the prompt example's customer number when the real one was said as \"double seven four five...\", froze card \"41\" for \"double oh four one\", dropped the cents from \"34 euro 60\", got \"last Tuesday\" and \"on the 3rd\" wrong, and invented card 7890 from the tail of the customer number. Each of these is arithmetic or copying, which code does exactly. With this step the dev set went to 97% single-turn and 100% of dialogue turns.",
+   "considered": "More prompt examples (they grow every prompt and still leave arithmetic to a 2B model); rejecting ungrounded values silently (the caller would hear nothing useful)."
+  },
+  {
+   "id": "D-024",
+   "title": "Callers can unfreeze a found card and ask about a card; calls end only on a goodbye",
+   "date": "2026-10-05",
+   "note": "",
+   "decision": "Two new actions, `unfreeze` and `status`, are offered in the cards skill and the full prompt. The bank lifts a freeze only for cards frozen as lost or temporary; a card frozen as stolen or for suspicious payments stays blocked and the caller is offered a replacement. The status answer says whether a card is frozen, why, and when its replacement arrives (in working days). Separately, `end` now runs only if the caller's own words contain a goodbye or \"that's all\"; otherwise the agent asks whether there's anything else.",
+   "why": "\"I found my card\" was the most common thing a frozen-card caller could not do, and E2B answered it by freezing the card again. On dev, E2B also hung up on \"No, I'm sure it'll turn up\" after declining a replacement, and a hang-up can't be taken back. The goodbye rule was written from the dev and test cases and then checked against every end-of-call label in all three splits without changes.",
+   "result": "Measured once after the work, Gemma 4 E2B with the router on the held-out set: 100% single-turn (72% before D-023), 100% of dialogue turns (89%), 8 of 8 dialogues (6). On the Phase 0 test set: 95% single-turn (84% in Phase 0) and 7 of 7 dialogues. Decision p90: 376 ms for replies, 544 ms for actions."
+  },
+  {
+   "id": "D-025",
+   "title": "Turn-taking: voice starts a turn when the agent is silent; transcripts are final",
+   "date": "2026-10-05",
+   "note": "",
+   "decision": "While the agent is silent, the caller's turn starts as soon as Silero VAD hears speech; while it talks, the caller needs two words to interrupt (the noise rule from Phase 1, now applied only where it was meant to). Parakeet's transcripts are marked final, since each VAD segment is transcribed whole, and Pipecat is told Parakeet's real p99 (0.35 s from the end of speech) instead of its 1.0 s default. When Smart Turn judges a caller unfinished but Parakeet's transcript ends a sentence of four or more words, the turn is released after 0.5 s instead of 2 s. When an unverified caller has given half their details, or a turn ends on a label whose value hasn't come yet (\"My customer number...\"), the reply is held for 1.0 s; a caller who carries on cancels it before a word is spoken over them. `bench.caller` now counts turns where the agent spoke before the caller finished as overlaps, apart from latency.",
+   "why": "Per-turn traces from live calls (D-021's caller, now with the agent's own report of each turn) showed \"turn end\" taking about 1,070 ms on most turns. The two-word rule started every turn from its transcript, after the caller had already finished; that reset Pipecat's stop strategy, which then waited out a timer derived from the 1.0 s STT default. The same traces showed the agent answering at the pause after a customer number, which the old caller scored as 20-200 ms \"replies\".",
+   "result": "30-turn pilots on the MacBook Air M5 (battery, other apps open): before, p50 1.49 s and p90 1.76 s with overlap artefacts counted as fast turns; after, 28 turns measured, 2 overlaps, none without a reply, p50 0.92 s, p90 1.13 s, p95 1.19 s. The full 220-turn gate follows.",
+   "considered": "A shorter VAD silence (0.2 s is already short); disabling the noise rule (it protects real calls in noisy rooms)."
+  },
+  {
+   "id": "D-026",
+   "title": "No punctuation grace; the identity hold reads the whole call",
+   "date": "2026-10-05",
+   "note": "",
+   "decision": "The rule from D-025 that released a turn 0.5 s after Smart Turn doubted it, when Parakeet's transcript ended a sentence, is removed: Smart Turn's verdict stands, with Pipecat's 2 s fallback. The 1 s hold now applies only when this turn gives a customer number or a date of birth (a date at least ten years back, not \"yesterday\") and the call still lacks the other. Digit groups split by pauses (\"four five one two. seven eight nine zero\", \"573. 02918\") are joined when they make the eight digits of a customer number; dates are never joined.",
+   "why": "The first full 220-turn gate after D-025 measured 135 clean turns (p50 0.96 s, p90 1.50 s) and 85 overlaps, turns where the agent spoke before the caller had finished. The synthetic callers pause mid-sentence (at commas, around digits read one by one, inside \"49.99\"), Parakeet writes each pause as a full stop, and the grace turned Smart Turn's correct \"not finished\" into a reply over the caller. Meanwhile no clean turn took the slow 2 s path, so the grace bought nothing. Separately, the hold fired on any date (\"What's the weather like today?\") and on a date of birth that completed a number given a turn earlier, adding 1 s to those turns.",
+   "result": "The 220-turn gate after this change, on the MacBook Air M5 running on battery with other apps open (6.9 GB in swap): 208 caller turns spoken, 182 replies measured and none unanswered; p50 1.01 s, p90 1.40 s, p95 1.48 s, within the 1.5 s target. 26 turns were overlaps, against 85 in the gate before (`results/caller-20261005T120429Z.jsonl`). Most of those left are Smart Turn ending the turn at a pause inside a synthetic caller's sentence (\"A cash machine in Galway | swallowed my card\"), plus a few where Parakeet misheard a customer number read digit by digit, so the identity hold didn't apply.",
+   "considered": "A longer VAD silence (adds latency to every turn); keeping the grace with more words required (Parakeet punctuates long fragments too)."
+  },
+  {
+   "id": "D-027",
+   "title": "What recording the demo calls found",
+   "date": "2026-10-05",
+   "note": "",
+   "decision": "Three fixes, each from a recorded demo call. A verified caller's open task keeps answers the classifier reads confidently as small talk: \"Yes, please.\" to the replacement offer had moved the call to the general skill, which transferred the caller instead of ordering the card. A date of birth must be at least ten years back: \"the 29th\", heard on its own, became 29 September 2026. And the caller is muted once the agent has ended the call, so a \"bye\" over its goodbye no longer starts another turn and a second goodbye. The demo script now says each request as one sentence, gives the found-card caller a regular voice and says \"34 euro and 60 cent\". A second recording added two more: a turn that's only a greeting (\"Hi, it's Niamh\", heard as \"Naim\" and taken for a request for a person) can't transfer the caller, and an amount may have a full stop after \"euro\" and \"sent\" for \"cent\" (\"It was 34 euro. And 60 sent\").",
+   "why": "The website replays the five scripted demo calls (`bench/data/demo_calls.json`), so each has to go through cleanly, and each failure was a defect a real caller could hit. The latency gate's calls are short and don't walk through an offer and its answer.",
+   "result": "Dialogue accuracy is unchanged on every split after all five changes: held-out 100% single-turn and 8 of 8 dialogues, test 95% and 7 of 7, dev 97%. The third recording went through on every call. Two problems stay open. Kokoro's breathy af_nicole voice wasn't detected as speech for its first few seconds (Silero VAD at confidence 0.8). And Parakeet, given only \"thirty-four euro sixty\" cut off at a pause, once wrote \"€3460\", which no rule can safely read as €34.60: the dispute reads the amount back, but only after opening it, so the next step is to confirm the amount first. The slow first reply these calls also showed is D-028."
+  },
+  {
+   "id": "D-028",
+   "title": "Two latency tails: a lone \"Bye.\" and a cold first reply",
+   "date": "2026-10-05",
+   "note": "",
+   "decision": "A caller's turn ends at once when they've stopped and the transcript ends with a goodbye (\"bye\", \"bye now\", \"cheers\", \"see you\"), alongside Smart Turn (`GoodbyeStopStrategy`). And when a call starts with no other call in progress, the agent runs one small pass through Parakeet, Kokoro, the intent classifier and Gemma while the pre-rendered greeting plays, at the lowest MLX priority (`tellerline.agent.warm`).",
+   "why": "The two slowest replies of the 220-turn gate (3.29 s and 2.85 s) were \"No, it's fine. Bye.\": Smart Turn was unsure about the lone \"Bye.\" and the turn waited out the 2 s fallback. And on a Mac in everyday use, macOS pages out models that sit idle: the first reply of a call placed after the caller's lines were rendered in another process took 11.0-11.6 s (D-027).",
+   "result": "`bench/data/goodbye_calls.json` rings off five ways, plus a control without a goodbye: the closing replies took 0.64-0.92 s, and the control was asked whether there was anything else. With the cached lines deleted so they render first, as before, the first reply took 1.24 s instead of 11.0 s; the re-warm itself took 11.6 s, but behind the greeting and the caller's first sentence instead of in front of the reply. With the models already in memory it takes about 0.3 s.",
+   "considered": "Keeping the models warm with a timer (costs energy all day on a laptop, and doesn't help if a call arrives between ticks); a shorter Smart Turn fallback (adds cut-ins)."
+  }
+ ],
+ "examples": [
+  {
+   "case": "h-verify-double-oh",
+   "said": "It's double seven four five double one oh two, born the 29th of February 1996.",
+   "understood": "It's 77451102, born the 29th of February 1996 (1996-02-29).",
+   "before": "ACTION verify customer=11002233 dob=1996-02-29",
+   "after": "ACTION verify customer=77451102 dob=1996-02-29",
+   "heard_reply": "Thanks, Aoife, you're verified. What can I help you with?"
+  },
+  {
+   "case": "h-dispute-yesterday",
+   "said": "Corrib Taxis took 34 euro 60 off me yesterday and I never got a taxi.",
+   "understood": "Corrib Taxis took €34.60 off me yesterday (2026-09-13) and I never got a taxi.",
+   "before": "ACTION dispute merchant=\"Corrib Taxis\" amount=34 date=2026-09-13",
+   "after": "ACTION dispute merchant=\"Corrib Taxis\" amount=34.60 date=2026-09-13",
+   "heard_reply": "I've opened a dispute for that payment. That's the thirty-four euro and sixty cent payment to Corrib Taxis on the thirteenth of September, and your reference is D S P two zero four one seven."
+  },
+  {
+   "case": "h-unfreeze-no-digits",
+   "said": "I found the card I lost, can you switch it back on?",
+   "understood": "I found the card I lost, can you switch it back on?",
+   "before": "ACTION freeze card=7890 reason=lost",
+   "after": "What are the last four digits of the card?",
+   "heard_reply": "What are the last four digits of the card?"
+  }
+ ],
+ "template": {
+  "action": "ACTION balance account=current",
+  "bank": {
+   "balance_eur": 1250.4,
+   "available_eur": 1180.4
+  },
+  "spoken": "On your current account, the balance is one thousand, two hundred and fifty euro and forty cent. You have one thousand, one hundred and eighty euro and forty cent available to spend."
+ },
+ "customers": [
+  {
+   "number": "45127890",
+   "name": "Aoife Byrne",
+   "born": "1991-03-03",
+   "cards": [
+    "4217",
+    "0093"
+   ]
+  },
+  {
+   "number": "30118842",
+   "name": "Cian Murphy",
+   "born": "1985-07-14",
+   "cards": [
+    "5561"
+   ]
+  },
+  {
+   "number": "77451102",
+   "name": "Niamh Kelly",
+   "born": "1996-02-29",
+   "cards": [
+    "7780",
+    "1188"
+   ]
+  },
+  {
+   "number": "61023397",
+   "name": "Seán O'Brien",
+   "born": "1978-11-21",
+   "cards": [
+    "6604",
+    "3317"
+   ]
+  },
+  {
+   "number": "22904718",
+   "name": "Róisín Walsh",
+   "born": "2001-04-01",
+   "cards": [
+    "2291",
+    "8850"
+   ]
+  },
+  {
+   "number": "58331026",
+   "name": "Declan Ryan",
+   "born": "1964-06-09",
+   "cards": [
+    "5092",
+    "7701"
+   ]
+  }
+ ],
+ "film": null,
+ "calls": [
+  {
+   "slug": "stolen-card",
+   "title": "stolen card",
+   "summary": "Aoife's card was taken from her bag on the bus. Tellerline verifies her, freezes the card and orders a replacement.",
+   "duration_s": 63.51
+  },
+  {
+   "slug": "found-card",
+   "title": "found it",
+   "summary": "Niamh blocks her card while she looks for it, turns down a replacement, then finds it and has the block lifted.",
+   "duration_s": 61.99
+  },
+  {
+   "slug": "dispute",
+   "title": "dispute",
+   "summary": "Róisín disputes a taxi fare she doesn't recognise, giving the amount and the day in her own words.",
+   "duration_s": 52.51
+  },
+  {
+   "slug": "balance",
+   "title": "balance",
+   "summary": "Cian checks his current account and hears his last three payments.",
+   "duration_s": 66.81
+  },
+  {
+   "slug": "someone-else",
+   "title": "not his account",
+   "summary": "A caller asks for his wife's balance. Tellerline asks for his own details first, and he asks for a person instead.",
+   "duration_s": 27.7
+  }
+ ]
+}
