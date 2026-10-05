@@ -9,8 +9,8 @@ import type { Call } from "@/lib/types";
 // through it: scripts/render_film.py calls window.__setFilmTime(t) and takes a screenshot.
 // The film runs INTRO_S of title card, the call itself, then OUTRO_S of end card.
 
-export const INTRO_S = 3;
-export const OUTRO_S = 4;
+export const INTRO_S = 6;
+export const OUTRO_S = 6;
 
 declare global {
   interface Window {
@@ -20,6 +20,9 @@ declare global {
 }
 
 type Props = { call: Call; numbers: { p50: number; p90: number; turns: number } | null };
+
+// Lines scrolling off the top fade out rather than being cut through.
+const FADE_TOP = "linear-gradient(to bottom, transparent 0, black 22%)";
 
 export function FilmFrame({ call, numbers }: Props) {
   const [time, setTime] = useState(0);
@@ -40,7 +43,8 @@ export function FilmFrame({ call, numbers }: Props) {
   if (now > call.duration_s) return <EndCard numbers={numbers} />;
 
   const shown = timeline.lines.filter((line) => line.at <= now + 1e-6);
-  const recent = shown.slice(-15);
+  // The conversation on the left; each turn's stages go in the panel on the right.
+  const recent = shown.filter((line) => line.kind !== "stage").slice(-12);
   const turnLines = currentTurn(shown);
 
   return (
@@ -52,7 +56,10 @@ export function FilmFrame({ call, numbers }: Props) {
       </header>
       <div className="rule mt-6" />
       <div className="mt-8 grid min-h-0 flex-1 grid-cols-[1.35fr_1fr] gap-14">
-        <ol className="flex min-h-0 flex-col justify-end space-y-2 overflow-hidden">
+        <ol
+          className="flex min-h-0 flex-col justify-end space-y-3 overflow-hidden"
+          style={{ maskImage: FADE_TOP, WebkitMaskImage: FADE_TOP }}
+        >
           {recent.map((line, index) => (
             <FilmLine key={`${line.kind}-${line.at}-${index}`} line={line} now={now} />
           ))}
@@ -62,9 +69,12 @@ export function FilmFrame({ call, numbers }: Props) {
           <div className="space-y-3">
             <p className="dim">this turn</p>
             {turnLines.map((line, index) => (
-              <div key={index} className="grid grid-cols-[6.5em_1fr] gap-x-4 text-[28px]">
+              <div key={index} className="grid grid-cols-[5.5em_1fr_4.5em] gap-x-4 text-[28px]">
                 <span className="dim">{line.label}</span>
-                <span className={line.tone === "action" ? "bloom" : "text-p1"}>{line.value}</span>
+                <span className={`${line.tone === "action" ? "bloom" : "text-p1"} line-clamp-2`}>
+                  {line.value}
+                </span>
+                <span className="after tabular text-right">{line.ms}</span>
               </div>
             ))}
           </div>
@@ -85,23 +95,18 @@ function FilmLine({ line, now }: { line: Line; now: number }) {
     const waiting = now < line.until;
     const seconds = Math.min(now, line.until) - line.at;
     return (
-      <li className="bloom tabular pl-[13.5em]">
-        {waiting ? "waiting " : "replied after "}
-        {seconds.toFixed(2)} s
-      </li>
-    );
-  }
-  if (line.kind === "stage") {
-    return (
-      <li className="grid grid-cols-[13.5em_6em_1fr] text-[26px]">
-        <span />
-        <span className="dim">{line.label}</span>
-        <span className={line.tone === "action" ? "bloom" : line.tone === "held" ? "dim" : "text-p1"}>
-          {line.value.length > 58 ? `${line.value.slice(0, 57)}…` : line.value}
+      <li className="tabular pl-[13.5em]">
+        <span className="bloom">
+          {waiting ? "waiting " : "replied after "}
+          {seconds.toFixed(2)}&nbsp;s
         </span>
+        {!waiting && line.callerWait !== null ? (
+          <span className="dim block text-[24px]">{line.callerWait.toFixed(2)}&nbsp;s for the caller</span>
+        ) : null}
       </li>
     );
   }
+  if (line.kind === "stage") return null;
   const share = spokenShare(line.spans, now);
   const live = share > 0 && share < 1;
   return (
@@ -125,24 +130,27 @@ function Stopwatch({ shown, now }: { shown: Line[]; now: number }) {
   }
   const waiting = now < gap.until;
   const seconds = Math.min(now, gap.until) - gap.at;
+  const heard = !waiting && gap.callerWait !== null;
   return (
     <div>
-      <p className="dim">{waiting ? "the caller is waiting" : "the caller waited"}</p>
-      <p className="display tabular text-[132px] leading-none">{seconds.toFixed(2)} s</p>
+      <p className="dim">{waiting ? "the caller has stopped" : "Tellerline answered after"}</p>
+      <p className="display tabular text-[132px] leading-none">{seconds.toFixed(2)}&nbsp;s</p>
+      <p className="dim mt-4 text-[26px]" style={{ visibility: heard ? "visible" : "hidden" }}>
+        {gap.callerWait === null ? "" : `${gap.callerWait.toFixed(2)} s by the time the caller heard it`}
+      </p>
     </div>
   );
 }
 
-function currentTurn(shown: Line[]): { label: string; value: string; tone?: string }[] {
+function currentTurn(shown: Line[]): { label: string; value: string; ms: string; tone?: string }[] {
   const last = [...shown].reverse().find((line) => line.kind === "caller");
   if (!last || last.kind !== "caller") return [];
   return shown
     .filter((line) => line.kind === "stage" && line.turn === last.turn)
     .map((line) => {
       const stage = line as Extract<Line, { kind: "stage" }>;
-      const ms = stage.ms === null ? "" : `  ${stage.ms < 1 ? "<1" : Math.round(stage.ms)} ms`;
-      const value = stage.value.length > 40 ? `${stage.value.slice(0, 39)}…` : stage.value;
-      return { label: stage.label, value: `${value}${ms}`, tone: stage.tone };
+      const ms = stage.ms === null ? "" : `${stage.ms < 1 ? "<1" : Math.round(stage.ms)} ms`;
+      return { label: stage.label, value: stage.value, ms, tone: stage.tone };
     });
 }
 

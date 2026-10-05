@@ -18,6 +18,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Rendering the website's film from a recorded call (scripts/render_film.py)
+film = [
+    "playwright==1.63.0",
+    "imageio-ffmpeg==0.6.0",
+]
 dev = [
     "ruff==0.16.7",
     "pytest==9.1.1",
