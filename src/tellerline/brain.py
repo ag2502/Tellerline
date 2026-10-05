@@ -17,7 +17,14 @@ from datetime import date
 from time import perf_counter
 from typing import Protocol
 
-from tellerline.actions import ACTIONS, NODE_ACTIONS, Action, clarifying_question, parse_action
+from tellerline.actions import (
+    ACTIONS,
+    BIRTH_YEARS_AGO,
+    NODE_ACTIONS,
+    Action,
+    clarifying_question,
+    parse_action,
+)
 from tellerline.prompts import build_system_prompt
 from tellerline.router.classifier import Prediction
 from tellerline.router.session import FALLBACK_SKILL, Session
@@ -82,7 +89,6 @@ _CUSTOMER_NUMBER = re.compile(r"(?<!\d)\d{8}(?!\d)")
 # A date the understanding step resolved, by year; a date of birth is years in the past, unlike
 # "yesterday" or "on the 3rd".
 _DATE_YEAR = re.compile(r"\((\d{4})-\d{2}-\d{2}\)")
-BIRTH_YEARS_AGO = 10
 # A label with its value still to come: "My customer number...", "the card ends in...".
 _DANGLING_LABEL = re.compile(
     r"\b(?:customer number|account number|date of birth|birthday|born(?: on)?"

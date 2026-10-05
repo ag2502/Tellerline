@@ -1,3 +1,5 @@
+from datetime import date, timedelta
+
 import pytest
 
 from tellerline.actions import (
@@ -151,8 +153,11 @@ def test_leading_whitespace_before_action():
     assert splitter.is_action
 
 
-def test_a_date_of_birth_must_be_in_the_past():
+def test_a_date_of_birth_must_be_years_in_the_past():
     action = parse_action("ACTION verify customer=48210573 dob=2087-05-02")
     assert action.missing == ("date_of_birth",)
     assert parse_action("ACTION verify customer=48210573 dob=1899-12-31").missing
     assert parse_action("ACTION verify customer=48210573 dob=1987-05-02").complete
+    # "The 29th" alone, resolved to a date last week, is not a date of birth.
+    last_week = (date.today() - timedelta(days=6)).isoformat()
+    assert parse_action(f"ACTION verify customer=48210573 dob={last_week}").missing

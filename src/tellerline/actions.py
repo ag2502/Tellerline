@@ -141,12 +141,18 @@ def _iso_date(value: Any) -> bool:
     return True
 
 
+# A caller's date of birth is at least this many years back: "the 29th", heard on its own and
+# resolved to this month, is not one.
+BIRTH_YEARS_AGO = 10
+
+
 def _birth_date(value: Any) -> bool:
-    """A real date of birth: a valid date, in the past, from 1900 on (not '2087-05-02')."""
+    """A plausible date of birth: a valid date from 1900 on, years in the past (not
+    '2087-05-02', and not a date this month)."""
     if not _iso_date(value):
         return False
     born = date.fromisoformat(value)
-    return born.year >= 1900 and born < date.today()
+    return 1900 <= born.year <= date.today().year - BIRTH_YEARS_AGO
 
 
 # A value that fails its check is treated as missing, so placeholders the model copied from the
