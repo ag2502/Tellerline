@@ -9,7 +9,7 @@ python -m tellerline.agent
 
 This starts the mock bank, the Gemma 4 server and the call page, and warms every model (about
 10 seconds when the models are already downloaded). Then open
-**http://localhost:7860/client**, allow the microphone, and press connect. Headphones stop the
+**http://localhost:7860**, press Call and allow the microphone. Headphones stop the
 agent from hearing itself.
 
 Options, as environment variables:
@@ -19,6 +19,7 @@ Options, as environment variables:
 | `TELLERLINE_VOICE` | `bf_emma` | Agent voice: `bf_alice`, `bf_emma`, `bf_isabella`, `bf_lily`, `bm_daniel`, `bm_fable`, `bm_george`, `bm_lewis` |
 | `TELLERLINE_LLM` | `e2b` | `e2b` or `e4b` |
 | `TELLERLINE_TRACING` | `1` | OpenTelemetry spans to `results/traces/` |
+| `TELLERLINE_RECORD` | `0` | `1` records each call to `results/recordings/` |
 
 Per-turn latency for each call is written to `results/calls/<call id>.jsonl`.
 

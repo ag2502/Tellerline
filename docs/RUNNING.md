@@ -73,9 +73,9 @@ The agent starts three things on your Mac:
 
 ## 5. Call it from your browser
 
-1. Open **http://localhost:7860/client** in Chrome or Safari.
-2. Allow microphone access.
-3. Press **Connect**. The agent says: "Hello, you're through to Tellerline Bank. I'm an AI assistant."
+1. Open **http://localhost:7860** in Chrome or Safari (it opens the call page at `/call/`).
+2. Press **Call** and allow microphone access.
+3. The agent says: "Hello, you're through to Tellerline Bank. I'm an AI assistant."
 4. Wear headphones, so the agent doesn't hear itself and interrupt.
 5. Verify as a test customer. For example, say: "My customer number is 4 5 1 2 7 8 9 0 and my date
    of birth is the 3rd of March 1991." Say the digits one by one.
@@ -131,6 +131,8 @@ TELLERLINE_VOICE=bm_george python -m tellerline.agent
 | `TELLERLINE_VOICE` | `bf_emma` | `bf_alice`, `bf_emma`, `bf_isabella`, `bf_lily`, `bm_daniel`, `bm_fable`, `bm_george`, `bm_lewis` |
 | `TELLERLINE_LLM` | `e2b` | `e2b`, `e4b` |
 | `TELLERLINE_TRACING` | `1` | `1` on, `0` off |
+| `TELLERLINE_RECORD` | `0` | `1` saves each call's timeline and both voices to `results/recordings/<call id>/` |
+| `TELLERLINE_NOISE` | `1` | `1` RNNoise and noise-aware turn-taking, `0` off (to measure their effect) |
 
 To hear the voices first: `python scripts/voice_samples.py`, then open `results/samples/`.
 
@@ -138,7 +140,7 @@ To hear the voices first: `python scripts/voice_samples.py`, then open `results/
 
 | Problem | Fix |
 |---|---|
-| You can't hear the agent | Its voice plays in the browser tab at http://localhost:7860/client, not in the terminal. Open the page, press Connect, allow the microphone and check the tab isn't muted. Typing in the terminal does nothing. |
+| You can't hear the agent | Its voice plays in the browser tab at http://localhost:7860, not in the terminal. Open the page, press Call, allow the microphone and check the tab isn't muted. Typing in the terminal does nothing. |
 | Strange calls appear in the log | The automated caller (`bench.caller`) is running. Stop it before calling from the browser; both would share the same agent. |
 | `Address already in use` | An agent is already running. Stop it (`Ctrl+C`), or find it with `lsof -i :7860`. |
 | The page loads but there's no greeting | Check the terminal for errors, reload the page and connect again. |

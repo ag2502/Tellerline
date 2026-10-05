@@ -88,8 +88,8 @@ python scripts/download_models.py
 python -m tellerline.agent
 ```
 
-Then open **http://localhost:7860/client**, allow the microphone and connect. The agent starts
-the mock bank and the Gemma 4 server itself.
+Then open **http://localhost:7860**, press Call and allow the microphone. The agent starts the
+mock bank and the Gemma 4 server itself. Pipecat's own playground is still at `/client`.
 
 - Step-by-step guide, options and troubleshooting: [docs/RUNNING.md](docs/RUNNING.md)
 - Test customers and things to try: [docs/DEMO.md](docs/DEMO.md)
