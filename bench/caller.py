@@ -26,6 +26,7 @@ import sys
 import time
 from collections import deque
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import av
 import httpx
@@ -47,6 +48,7 @@ STAGGER_S = 2.7  # seconds between the first calls of concurrent lines
 REPLY_TIMEOUT_S = 12.0
 AUDIO_CACHE = RESULTS_DIR / "caller_audio"
 CALLER_VOICES = ("am_michael", "af_heart")
+KOKORO_US_VOICES = ("am_michael", "af_heart", "af_bella", "af_nicole", "am_adam", "am_eric")
 VERIFY_LINE = "My customer number is 45127890 and my date of birth is the 3rd of March 1991."
 
 
@@ -109,12 +111,25 @@ def as_spoken(line: str) -> str:
     )
 
 
-def render_lines(lines: set[str]) -> dict[str, np.ndarray]:
-    """48 kHz int16 audio per caller line, cached on disk; loads Kokoro only when needed."""
+def load_script(path: Path) -> list[dict]:
+    """Scripted calls: a JSON list of {"name", "voice", "lines"}, each call in one voice."""
+    calls = json.loads(path.read_text())
+    for call in calls:
+        assert call["voice"] in KOKORO_US_VOICES, f"{call['name']}: unknown voice {call['voice']}"
+        assert call["lines"], f"{call['name']}: no lines"
+    return calls
+
+
+def render_lines(lines: set[str], voices: dict[str, str] | None = None) -> dict[str, np.ndarray]:
+    """48 kHz int16 audio per caller line, cached on disk; loads Kokoro only when needed.
+
+    Benchmark lines alternate between two American voices; scripted calls give each line its
+    call's voice.
+    """
     AUDIO_CACHE.mkdir(parents=True, exist_ok=True)
     audio, missing = {}, []
     for index, line in enumerate(sorted(lines)):
-        voice = CALLER_VOICES[index % len(CALLER_VOICES)]
+        voice = (voices or {}).get(line) or CALLER_VOICES[index % len(CALLER_VOICES)]
         spoken = as_spoken(line)
         path = AUDIO_CACHE / f"{hashlib.sha1(f'{voice}|{spoken}'.encode()).hexdigest()[:16]}.wav"
         if path.exists():
@@ -372,16 +387,28 @@ def agent_report(messages: list[dict]) -> dict | None:
 # ---------------------------------------------------------------- main
 
 
+def planned_calls(args: argparse.Namespace) -> tuple[list[list[str]], dict[str, str] | None]:
+    """The calls to place, and the voice for each line when they come from a script."""
+    if args.script:
+        calls = load_script(args.script)
+        return [call["lines"] for call in calls], {
+            line: call["voice"] for call in calls for line in call["lines"]
+        }
+    return call_scripts(args.turns), None
+
+
 async def run(args: argparse.Namespace) -> None:
-    scripts = call_scripts(args.turns)
+    scripts, voices = planned_calls(args)
     lines = {line for call in scripts for line in call}
     # Render in a child process: its MLX memory is returned to the system when it exits, so the
     # caller doesn't hold gigabytes the agent needs during the calls.
     render = [sys.executable, "-m", "bench.caller", "--render-only", "--turns", str(args.turns)]
+    if args.script:
+        render += ["--script", str(args.script)]
     if args.background_db is not None:
         render += ["--background-db", str(args.background_db)]
     subprocess.run(render, check=True)
-    audio = render_lines(lines)
+    audio = render_lines(lines, voices)
     background = None if args.background_db is None else render_background(args.background_db)
     latencies: list[float] = []
     timeouts = overlaps = 0
@@ -391,6 +418,7 @@ async def run(args: argparse.Namespace) -> None:
         "calls": len(scripts),
         "background_db": args.background_db,
         "concurrency": args.concurrency,
+        "script": str(args.script) if args.script else None,
     }
     waiting = list(enumerate(scripts, start=1))
 
@@ -455,10 +483,16 @@ def main() -> None:
         type=float,
         help="Play a noisy room (background talk and noise) this many dB below the caller",
     )
+    parser.add_argument(
+        "--script",
+        type=Path,
+        help="place these scripted calls instead of the benchmark's (JSON, see load_script)",
+    )
     parser.add_argument("--render-only", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
     if args.render_only:
-        render_lines({line for call in call_scripts(args.turns) for line in call})
+        scripts, voices = planned_calls(args)
+        render_lines({line for call in scripts for line in call}, voices)
         if args.background_db is not None:
             render_background(args.background_db)
         return

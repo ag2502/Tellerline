@@ -1,0 +1,52 @@
+[
+  {
+    "name": "stolen-card",
+    "voice": "af_heart",
+    "lines": [
+      "Hi, I think my bank card has been stolen.",
+      "Sure, my customer number is 45127890, and my date of birth is the 3rd of March 1991.",
+      "My card ending 4217 was taken out of my bag on the bus.",
+      "Yes please.",
+      "That's everything, thanks. Bye."
+    ]
+  },
+  {
+    "name": "balance",
+    "voice": "am_michael",
+    "lines": [
+      "Hello, customer number 30118842, born the 14th of July 1985.",
+      "How much is in my current account?",
+      "Read me the last three payments on my current account.",
+      "Grand, that's all. Bye now."
+    ]
+  },
+  {
+    "name": "dispute",
+    "voice": "af_bella",
+    "lines": [
+      "Hi, my customer number is 22904718 and I was born on the 1st of April 2001.",
+      "There's a charge on my account from Corrib Taxis that I don't recognise.",
+      "It was 34 euro 60, last Tuesday.",
+      "No, that's everything. Thanks, bye."
+    ]
+  },
+  {
+    "name": "found-card",
+    "voice": "af_nicole",
+    "lines": [
+      "Hi, it's Niamh. My number is 77451102, date of birth the 29th of February 1996.",
+      "Can you put a temporary block on my card ending 7780? I think I left it in the car.",
+      "No, I don't need a new one yet.",
+      "Actually, I've just found it. Can you unfreeze it?",
+      "Brilliant, thanks a million. Bye."
+    ]
+  },
+  {
+    "name": "colleague",
+    "voice": "am_eric",
+    "lines": [
+      "Can you tell me my wife's balance? Her customer number is 61023397.",
+      "No, I'd rather just speak to a person."
+    ]
+  }
+]
