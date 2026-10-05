@@ -128,7 +128,9 @@ MOCK_TOOL_RESULTS: dict[str, dict[str, Any]] = {
 }
 
 
-SPLITS = ("dev", "test")
+# dev tunes prompts; test (Phase 0) and holdout (written before the Phase 1 accuracy work)
+# report results.
+SPLITS = ("dev", "test", "holdout")
 
 
 def load_cases(split: str = "test") -> list[dict[str, Any]]:

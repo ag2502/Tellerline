@@ -163,7 +163,7 @@ def main() -> None:
 
     classifier = IntentClassifier(Embedder(), EXAMPLES) if "router" in args.brains else None
     convs = conversations(args.split)
-    warmup = conversations("dev" if args.split == "test" else "test")
+    warmup = conversations("test" if args.split == "dev" else "dev")
     (RESULTS_DIR / "logs").mkdir(parents=True, exist_ok=True)
 
     with ResultWriter("dialogues", vars(args)) as writer:

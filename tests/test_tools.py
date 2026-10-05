@@ -1,5 +1,6 @@
 import json
 from datetime import date
+from itertools import combinations
 
 import pytest
 
@@ -36,10 +37,11 @@ def test_benchmark_cases_reference_real_tools_and_arguments(split):
         assert case["history"] in HISTORY_KINDS, case["id"]
 
 
-def test_dev_and_test_cases_do_not_overlap():
-    dev, test = load_cases("dev"), load_cases("test")
-    assert not {c["id"] for c in dev} & {c["id"] for c in test}
-    assert not {c["user"] for c in dev} & {c["user"] for c in test}
+def test_splits_do_not_overlap():
+    for a, b in combinations(SPLITS, 2):
+        one, other = load_cases(a), load_cases(b)
+        assert not {c["id"] for c in one} & {c["id"] for c in other}, (a, b)
+        assert not {c["user"] for c in one} & {c["user"] for c in other}, (a, b)
 
 
 @pytest.mark.parametrize("mode", MODES)
