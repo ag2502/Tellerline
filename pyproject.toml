@@ -13,6 +13,8 @@ dependencies = [
     "mlx-lm==0.31.3",
     # Parakeet speech-to-text on Apple Silicon
     "mlx-audio[stt]==0.5.4",
+    # RNNoise noise suppression on the caller's audio (tellerline.audio.noise)
+    "pyrnnoise==0.4.3",
 ]
 
 [project.optional-dependencies]
