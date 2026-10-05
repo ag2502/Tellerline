@@ -141,11 +141,19 @@ def _iso_date(value: Any) -> bool:
     return True
 
 
+def _birth_date(value: Any) -> bool:
+    """A real date of birth: a valid date, in the past, from 1900 on (not '2087-05-02')."""
+    if not _iso_date(value):
+        return False
+    born = date.fromisoformat(value)
+    return born.year >= 1900 and born < date.today()
+
+
 # A value that fails its check is treated as missing, so placeholders the model copied from the
 # syntax ("<8 digits>") or half-heard numbers never reach the bank.
 _VALID: dict[str, Callable[[Any], bool]] = {
     "customer_number": lambda v: bool(re.fullmatch(r"\d{8}", str(v))),
-    "date_of_birth": _iso_date,
+    "date_of_birth": _birth_date,
     "date": _iso_date,
     "card_last_four": lambda v: bool(re.fullmatch(r"\d{4}", str(v))),
     "account": lambda v: v in ACCOUNTS,

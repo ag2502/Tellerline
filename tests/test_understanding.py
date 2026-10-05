@@ -118,3 +118,9 @@ def test_understanding_is_idempotent():
     said = "It was 12 euro 99 on the 3rd, the day before yesterday, ending double oh four one."
     once = understand(said, MONDAY)
     assert understand(once, MONDAY) == once
+
+
+def test_american_style_years_and_a_pause_before_the_year():
+    said = "Born the second of May. nineteen hundred eighty seven."
+    assert annotate_dates(said, MONDAY).endswith("nineteen hundred eighty seven (1987-05-02).")
+    assert spoken_year("nineteen hundred and five") == 1905

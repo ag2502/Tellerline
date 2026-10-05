@@ -135,6 +135,7 @@ _ORDINAL = (
 )
 _SPOKEN_YEAR = (
     r"(?:two thousand(?:\s+and)?(?:\s+(?:[a-z]+(?:-[a-z]+)?))?"
+    r"|(?:nineteen|eighteen) hundred(?:\s+and)?(?:\s+[a-z]+(?:[\s-][a-z]+)?)?"
     r"|(?:nineteen|twenty)\s+(?:[a-z]+(?:-[a-z]+)?))"
 )
 _ANNOTATION = re.compile(r" \(\d{4}-\d{2}-\d{2}\)")
@@ -266,6 +267,11 @@ def spoken_year(words: str) -> int | None:
     if words.startswith("two thousand"):
         rest = words.removeprefix("two thousand").strip()
         return 2000 + (words_to_number(rest) or 0) if rest else 2000
+    hundred = re.fullmatch(r"(nineteen|eighteen) hundred(?:\s+and)?(?:\s+(.+))?", words)
+    if hundred:
+        century = words_to_number(hundred.group(1))
+        rest = words_to_number(hundred.group(2)) if hundred.group(2) else 0
+        return None if rest is None or rest >= 100 else century * 100 + rest
     parts = re.split(r"\s+", words, maxsplit=1)
     if len(parts) == 2:
         century, decade = words_to_number(parts[0]), words_to_number(parts[1])
@@ -324,7 +330,7 @@ def annotate_dates(text: str, today: date) -> str:
     # the 21st of November 1978, 21 November 1978, the ninth of June, 3rd of March '91.
     day_month = re.compile(
         rf"\b(?:the\s+)?({_ORDINAL})\s+(?:of\s+)?({_MONTH})\b"
-        rf"(?:,?\s+'?(\d{{4}}|\d{{2}}|{_SPOKEN_YEAR})\b)?",
+        rf"(?:[.,]?\s+'?(\d{{4}}|\d{{2}}|{_SPOKEN_YEAR})\b)?",
         re.I,
     )
 

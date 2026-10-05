@@ -149,3 +149,10 @@ def test_short_reply_that_matches_a_prefix_is_released_at_the_end():
 def test_leading_whitespace_before_action():
     _, splitter = split(["  ", "ACTION end"])
     assert splitter.is_action
+
+
+def test_a_date_of_birth_must_be_in_the_past():
+    action = parse_action("ACTION verify customer=48210573 dob=2087-05-02")
+    assert action.missing == ("date_of_birth",)
+    assert parse_action("ACTION verify customer=48210573 dob=1899-12-31").missing
+    assert parse_action("ACTION verify customer=48210573 dob=1987-05-02").complete
