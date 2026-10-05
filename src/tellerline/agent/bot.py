@@ -23,7 +23,7 @@ from pipecat.workers.runner import WorkerRunner
 
 from tellerline.agent.observability import TurnLatencyLog
 from tellerline.agent.recorder import CallRecorder, CallTimeline, TimelineObserver
-from tellerline.agent.turns import turn_start_strategies
+from tellerline.agent.turns import MuteWhileEndingStrategy, turn_start_strategies
 from tellerline.audio.noise import RNNoiseSuppressor
 from tellerline.bank.client import BankClient
 from tellerline.brain import GREETING, RouterBrain
@@ -61,12 +61,14 @@ transport_params = {
 }
 
 
-def user_params() -> LLMUserAggregatorParams:
-    """Turn-taking: when the caller has started and finished speaking."""
+def user_params(llm: TellerlineLLMService) -> LLMUserAggregatorParams:
+    """Turn-taking: when the caller has started and finished speaking, and when they're muted."""
+    mute = [MuteWhileEndingStrategy(lambda: llm.ending)]
     if not NOISE_HANDLING:
         return LLMUserAggregatorParams(
             vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=VAD_STOP_SECS)),
             user_turn_stop_timeout=USER_TURN_STOP_TIMEOUT_S,
+            user_mute_strategies=mute,
         )
     vad = VADParams(
         confidence=VAD_CONFIDENCE,
@@ -78,6 +80,7 @@ def user_params() -> LLMUserAggregatorParams:
         vad_analyzer=SileroVADAnalyzer(params=vad),
         user_turn_strategies=UserTurnStrategies(start=turn_start_strategies()),
         user_turn_stop_timeout=USER_TURN_STOP_TIMEOUT_S,
+        user_mute_strategies=mute,
     )
 
 
@@ -97,7 +100,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
     context = LLMContext()
     user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
-        context, user_params=user_params()
+        context, user_params=user_params(llm)
     )
     processors = [
         transport.input(),

@@ -6,7 +6,11 @@ from pipecat.frames.frames import (
 from pipecat.turns.types import ProcessFrameResult
 from pipecat.turns.user_start import MinWordsUserTurnStartStrategy
 
-from tellerline.agent.turns import VADWhenAgentSilentStartStrategy, turn_start_strategies
+from tellerline.agent.turns import (
+    MuteWhileEndingStrategy,
+    VADWhenAgentSilentStartStrategy,
+    turn_start_strategies,
+)
 
 
 async def started_turns(strategy, frames) -> int:
@@ -44,3 +48,11 @@ def test_interruptions_still_need_words():
     first, second = turn_start_strategies()
     assert isinstance(first, VADWhenAgentSilentStartStrategy)
     assert isinstance(second, MinWordsUserTurnStartStrategy)
+
+
+async def test_the_caller_is_muted_once_the_agent_has_ended_the_call():
+    ending = False
+    strategy = MuteWhileEndingStrategy(lambda: ending)
+    assert await strategy.process_frame(VADUserStartedSpeakingFrame()) is False
+    ending = True
+    assert await strategy.process_frame(VADUserStartedSpeakingFrame()) is True

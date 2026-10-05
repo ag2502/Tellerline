@@ -197,6 +197,11 @@ class TellerlineLLMService(OpenAILLMService):
             self._ending = True
             self._end_timer = self.create_task(self._end_after(self._end_timeout_s))
 
+    @property
+    def ending(self) -> bool:
+        """The agent has ended the call (a goodbye or a transfer) and is saying its last words."""
+        return self._ending
+
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         await super().process_frame(frame, direction)
         if isinstance(frame, BotStoppedSpeakingFrame) and self._ending:

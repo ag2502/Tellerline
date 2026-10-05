@@ -11,7 +11,12 @@ By whether the agent is talking:
 Using the word count for every turn, as Phase 1 first did, starts the turn only once the
 transcript exists, after the caller has already finished. Pipecat then waits out a fallback
 timer before releasing the turn, which cost about 0.8 s on most replies.
+
+Once the agent has ended the call, the caller is muted (``MuteWhileEndingStrategy``): a "bye"
+over the agent's goodbye would otherwise cut it off and start another turn, and another goodbye.
 """
+
+from collections.abc import Callable
 
 from pipecat.frames.frames import (
     BotStartedSpeakingFrame,
@@ -20,6 +25,7 @@ from pipecat.frames.frames import (
     VADUserStartedSpeakingFrame,
 )
 from pipecat.turns.types import ProcessFrameResult
+from pipecat.turns.user_mute.base_user_mute_strategy import BaseUserMuteStrategy
 from pipecat.turns.user_start import MinWordsUserTurnStartStrategy
 from pipecat.turns.user_start.base_user_turn_start_strategy import BaseUserTurnStartStrategy
 
@@ -50,3 +56,15 @@ def turn_start_strategies() -> list[BaseUserTurnStartStrategy]:
         VADWhenAgentSilentStartStrategy(),
         MinWordsUserTurnStartStrategy(min_words=INTERRUPT_MIN_WORDS, use_interim=False),
     ]
+
+
+class MuteWhileEndingStrategy(BaseUserMuteStrategy):
+    """Mute the caller while the agent says its last words on a call it has ended."""
+
+    def __init__(self, ending: Callable[[], bool], **kwargs):
+        super().__init__(**kwargs)
+        self._ending = ending
+
+    async def process_frame(self, frame: Frame) -> bool:
+        await super().process_frame(frame)
+        return self._ending()
