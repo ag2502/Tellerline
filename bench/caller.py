@@ -50,7 +50,15 @@ STAGGER_S = 2.7  # seconds between the first calls of concurrent lines
 REPLY_TIMEOUT_S = 12.0
 AUDIO_CACHE = RESULTS_DIR / "caller_audio"
 CALLER_VOICES = ("am_michael", "af_heart")
-KOKORO_US_VOICES = ("am_michael", "af_heart", "af_bella", "af_nicole", "am_adam", "am_eric")
+KOKORO_US_VOICES = (
+    "am_michael",
+    "af_heart",
+    "af_bella",
+    "af_nicole",
+    "af_sarah",
+    "am_adam",
+    "am_eric",
+)
 VERIFY_LINE = "My customer number is 45127890 and my date of birth is the 3rd of March 1991."
 
 

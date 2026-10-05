@@ -312,3 +312,24 @@ Galway | swallowed my card"), plus a few where Parakeet misheard a customer numb
 digit, so the identity hold didn't apply.
 **Considered:** A longer VAD silence (adds latency to every turn); keeping the grace with more
 words required (Parakeet punctuates long fragments too).
+
+## D-027 What recording the demo calls found (2026-10-05)
+
+**Decision:** Three fixes, each from a recorded demo call. A verified caller's open task keeps
+answers the classifier reads confidently as small talk: "Yes, please." to the replacement offer
+had moved the call to the general skill, which transferred the caller instead of ordering the
+card. A date of birth must be at least ten years back: "the 29th", heard on its own, became
+29 September 2026. And the caller is muted once the agent has ended the call, so a "bye" over its
+goodbye no longer starts another turn and a second goodbye. The demo script now says each request
+as one sentence, gives the found-card caller a regular voice and says "34 euro and 60 cent".
+**Why:** The website replays the five scripted demo calls (`bench/data/demo_calls.json`), so each
+has to go through cleanly, and each failure was a defect a real caller could hit. The latency
+gate's calls are short and don't walk through an offer and its answer.
+**Result:** Dialogue accuracy is unchanged on every split after the routing change: held-out 100%
+single-turn and 8 of 8 dialogues, test 95% and 7 of 7, dev 97%. Three problems stay open. The
+first reply of the first call took 11.6 s (Parakeet 3.9 s, Gemma's first token 7.0 s) after the
+caller's lines were rendered in another process while the agent sat idle; later replies took
+about a second. Kokoro's breathy af_nicole voice wasn't detected as speech for its first few
+seconds (Silero VAD at confidence 0.8). And Parakeet, given only "thirty-four euro sixty" cut off
+at a pause, wrote "€3460", which no rule can safely read as €34.60: the dispute reads the amount
+back, but only after opening it, so the next step is to confirm the amount first.

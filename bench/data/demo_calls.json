@@ -25,19 +25,19 @@
     "voice": "af_bella",
     "lines": [
       "Hi, my customer number is 22904718 and I was born on the 1st of April 2001.",
-      "There's a charge on my account from Corrib Taxis that I don't recognise.",
-      "It was 34 euro 60, last Tuesday.",
+      "I don't recognise a charge from Corrib Taxis on my account.",
+      "It was 34 euro and 60 cent last Tuesday.",
       "No, that's everything. Thanks, bye."
     ]
   },
   {
     "name": "found-card",
-    "voice": "af_nicole",
+    "voice": "af_sarah",
     "lines": [
-      "Hi, it's Niamh. My number is 77451102, date of birth the 29th of February 1996.",
-      "Can you put a temporary block on my card ending 7780? I think I left it in the car.",
+      "Hi, it's Niamh. My customer number is 77451102 and my date of birth is the 29th of February 1996.",
+      "Can you put a temporary block on my card ending 7780 while I look for it?",
       "No, I don't need a new one yet.",
-      "Actually, I've just found it. Can you unfreeze it?",
+      "I've just found it so please unfreeze it.",
       "Brilliant, thanks a million. Bye."
     ]
   },
