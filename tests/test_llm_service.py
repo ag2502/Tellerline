@@ -218,6 +218,17 @@ async def test_the_call_ends_only_after_a_goodbye():
     assert service.ending
 
 
+async def test_nothing_is_answered_after_the_goodbye():
+    # Demo-call failure: "Thanks, bye" began before the goodbye turn was handled, and got a
+    # second goodbye.
+    service, _, bank, _ = make_service(
+        [["ACTION end"], ["ACTION end"]], {"end_call": {"status": "ending"}}
+    )
+    text, _ = await spoken_text(service, "No, that's everything.", "Thanks, bye.")
+    assert text == "Thanks for calling Tellerline Bank. Goodbye."
+    assert [call.tool for call in bank.calls] == ["end_call"]
+
+
 @pytest.mark.parametrize(
     "hello", ["Hi, it's Naim.", "Hello?", "Good morning, this is Seán Murphy."]
 )

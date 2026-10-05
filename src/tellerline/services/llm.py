@@ -134,6 +134,11 @@ class TellerlineLLMService(OpenAILLMService):
         text = last_user_text(context)
         if not text:
             return
+        if self._ending:
+            # The call is over: a "Thanks, bye" whose turn began before the goodbye gets no
+            # second goodbye.
+            logger.debug(f"Call ended; not answering {text!r}")
+            return
         plan = self._brain.plan(text)
         logger.debug(f"Turn routed to '{plan.step}' ({plan.route_reason or 'single prompt'})")
         span = trace.get_current_span()
