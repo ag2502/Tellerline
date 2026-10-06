@@ -26,7 +26,7 @@ import subprocess
 import sys
 import time
 from collections import deque
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -166,13 +166,23 @@ BACKGROUND_LINES = [
 ]
 
 
-def render_background(level_db: float) -> np.ndarray:
-    """A noisy room: overlapping background conversation plus steady noise, as a 20 s loop.
+def speech_dbfs(lines: Iterable[np.ndarray]) -> float:
+    """The caller's speech level: the median over lines of each line's RMS while speaking (its
+    10 ms frames within 30 dB of its loudest), in dBFS."""
+    levels = []
+    for pcm in lines:
+        x = pcm.astype(np.float64) / 32768
+        frames = x[: len(x) // 480 * 480].reshape(-1, 480)
+        energy = np.mean(frames**2, axis=1) + 1e-12
+        speaking = energy > energy.max() * 10**-3
+        levels.append(10 * np.log10(np.mean(energy[speaking])))
+    return float(np.median(levels))
 
-    ``level_db`` is the background's loudness relative to the caller's speech (e.g. -15 dB is a
-    conversation a couple of metres away). Cached on disk like the caller's lines.
-    """
-    path = AUDIO_CACHE / f"background_{int(-level_db)}db.wav"
+
+def render_room() -> np.ndarray:
+    """A noisy room: overlapping background conversation plus steady noise, as a 20 s loop at
+    -30 dBFS RMS. Cached on disk like the caller's lines."""
+    path = AUDIO_CACHE / "room.wav"
     if path.exists():
         return sf.read(path, dtype="int16")[0]
     from tellerline.tts.kokoro_mlx import SAMPLE_RATE, KokoroMLX
@@ -185,11 +195,17 @@ def render_background(level_db: float) -> np.ndarray:
         start = (index * RATE * 2 + rng.integers(0, RATE)) % (len(loop) - len(speech))
         loop[start : start + len(speech)] += speech
     loop += 0.3 * np.std(loop) * rng.standard_normal(len(loop)).astype(np.float32)  # room noise
-    speech_rms = 0.12  # typical RMS of the caller's rendered lines
-    loop *= speech_rms * 10 ** (level_db / 20) / (np.sqrt(np.mean(loop**2)) + 1e-9)
+    loop *= 10 ** (-30 / 20) / (np.sqrt(np.mean(loop**2)) + 1e-9)
     pcm = (np.clip(loop, -1, 1) * 32767).astype(np.int16)
     sf.write(path, pcm, RATE)
     return pcm
+
+
+def background_for(level_db: float, caller_dbfs: float) -> np.ndarray:
+    """The noisy room `level_db` below (or above) the caller's speech level, as RMS: -15 dB is a
+    conversation a couple of metres away."""
+    gain = 10 ** ((caller_dbfs + level_db + 30) / 20)
+    return np.clip(render_room().astype(np.float32) * gain, -32768, 32767).astype(np.int16)
 
 
 # ---------------------------------------------------------------- WebRTC client
@@ -455,7 +471,10 @@ async def run(args: argparse.Namespace, place: PlaceCall | None = None, bench: s
         render += ["--background-db", str(args.background_db)]
     subprocess.run(render, check=True)
     audio = render_lines(lines, voices)
-    background = None if args.background_db is None else render_background(args.background_db)
+    caller_dbfs = speech_dbfs(audio.values())
+    background = (
+        None if args.background_db is None else background_for(args.background_db, caller_dbfs)
+    )
     latencies: list[float] = []
     timeouts = overlaps = 0
     config = {
@@ -463,6 +482,8 @@ async def run(args: argparse.Namespace, place: PlaceCall | None = None, bench: s
         "turns": args.turns,
         "calls": len(scripts),
         "background_db": args.background_db,
+        # The background is set relative to this: the caller's speech level (speech_dbfs).
+        "caller_speech_dbfs": round(caller_dbfs, 1),
         "concurrency": args.concurrency,
         "script": str(args.script) if args.script else None,
     }
@@ -546,7 +567,7 @@ def main() -> None:
         scripts, voices = planned_calls(args)
         render_lines({line for call in scripts for line in call}, voices)
         if args.background_db is not None:
-            render_background(args.background_db)
+            render_room()
         return
     asyncio.run(run(args))
 
