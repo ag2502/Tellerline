@@ -1,0 +1,2 @@
+# Never upload local environment files: the Vercel CLI writes tokens into them.
+.env*
