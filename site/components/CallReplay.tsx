@@ -5,11 +5,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildTimeline, clock, type Line, spokenShare } from "@/lib/timeline";
 import type { Call, CallSummary } from "@/lib/types";
 
+import { REPO } from "./links";
 import { Waveform } from "./Waveform";
 
 type Props = { calls: CallSummary[]; initial: Call };
 
 const WHO = { agent: "TELLERLINE", caller: "CALLER" } as const;
+const SECTIONS = ["call", "turn", "numbers", "policy", "memory", "log", "film", "run"];
+const HELP = "run [call] · pause · calls · goto <section> · clone · github · clear";
 
 export function CallReplay({ calls, initial }: Props) {
   const [call, setCall] = useState<Call>(initial);
@@ -102,6 +105,78 @@ export function CallReplay({ calls, initial }: Props) {
       setCall(next);
     },
     [call.slug, failed],
+  );
+
+  // `run 2` (or `run dispute`) picks a call; it starts playing once that call has loaded.
+  const pendingPlay = useRef(false);
+  useEffect(() => {
+    if (pendingPlay.current) {
+      pendingPlay.current = false;
+      void toggle();
+    }
+  }, [call, toggle]);
+
+  const execute = useCallback(
+    async (input: string): Promise<string> => {
+      const [verb = "", ...rest] = input.trim().toLowerCase().split(/\s+/);
+      const argument = rest.join(" ");
+      const section = (name: string) => {
+        const id = SECTIONS.find((item) => item === name);
+        if (!id || !document.getElementById(id)) return `no section called ${name}. Sections: ${SECTIONS.join(" ")}`;
+        document.getElementById(id)?.scrollIntoView({ block: "start" });
+        return `cd ${id}`;
+      };
+      switch (verb) {
+        case "help":
+        case "?":
+          return HELP;
+        case "calls":
+        case "ls":
+          return calls.map((item, number) => `${number + 1} ${item.title}`).join(" · ");
+        case "run":
+        case "play": {
+          if (!argument) {
+            if (audio.current?.paused) await toggle();
+            return `playing ${call.title}`;
+          }
+          const number = Number(argument);
+          const target = Number.isInteger(number)
+            ? calls[number - 1]
+            : calls.find((item) => item.slug === argument || item.title === argument || item.slug.startsWith(argument));
+          if (!target) return `no call called ${argument}. Try calls.`;
+          if (target.slug === call.slug) {
+            if (audio.current?.paused) await toggle();
+          } else {
+            pendingPlay.current = true;
+            await choose(target.slug);
+          }
+          return `playing ${target.title}`;
+        }
+        case "pause":
+        case "stop":
+          audio.current?.pause();
+          return "paused";
+        case "goto":
+        case "cd":
+          return section(argument);
+        case "clone":
+          try {
+            await navigator.clipboard.writeText(`git clone ${REPO}.git`);
+            return `copied: git clone ${REPO}.git`;
+          } catch {
+            return `git clone ${REPO}.git`;
+          }
+        case "github":
+        case "open":
+          window.open(REPO, "_blank", "noopener");
+          return "opening github.com/ag2502/Tellerline";
+        case "clear":
+          return "";
+        default:
+          return SECTIONS.includes(verb) ? section(verb) : `command not found: ${verb}. Try help.`;
+      }
+    },
+    [call.slug, call.title, calls, choose, toggle],
   );
 
   // Keep the newest line in view while the call plays, unless the reader scrolled up.
@@ -257,6 +332,8 @@ export function CallReplay({ calls, initial }: Props) {
         </details>
       </div>
 
+      <CommandLine execute={execute} />
+
       <audio
         ref={audio}
         src={call.audio}
@@ -272,6 +349,52 @@ export function CallReplay({ calls, initial }: Props) {
         onPlaying={() => setBuffering(false)}
       />
     </div>
+  );
+}
+
+// A prompt that takes real commands: run a call, jump to a section, copy the clone command.
+function CommandLine({ execute }: { execute: (input: string) => Promise<string> }) {
+  const [value, setValue] = useState("");
+  const [history, setHistory] = useState<{ input: string; output: string }[]>([]);
+  return (
+    <form
+      className="text-[0.9em]"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        const input = value.trim();
+        if (!input) return;
+        setValue("");
+        const output = await execute(input);
+        setHistory((lines) => (input.toLowerCase() === "clear" ? [] : [...lines, { input, output }].slice(-3)));
+      }}
+    >
+      <ol aria-live="polite" className="space-y-0.5">
+        {history.map((line, index) => (
+          <li key={index}>
+            <span className="after">tellerline:~$ {line.input}</span>
+            <span className="dim block pl-[2ch]">{line.output}</span>
+          </li>
+        ))}
+      </ol>
+      <label htmlFor="replay-prompt" className="sr-only">
+        Type a command, such as help, run 2 or goto numbers
+      </label>
+      <div className="flex items-baseline gap-[1ch]">
+        <span className="dim shrink-0" aria-hidden="true">
+          tellerline:~$
+        </span>
+        <input
+          id="replay-prompt"
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          placeholder="help"
+          autoComplete="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          className="min-w-0 flex-1 bg-transparent text-bloom caret-bloom placeholder:text-after focus:bg-glass focus-visible:outline-none"
+        />
+      </div>
+    </form>
   );
 }
 
