@@ -32,7 +32,7 @@ memory. No cloud APIs, no running costs.
 
 Measured by phoning the running agent: `bench.caller` speaks scripted caller lines over WebRTC,
 `bench.phone` over SIP through Asterisk, and both time each reply from the caller's last sample
-to the agent's first audible one. MacBook Air M5 on battery with other apps open (about 12 GB in
+to the agent's first audible one. MacBook Air M5 on battery with other apps open (about 7 GB in
 swap), 6 October 2026.
 
 | Line | Calls at once | Replies timed | Overlaps | Unanswered | p50 | p90 |
