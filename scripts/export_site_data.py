@@ -59,12 +59,14 @@ def percentile(values: list[float], q: float) -> float:
 
 
 def spread(values: list[float]) -> dict[str, float]:
+    # Four places, so the page's own rounding to hundredths of a second isn't a second rounding
+    # (1.2345 s shown as 1.24 by way of 1.235).
     return {
         "n": len(values),
-        "p50": round(percentile(values, 50), 3),
-        "p90": round(percentile(values, 90), 3),
-        "p95": round(percentile(values, 95), 3),
-        "max": round(max(values), 3),
+        "p50": round(percentile(values, 50), 4),
+        "p90": round(percentile(values, 90), 4),
+        "p95": round(percentile(values, 95), 4),
+        "max": round(max(values), 4),
     }
 
 
