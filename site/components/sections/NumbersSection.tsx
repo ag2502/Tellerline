@@ -38,9 +38,10 @@ export function NumbersSection() {
           </p>
           <Histogram run={gate} />
           <p className="dim max-w-[62ch] text-[0.95em]">
-            In {gate.overlaps} more turns Tellerline started talking before the caller had finished
-            (it answered at a pause mid-sentence). They are counted apart rather than as fast
-            replies; earlier runs of this benchmark counted them as replies of 20 to 200 ms.
+            In {gate.overlaps} more turns Tellerline&apos;s voice started before the caller had
+            finished: they carried on after a pause just as a reply began. It stopped within about
+            0.4&nbsp;s and answered the whole sentence. These turns are counted apart rather than as
+            fast replies.
             {gate.without_reply ? ` ${gate.without_reply} turns got no reply.` : ""} p95{" "}
             {seconds(p95)}.
           </p>
@@ -51,7 +52,7 @@ export function NumbersSection() {
           <Capacity runs={data.live.capacity} />
           {data.live.phone?.latency_s ? <Phone run={data.live.phone} /> : null}
           <Accuracy />
-          {data.live.noisy?.latency_s ? <Noisy run={data.live.noisy} /> : null}
+          {data.live.noisy.length ? <Noisy runs={data.live.noisy} /> : null}
         </div>
       </div>
     </Section>
@@ -232,19 +233,34 @@ function Phone({ run }: { run: CallerRun }) {
   );
 }
 
-function Noisy({ run }: { run: CallerRun }) {
+function Noisy({ runs }: { runs: CallerRun[] }) {
   return (
     <div>
-      <h3 className="bloom mb-2">Not solved yet: a noisy room</h3>
+      <h3 className="bloom mb-2">Not solved yet: other people talking</h3>
       <p className="max-w-[58ch] text-[0.95em] leading-relaxed">
-        With a busy room played under the caller at {run.background_db}&nbsp;dB, only{" "}
-        {run.measured} of {run.turns} turns got a measured reply, and those took a median of{" "}
-        {seconds(run.latency_s!.p50)}. Quiet-room numbers don&apos;t carry over to noise; making
-        turn detection hold up in a noisy room is the next piece of work.
+        The same calls with a conversation and room noise underneath, set against the
+        caller&apos;s own speech level. Tellerline listens for the caller&apos;s level, so the room
+        no longer holds their turn open, but the other voices still get into what it hears.
+        Separating the caller&apos;s voice is the next piece of work.
       </p>
-      <p className="mt-3">
-        <Source file={`results/${run.file}`}>The noisy-room run</Source>
-      </p>
+      <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-[2ch] gap-y-2 text-[0.95em]">
+        {runs.map((run) => (
+          <Fragment key={run.file}>
+            <dt className="dim whitespace-nowrap">{Math.abs(run.background_db ?? 0)} dB below</dt>
+            <dd className="m-0">
+              {run.measured} of {run.turns} turns timed
+              {run.latency_s ? (
+                <>
+                  , nine in ten within <span className="bloom">{seconds(run.latency_s.p90)}</span>
+                </>
+              ) : null}
+              {run.without_reply ? `, ${run.without_reply} unanswered` : ""}
+              {run.overlaps ? `, ${run.overlaps} overlaps` : ""}.{" "}
+              <Source file={`results/${run.file}`}>Run</Source>
+            </dd>
+          </Fragment>
+        ))}
+      </dl>
     </div>
   );
 }

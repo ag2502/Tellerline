@@ -1,34 +1,34 @@
 {
   "stolen-card": {
-    "recording": "call-75b18972",
+    "recording": "call-90095d9d",
     "title": "stolen card",
     "summary": "Aoife's card was taken from her bag on the bus. Tellerline verifies her, freezes the card and orders a replacement.",
     "script": "stolen-card",
-    "caller_run": "caller-20261005T194740Z.jsonl",
+    "caller_run": "caller-20261006T151431Z.jsonl",
     "caller_call": 1
   },
   "found-card": {
-    "recording": "call-46ac8027",
+    "recording": "call-7696eb78",
     "title": "found it",
     "summary": "Niamh blocks her card while she looks for it, turns down a replacement, then finds it and has the block lifted.",
     "script": "found-card",
-    "caller_run": "caller-20261005T194740Z.jsonl",
+    "caller_run": "caller-20261006T151431Z.jsonl",
     "caller_call": 4
   },
   "dispute": {
-    "recording": "call-266c5760",
+    "recording": "call-26904a9a",
     "title": "dispute",
-    "summary": "Róisín disputes a taxi fare she doesn't recognise, giving the amount and the day in her own words.",
+    "summary": "Róisín disputes a taxi fare she doesn't recognise. She pauses after the amount, and Tellerline drops the question it was about to ask and answers the whole sentence.",
     "script": "dispute",
-    "caller_run": "caller-20261005T194740Z.jsonl",
+    "caller_run": "caller-20261006T151431Z.jsonl",
     "caller_call": 3
   },
   "balance": {
-    "recording": "call-7a73002f",
+    "recording": "call-ed66b6ac",
     "title": "balance",
     "summary": "Cian checks his current account and hears his last three payments.",
     "script": "balance",
-    "caller_run": "caller-20261005T194740Z.jsonl",
+    "caller_run": "caller-20261006T151431Z.jsonl",
     "caller_call": 2
   }
 }

@@ -113,6 +113,17 @@ export function buildTimeline(call: Call): Timeline {
       ms: turn.stt_ms,
       turn: turn.turn,
     });
+    if (turn.carried_on) {
+      lines.push({
+        kind: "stage",
+        at: heardAt + 0.0005,
+        label: "one turn",
+        value: "the caller carried on after a pause before a reply began; both parts answered together",
+        ms: null,
+        turn: turn.turn,
+        tone: "held",
+      });
+    }
     if (turn.understood && turn.understood !== turn.heard) {
       lines.push({
         kind: "stage",

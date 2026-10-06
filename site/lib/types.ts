@@ -51,7 +51,7 @@ export type SiteData = {
   live: {
     gate?: CallerRun;
     capacity: CallerRun[];
-    noisy?: CallerRun;
+    noisy: CallerRun[]; // one run per room level, quietest first
     phone?: CallerRun;
     before?: CallerRun;
   };
@@ -98,6 +98,8 @@ export type Turn = {
   t: number; // when the agent had its answer, seconds from the start of the recording
   said: string | null; // the caller's line, from the call's script
   caller_wait_s: number | null; // the wait as the automated caller timed it, WebRTC included
+  // The caller carried on after a pause before hearing a reply: this turn answers all of it.
+  carried_on?: boolean;
   heard: string;
   understood: string;
   stt_ms: number | null;

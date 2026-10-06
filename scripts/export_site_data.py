@@ -146,10 +146,16 @@ def live_calls() -> dict[str, Any]:
     if "gate" in out:
         capacity.insert(0, out["gate"])
     out["capacity"] = capacity
-    noisy = [(p, r) for p, r in complete if header(r)["config"].get("background_db") is not None]
-    if noisy:
-        path, records = noisy[-1]
-        out["noisy"] = {**caller_run(records), "file": path.name}
+    # Noisy rooms, latest run per level, quietest first. Only runs whose room was set against the
+    # caller's measured speech level count: earlier "-15 dB" runs were 7.4 dB below (D-032).
+    noisy: dict[float, tuple] = {}
+    for path, records in complete:
+        config = header(records)["config"]
+        if config.get("background_db") is not None and config.get("caller_speech_dbfs"):
+            noisy[config["background_db"]] = (path, records)
+    out["noisy"] = [
+        {**caller_run(records), "file": path.name} for _, (path, records) in sorted(noisy.items())
+    ]
     # Calls over the phone line (bench.phone through Asterisk), latest complete run.
     phone = [
         (p, r)
@@ -478,15 +484,23 @@ def export_call(slug: str, entry: dict[str, Any]) -> dict[str, Any]:
         bitrate_mode="CONSTANT",
     )
 
+    # A turn withdrawn unheard (the caller carried on after a pause, D-033) never reached the
+    # caller: the replay shows the turn that answered everything they said, marked as such.
+    heard, carried_on = [], set()
+    for turn in call["turns"]:
+        if turn.get("withdrawn"):
+            carried_on.add(turn["turn"] + 1)
+        else:
+            heard.append(turn)
     # Each turn of a scripted call answers one line of its script, so the replay can show what
     # the caller said beside what Parakeet heard. Only when every line got exactly one turn.
     lines = script_lines(entry.get("script"))
-    if lines is not None and len(lines) != len(call["turns"]):
-        print(f"call {slug}: {len(lines)} script lines for {len(call['turns'])} turns, not paired")
+    if lines is not None and len(lines) != len(heard):
+        print(f"call {slug}: {len(lines)} script lines for {len(heard)} turns, not paired")
         lines = None
     waits = caller_waits(entry)
     turns = []
-    for index, turn in enumerate(call["turns"]):
+    for index, turn in enumerate(heard):
         turns.append(
             {
                 key: turn.get(key)
@@ -509,6 +523,7 @@ def export_call(slug: str, entry: dict[str, Any]) -> dict[str, Any]:
             | {
                 "said": lines[index] if lines else None,
                 "caller_wait_s": round(w, 3) if (w := waits.get(index)) is not None else None,
+                "carried_on": turn["turn"] in carried_on,
             }
         )
     record = {
