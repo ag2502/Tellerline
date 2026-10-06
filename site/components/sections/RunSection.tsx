@@ -21,12 +21,24 @@ export function RunSection() {
             <CopyCommand command="python -m tellerline.agent" note="starts the bank, the models and the call page" />
             <CopyCommand command="open http://localhost:7860" note="allow the microphone, press Call, and wear headphones" />
           </div>
+          <h3 className="bloom mb-2 mt-10">Or ring it from a phone</h3>
+          <p className="dim mb-3 max-w-[60ch] text-[0.95em]">
+            Asterisk 23 takes the SIP call and hands it to the same agent. Run it in a container,
+            then dial 2000 from a softphone on the Mac.
+          </p>
+          <div className="border-y border-scan py-3">
+            <CopyCommand command="colima start --vm-type vz --port-forwarder grpc" note="a Linux VM for the container; Docker Desktop works too" />
+            <CopyCommand command="docker compose -f telephony/asterisk/compose.yaml up -d --build" note="Asterisk on 127.0.0.1:5060, user caller, password tellerline" />
+          </div>
           <div className="mt-10 flex flex-wrap gap-4">
             <a className="key" data-primary="" href={REPO}>
               View the code
             </a>
             <a className="key" href={`${REPO}/blob/main/docs/RUNNING.md`}>
               Read the guide
+            </a>
+            <a className="key" href={`${REPO}/blob/main/docs/PHONE.md`}>
+              Phone setup
             </a>
           </div>
         </div>

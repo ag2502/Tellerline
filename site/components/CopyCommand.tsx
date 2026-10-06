@@ -1,6 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
+
+// A command breaks only between its words: a flag broken at its hyphen ("--port- forwarder")
+// reads as two words. A word too long for a phone's line can still break.
+const LONGEST_UNBROKEN = 24;
+
+function Words({ command }: { command: string }) {
+  return command.split(" ").map((word, index) => (
+    <Fragment key={index}>
+      {index ? " " : null}
+      <span className={word.length <= LONGEST_UNBROKEN ? "whitespace-nowrap" : undefined}>{word}</span>
+    </Fragment>
+  ));
+}
 
 export function CopyCommand({ command, note }: { command: string; note?: string }) {
   const [state, setState] = useState<"idle" | "copied" | "failed">("idle");
@@ -19,7 +32,9 @@ export function CopyCommand({ command, note }: { command: string; note?: string 
         $
       </span>
       <span className="min-w-0 break-words">
-        <code>{command}</code>
+        <code>
+          <Words command={command} />
+        </code>
         {note ? <span className="dim block text-[0.85em]">{note}</span> : null}
       </span>
       <button

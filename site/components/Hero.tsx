@@ -1,3 +1,4 @@
+import { data, percent, seconds } from "@/lib/data";
 import type { Call, CallSummary } from "@/lib/types";
 
 import { CallReplay } from "./CallReplay";
@@ -27,6 +28,7 @@ export function Hero({ calls, call, film }: { calls: CallSummary[]; call: Call; 
           Tellerline verifies callers and handles their banking in British English. Hearing,
           deciding and speaking all run on the Mac.
         </p>
+        <Proof />
         <div className="flex flex-wrap gap-4">
           <a className="key" data-primary="" href={REPO}>
             View the code
@@ -44,5 +46,30 @@ export function Hero({ calls, call, film }: { calls: CallSummary[]; call: Call; 
         <span className="cursor" aria-hidden="true" />
       </div>
     </section>
+  );
+}
+
+// The page's claims, as the commands that measured them and what they printed.
+function Proof() {
+  const gate = data.live.gate?.latency_s;
+  const phone = data.live.phone?.latency_s;
+  const heldOut = data.accuracy.holdout;
+  const lines = [
+    gate && ["bench.caller --turns 220", `nine in ten replies within ${seconds(gate.p90)}`],
+    phone && ["bench.phone --turns 40", `by phone, nine in ten within ${seconds(phone.p90)}`],
+    heldOut && ["bench.dialogues --split holdout", `${percent(heldOut.single_turn)} of held-out turns right`],
+  ].filter(Boolean) as [string, string][];
+  if (!lines.length) return null;
+  return (
+    <dl className="space-y-2.5 text-[0.95em]" aria-label="Measured on the MacBook Air M5">
+      {lines.map(([command, result]) => (
+        <div key={command}>
+          <dt className="dim">
+            <span aria-hidden="true">$ </span>python -m {command}
+          </dt>
+          <dd className="bloom m-0 pl-[2ch]">{result}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }

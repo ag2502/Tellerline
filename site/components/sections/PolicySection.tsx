@@ -70,8 +70,9 @@ export function PolicySection() {
           <div>
             <h3 className="bloom mb-2">Values the caller never said don&apos;t reach the bank</h3>
             <p className="dim mb-5 max-w-[58ch] text-[0.95em]">
-              Two held-out turns, before and after this phase&apos;s checks. A card or customer
-              number has to appear in the caller&apos;s own words, or the agent asks for it.
+              Two held-out turns, before and after this phase&apos;s checks. A card number, a
+              customer number or a date has to appear in the caller&apos;s own words, or the agent
+              asks for it.
             </p>
             <dl className="space-y-6">
               {copied ? (
