@@ -52,12 +52,19 @@ Each phase ends at a gate; the next phase starts only when the gate passes.
 - OpenTelemetry tracing and a turn-latency log.
 - **Gate:** measured p90 ≤ 1.5 s over 200 turns.
 
-### Phase 2: Telephony
+### Phase 2: Telephony (gate passed, see D-030)
 
-- Asterisk 23 in Docker (Colima), WebSocket channel to the agent through `pipecat-asterisk`.
-- A free SIP softphone (Linphone) calls extension 2000 over Wi-Fi.
-- Later, optionally: a Twilio trial number for a demo video.
-- **Gate:** a full call from a phone works, and phone-line latency is measured.
+- Asterisk 23 in a container (Colima), bridging each call to the agent over its WebSocket
+  channel with Tellerline's own serializer (`pipecat-asterisk` was the plan; D-030 says why not).
+- A SIP softphone calls extension 2000; `bench.phone` places scripted calls over G.711.
+- Later, optionally: a phone number from a SIP trunk provider.
+- **Gate:** a full call from a phone works, and phone-line latency is measured: 34 replies over
+  40 benchmark turns, p90 1.23 s (`docs/PHONE.md`).
+
+### The website (D-029)
+
+- `site/`: the project's page on Vercel, generated from the results and recorded calls, with a
+  replay of real calls and a film rendered from one of them.
 
 ### Phase 3: callsim
 
