@@ -161,6 +161,25 @@ async def test_a_card_the_caller_never_said_is_asked_for_not_used():
     assert bank.calls == []
 
 
+async def test_a_date_the_caller_never_said_is_asked_for_not_used():
+    # Phone demo failure: cut off after "It was thirty-four euro", the model supplied a date.
+    service, _, bank, _ = make_service(
+        [['ACTION dispute merchant="Corrib Taxis" amount=34 date=2026-09-29']], {}
+    )
+    text, _ = await spoken_text(service, "It was thirty-four euro.")
+    assert text == "Could you tell me the date it went out, please?"
+    assert bank.calls == []
+
+
+async def test_a_date_the_caller_did_say_reaches_the_bank():
+    service, _, bank, _ = make_service(
+        [['ACTION dispute merchant="Corrib Taxis" amount=34.60 date=2026-09-03']],
+        {"dispute_transaction": {"reference": "DSP20417", "status": "opened"}},
+    )
+    await spoken_text(service, "It was 34 euro and 60 cent on the 3rd of September.")
+    assert [call.arguments["date"] for call in bank.calls] == ["2026-09-03"]
+
+
 async def test_the_model_hears_exact_amounts_and_dates():
     service, _, _, completions = make_service([["Who was the payment to?"]], {})
     await spoken_text(service, "It was 34 euro 60, yesterday.")

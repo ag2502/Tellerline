@@ -61,8 +61,11 @@ _GREETING_ONLY = re.compile(
 HELLO_AGAIN = "Hello. How can I help you today?"
 # Values the bank acts on that only the caller can supply. The model must not invent them, copy
 # them from an example or work them out from another number (the last four digits of a customer
-# number are not a card), so each must appear in something the caller actually said.
-GROUNDED = ("card_last_four", "customer_number")
+# number are not a card), so each must appear in something the caller actually said. Dates count
+# too: the understanding step writes every date the caller says as "(YYYY-MM-DD)", so a date that
+# isn't there was never said ("It was thirty-four euro", cut off at a pause, once opened a
+# dispute with a date the caller was still about to give).
+GROUNDED = ("card_last_four", "customer_number", "date", "date_of_birth")
 
 
 class Classifier(Protocol):
