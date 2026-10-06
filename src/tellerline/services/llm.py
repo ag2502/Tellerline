@@ -7,6 +7,7 @@ server; it never uses tool calling.
 
 import asyncio
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import date
 from typing import Any, Protocol
@@ -107,6 +108,7 @@ class TellerlineLLMService(OpenAILLMService):
         identity_hold_s: float = IDENTITY_HOLD_S,
         end_grace_s: float = END_GRACE_S,
         end_timeout_s: float = END_TIMEOUT_S,
+        whole_turn: Callable[[], Awaitable[str | None]] | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -117,6 +119,9 @@ class TellerlineLLMService(OpenAILLMService):
         )
         self._brain = brain
         self._bank = bank
+        # The caller's turn transcribed in one pass, when it came in pieces (Parakeet's
+        # turn_transcript); None when the turn was a single segment.
+        self._whole_turn = whole_turn
         self._model = model
         self._today = today
         self._max_failed_verifications = max_failed_verifications
@@ -139,6 +144,12 @@ class TellerlineLLMService(OpenAILLMService):
             # second goodbye.
             logger.debug(f"Call ended; not answering {text!r}")
             return
+        if self._whole_turn is not None and (whole := await self._whole_turn()):
+            # The turn came in pieces (the caller paused); heard whole, words split across a
+            # pause aren't lost or doubled.
+            if whole != text:
+                logger.debug(f"Turn heard whole: [{whole}] (in pieces: [{text}])")
+            text = whole
         plan = self._brain.plan(text)
         logger.debug(f"Turn routed to '{plan.step}' ({plan.route_reason or 'single prompt'})")
         span = trace.get_current_span()

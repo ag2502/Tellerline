@@ -97,8 +97,14 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
     recorder = CallRecorder(timeline) if RECORDING else None
     bank = BankClient()
     brain = RouterBrain(default_classifier(), today=_today())
-    llm = TellerlineLLMService(brain=brain, bank=bank, model=LLM_MODEL, timeline=timeline)
     stt = ParakeetMLXSTTService(timeline=timeline)
+    llm = TellerlineLLMService(
+        brain=brain,
+        bank=bank,
+        model=LLM_MODEL,
+        timeline=timeline,
+        whole_turn=stt.turn_transcript,
+    )
     tts = KokoroMLXTTSService(voice=VOICE)
 
     context = LLMContext()

@@ -218,6 +218,19 @@ async def test_the_call_ends_only_after_a_goodbye():
     assert service.ending
 
 
+async def test_a_turn_heard_in_pieces_is_decided_on_the_whole_transcript():
+    # Transcribed segment by segment the goodbye was lost; transcribed whole, it's there.
+    async def whole_turn():
+        return "That's everything, thanks. Bye."
+
+    service, _, bank, _ = make_service(
+        [["ACTION end"]], {"end_call": {"status": "ending"}}, whole_turn=whole_turn
+    )
+    text, _ = await spoken_text(service, "That's everything, thanks.")
+    assert text == "Thanks for calling Tellerline Bank. Goodbye."
+    assert [call.tool for call in bank.calls] == ["end_call"]
+
+
 async def test_nothing_is_answered_after_the_goodbye():
     # Demo-call failure: "Thanks, bye" began before the goodbye turn was handled, and got a
     # second goodbye.

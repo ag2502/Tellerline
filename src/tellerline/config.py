@@ -23,6 +23,11 @@ STT_SAMPLE_RATE = 16_000
 # the VAD waits for plus under 0.1 s of transcription (live calls, MacBook Air M5), with margin.
 # Pipecat assumes 1.0 s for an STT it doesn't know and times turn-end fallbacks from it.
 STT_TTFS_P99_S = 0.35
+# Audio kept from before the VAD confirms the caller is speaking, so the transcript starts at
+# their first word. With the stricter VAD settings below, confirmation comes 0.8-0.9 s after
+# speech begins, which left Pipecat's 1 s with no room: on phone audio the first word or two of a
+# turn were lost ("I've lost my card" heard as "lost my card").
+STT_PRE_ROLL_S = 2.0
 
 # Kokoro on MLX (GPU), fed with espeak-ng phonemes; see tellerline.tts.kokoro_mlx and D-010.
 KOKORO_MLX_MODELS: dict[str, str] = {

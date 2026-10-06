@@ -1,5 +1,10 @@
 import numpy as np
-from pipecat.frames.frames import TranscriptionFrame, TTSAudioRawFrame, TTSSpeakFrame
+from pipecat.frames.frames import (
+    BotStartedSpeakingFrame,
+    TranscriptionFrame,
+    TTSAudioRawFrame,
+    TTSSpeakFrame,
+)
 from pipecat.tests.utils import run_test
 
 from tellerline.services.stt import ParakeetMLXSTTService
@@ -100,6 +105,45 @@ async def test_stt_resamples_other_rates_to_16k():
     await run_test(stt, frames_to_send=[])
     [frame async for frame in stt.run_stt(np.zeros(8_000, dtype=np.int16).tobytes())]
     assert abs(model.lengths[-1] - 16_000) <= 2
+
+
+async def test_a_turn_in_several_segments_is_transcribed_whole():
+    model = FakeTranscriber("four five one two seven eight nine zero")
+    stt = ParakeetMLXSTTService(loader=lambda _: model, sample_rate=16_000)
+    await run_test(stt, frames_to_send=[])
+    padding = 8_000  # the 0.5 s of silence Pipecat pads each segment with
+    one = np.zeros(16_000 + padding, dtype=np.int16).tobytes()
+    two = np.zeros(24_000 + padding, dtype=np.int16).tobytes()
+
+    [frame async for frame in stt.run_stt(one)]
+    assert await stt.turn_transcript() is None  # one segment: its own transcript stands
+    [frame async for frame in stt.run_stt(two)]
+    assert await stt.turn_transcript() == "four five one two seven eight nine zero"
+    # Both segments as said, without their padding, then the padding once at the end.
+    assert model.lengths[-1] == 16_000 + 24_000 + padding
+
+
+async def test_two_seconds_before_speech_is_confirmed_are_kept():
+    from pipecat.frames.frames import InputAudioRawFrame
+
+    model = FakeTranscriber("hello")
+    stt = ParakeetMLXSTTService(loader=lambda _: model, sample_rate=16_000)
+    await run_test(stt, frames_to_send=[])
+    second = InputAudioRawFrame(np.zeros(16_000, dtype=np.int16).tobytes(), 16_000, 1)
+    for _ in range(4):
+        await stt.process_audio_frame(second, None)
+    assert len(stt._audio_buffer) == 2 * 16_000 * 2  # two seconds of 16-bit samples
+
+
+async def test_the_turn_starts_afresh_when_the_agent_replies():
+    model = FakeTranscriber("hello")
+    stt = ParakeetMLXSTTService(loader=lambda _: model, sample_rate=16_000)
+    await run_test(stt, frames_to_send=[])
+    segment = np.zeros(24_000, dtype=np.int16).tobytes()
+    [frame async for frame in stt.run_stt(segment)]
+    [frame async for frame in stt.run_stt(segment)]
+    await run_test(stt, frames_to_send=[BotStartedSpeakingFrame()])
+    assert await stt.turn_transcript() is None
 
 
 def test_transcripts_lose_digit_group_commas():

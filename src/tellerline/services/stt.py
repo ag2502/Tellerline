@@ -1,7 +1,8 @@
 """Parakeet TDT 0.6B v3 on MLX as a Pipecat speech-to-text service.
 
 Pipecat buffers the caller's speech and hands over one segment when the VAD says they stopped
-talking; the whole segment is transcribed at once, which Parakeet does in well under 100 ms.
+talking; the whole segment is transcribed at once, which Parakeet does in well under 100 ms. A
+turn that came in several segments can be transcribed again in one pass (turn_transcript).
 """
 
 import re
@@ -13,14 +14,21 @@ from typing import Protocol
 import numpy as np
 import soxr
 from loguru import logger
-from pipecat.frames.frames import ErrorFrame, Frame, StartFrame, TranscriptionFrame
+from pipecat.frames.frames import (
+    BotStartedSpeakingFrame,
+    ErrorFrame,
+    Frame,
+    StartFrame,
+    TranscriptionFrame,
+)
+from pipecat.processors.frame_processor import FrameDirection
 from pipecat.services.settings import STTSettings
 from pipecat.services.stt_service import SegmentedSTTService
 from pipecat.transcriptions.language import Language
 from pipecat.utils.time import time_now_iso8601
 from pipecat.utils.tracing.service_decorators import traced_stt
 
-from tellerline.config import STT_MODEL, STT_SAMPLE_RATE, STT_TTFS_P99_S
+from tellerline.config import STT_MODEL, STT_PRE_ROLL_S, STT_SAMPLE_RATE, STT_TTFS_P99_S
 from tellerline.services.mlx_thread import Priority, run_mlx
 
 
@@ -85,6 +93,9 @@ class ParakeetMLXSTTService(SegmentedSTTService):
         self._loader = loader
         self._timeline = timeline
         self._model: Transcriber | None = None
+        # Each segment the caller has said since the agent last started a reply, at 16 kHz,
+        # for transcribing a turn of several segments in one pass (turn_transcript).
+        self._turn_segments: list[np.ndarray] = []
 
     @property
     def wants_wav_segments(self) -> bool:
@@ -98,6 +109,37 @@ class ParakeetMLXSTTService(SegmentedSTTService):
         if self._model is None:
             # Cached per process; the agent launcher loads and warms it before the first call.
             self._model = await run_mlx(self._loader, self._model_id)
+
+    async def setup(self, setup):
+        await super().setup(setup)
+        # Pipecat keeps one second of audio before speech is confirmed; keep STT_PRE_ROLL_S.
+        self._audio_buffer_size_1s = int(self.sample_rate * 2 * STT_PRE_ROLL_S)
+
+    async def process_frame(self, frame: Frame, direction: FrameDirection):
+        if isinstance(frame, BotStartedSpeakingFrame):
+            self._turn_segments.clear()  # the agent is answering: the caller's turn is over
+        await super().process_frame(frame, direction)
+
+    async def turn_transcript(self) -> str | None:
+        """The caller's turn transcribed in one pass, when it arrived in more than one segment.
+
+        Every pause the VAD hears ends a segment, and each is transcribed on its own as it ends.
+        A word the caller started just before the VAD declared the pause can land half in each
+        segment, and Parakeet then drops it or writes it twice: on phone audio "four five one
+        two seven. | seven eight nine zero", nine digits for an eight-digit number. Transcribed
+        whole, with the context on both sides, the same audio comes out right. The segments are
+        contiguous (the buffer starts afresh where the last one ended), so joined they are the
+        caller's speech as it was said.
+        """
+        if len(self._turn_segments) < 2 or self._model is None:
+            return None
+        started = time.perf_counter()
+        padding = np.zeros(int(STT_SAMPLE_RATE * self._trailing_silence_secs), dtype=np.float32)
+        audio = np.concatenate([*self._turn_segments, padding])
+        text = await run_mlx(self._transcribe, audio, priority=Priority.TRANSCRIBE)
+        if self._timeline is not None:
+            self._timeline.note_transcription((time.perf_counter() - started) * 1000)
+        return text or None
 
     def _transcribe(self, samples: np.ndarray) -> str:
         import mlx.core as mx
@@ -120,6 +162,9 @@ class ParakeetMLXSTTService(SegmentedSTTService):
         samples = np.frombuffer(audio, dtype=np.int16).astype(np.float32) / 32768.0
         if self.sample_rate != STT_SAMPLE_RATE:
             samples = soxr.resample(samples, self.sample_rate, STT_SAMPLE_RATE).astype(np.float32)
+        # The segment as said, without the silence padded on for transcription.
+        padded = int(STT_SAMPLE_RATE * self._trailing_silence_secs)
+        self._turn_segments.append(samples[: max(0, len(samples) - padded)])
         text = await run_mlx(self._transcribe, samples, priority=Priority.TRANSCRIBE)
         await self.stop_processing_metrics()
         if self._timeline is not None:
