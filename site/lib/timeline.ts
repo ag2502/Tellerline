@@ -100,8 +100,10 @@ export function buildTimeline(call: Call): Timeline {
       ? Math.min(turn.t, agentStart)
       : Math.max(callerEnd + 0.004, Math.min(turn.t, agentStart));
     const heardAt = Math.min(callerEnd + VAD_SILENCE_S + (turn.stt_ms ?? 0) / 1000, answered - 0.004);
+    // Routing follows what was heard (and the lines placed with it), even when it all fits in
+    // the same few milliseconds.
     const decideStart = Math.max(
-      heardAt,
+      heardAt + 0.002,
       answered - (turn.model.ms + (turn.bank?.ms ?? 0)) / 1000,
     );
     const decidedAt = Math.min(decideStart + turn.model.ms / 1000, answered - 0.002);
