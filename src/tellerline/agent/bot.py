@@ -25,6 +25,7 @@ from pipecat.turns.user_turn_strategies import UserTurnStrategies
 from pipecat.workers.runner import WorkerRunner
 
 from tellerline.agent import warm
+from tellerline.agent.floor import FloorGate
 from tellerline.agent.observability import TurnLatencyLog
 from tellerline.agent.recorder import CallRecorder, CallTimeline, TimelineObserver
 from tellerline.agent.turns import turn_start_strategies, turn_stop_strategies
@@ -66,27 +67,38 @@ transport_params = {
 }
 
 
-def user_params(llm: TellerlineLLMService, line: str = "webrtc") -> LLMUserAggregatorParams:
+def caller_vad(line: str = "webrtc") -> CallerVAD:
+    """Silero VAD for the caller's audio, gated on the caller's own speech level, which also says
+    when it can hear them (the floor rules).
+
+    With noise handling off (to measure its effect) it has Pipecat's defaults. A phone line takes a
+    lower confidence: Silero is less sure of telephone-band speech.
+    """
+    if not NOISE_HANDLING:
+        return CallerVAD(params=VADParams(stop_secs=VAD_STOP_SECS), caller_gate=False)
+    return CallerVAD(
+        params=VADParams(
+            confidence=PHONE_VAD_CONFIDENCE if line == "phone" else VAD_CONFIDENCE,
+            start_secs=VAD_START_SECS,
+            stop_secs=VAD_STOP_SECS,
+        )
+    )
+
+
+def user_params(llm: TellerlineLLMService, vad: CallerVAD) -> LLMUserAggregatorParams:
     """Turn-taking: when the caller has started and finished speaking.
 
-    With noise handling off (to measure its effect) these are Pipecat's defaults. A phone line
-    takes a lower VAD confidence: Silero is less sure of telephone-band speech.
+    With noise handling off (to measure its effect) these are Pipecat's defaults.
     """
     if not NOISE_HANDLING:
         return LLMUserAggregatorParams(
-            vad_analyzer=CallerVAD(params=VADParams(stop_secs=VAD_STOP_SECS), caller_gate=False),
-            user_turn_stop_timeout=USER_TURN_STOP_TIMEOUT_S,
+            vad_analyzer=vad, user_turn_stop_timeout=USER_TURN_STOP_TIMEOUT_S
         )
-    vad = VADParams(
-        confidence=PHONE_VAD_CONFIDENCE if line == "phone" else VAD_CONFIDENCE,
-        start_secs=VAD_START_SECS,
-        stop_secs=VAD_STOP_SECS,
-    )
     return LLMUserAggregatorParams(
-        # Gated on the caller's own speech level, in place of Pipecat's volume threshold.
-        vad_analyzer=CallerVAD(params=vad),
+        vad_analyzer=vad,
         user_turn_strategies=UserTurnStrategies(
-            start=turn_start_strategies(lambda: llm.ending), stop=turn_stop_strategies()
+            start=turn_start_strategies(lambda: llm.ending, vad.heard_since),
+            stop=turn_stop_strategies(),
         ),
         user_turn_stop_timeout=USER_TURN_STOP_TIMEOUT_S,
     )
@@ -110,18 +122,20 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments, line: 
     bank = BankClient()
     brain = RouterBrain(default_classifier(), today=_today())
     stt = ParakeetMLXSTTService(timeline=timeline)
+    vad = caller_vad(line)
     llm = TellerlineLLMService(
         brain=brain,
         bank=bank,
         model=LLM_MODEL,
         timeline=timeline,
         whole_turn=stt.turn_transcript,
+        hears_caller=vad.hears_caller if NOISE_HANDLING else None,
     )
     tts = KokoroMLXTTSService(voice=VOICE)
 
     context = LLMContext()
     user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
-        context, user_params=user_params(llm, line)
+        context, user_params=user_params(llm, vad)
     )
     processors = [
         transport.input(),
@@ -129,6 +143,12 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments, line: 
         user_aggregator,
         llm,
         tts,
+        # A reply doesn't start over a caller who has carried on (the floor rules).
+        *(
+            [FloorGate(vad.hears_caller, agent_speaking=vad.set_agent_speaking)]
+            if NOISE_HANDLING
+            else []
+        ),
         transport.output(),
         assistant_aggregator,
     ]

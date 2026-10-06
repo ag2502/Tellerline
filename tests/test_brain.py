@@ -56,6 +56,35 @@ def test_router_keeps_open_task_for_unconfident_answer():
     assert brain.plan("It ends 4217").step == "cards"
 
 
+def test_a_withdrawn_turn_leaves_only_what_was_heard():
+    brain = SinglePromptBrain(TODAY, verified=True)
+    plan = brain.plan("Balance please")
+    brain.record("Balance please", plan, None, "Which account?")
+    heard = list(brain.history)
+    plan = brain.plan("Pause my card ending 7780")
+    brain.record("Pause my card ending 7780", plan, None, "Which card is it?")
+    brain.withdraw()
+    assert brain.history == heard
+    brain.withdraw()
+    brain.withdraw()  # the greeting was heard: nothing before this brain's turns goes
+    assert [m["content"] for m in brain.history] == ["Hello?", GREETING]
+
+
+def test_a_withdrawn_question_leaves_no_task_waiting_but_verification_stays():
+    brain = RouterBrain(FakeClassifier("identity"), TODAY)
+    plan = brain.plan("My number is 45127890, born 3 March 1991.")
+    brain.record("...", plan, Action("verify_identity", {}), "Thanks, Aoife, you're verified.")
+    brain.withdraw()
+    assert brain.verified and brain.session.verified  # the bank verified them
+
+    brain.classifier = FakeClassifier("cards")
+    plan = brain.plan("Pause my card for a bit")
+    brain.record("Pause my card for a bit", plan, None, "Which card is it?")
+    assert brain.session.open_skill == "cards"
+    brain.withdraw()
+    assert brain.session.open_skill is None
+
+
 def test_router_blocks_banking_skills_until_verified():
     brain = RouterBrain(FakeClassifier("accounts"), TODAY, verified=False)
     assert brain.plan("What's my balance?").step == "identity"

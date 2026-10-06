@@ -1,6 +1,5 @@
 import numpy as np
 from pipecat.frames.frames import (
-    BotStartedSpeakingFrame,
     TranscriptionFrame,
     TTSAudioRawFrame,
     TTSSpeakFrame,
@@ -30,6 +29,19 @@ class FakeTranscriber:
     def generate(self, audio):
         self.lengths.append(audio.shape[0])
         return type("Result", (), {"text": self.text})()
+
+
+class Saying(FakeTranscriber):
+    """Transcribes each segment as the next of `texts`; the last one for everything after."""
+
+    def __init__(self, *texts: str):
+        super().__init__(texts[-1])
+        self.texts = list(texts)
+
+    def generate(self, audio):
+        self.lengths.append(audio.shape[0])
+        text = self.texts.pop(0) if len(self.texts) > 1 else self.texts[0]
+        return type("Result", (), {"text": text})()
 
 
 async def test_tts_speaks_in_short_chunks_with_the_chosen_voice():
@@ -108,7 +120,9 @@ async def test_stt_resamples_other_rates_to_16k():
 
 
 async def test_a_turn_in_several_segments_is_transcribed_whole():
-    model = FakeTranscriber("four five one two seven eight nine zero")
+    model = Saying(
+        "four five one two", "seven. eight nine zero", "four five one two seven eight nine zero"
+    )
     stt = ParakeetMLXSTTService(loader=lambda _: model, sample_rate=16_000)
     await run_test(stt, frames_to_send=[])
     padding = 8_000  # the 0.5 s of silence Pipecat pads each segment with
@@ -116,11 +130,54 @@ async def test_a_turn_in_several_segments_is_transcribed_whole():
     two = np.zeros(24_000 + padding, dtype=np.int16).tobytes()
 
     [frame async for frame in stt.run_stt(one)]
-    assert await stt.turn_transcript() is None  # one segment: its own transcript stands
+    # One segment: its own transcript stands.
+    assert await stt.turn_transcript("four five one two") is None
     [frame async for frame in stt.run_stt(two)]
-    assert await stt.turn_transcript() == "four five one two seven eight nine zero"
+    turn = "four five one two seven. eight nine zero"
+    assert await stt.turn_transcript(turn) == "four five one two seven eight nine zero"
     # Both segments as said, without their padding, then the padding once at the end.
     assert model.lengths[-1] == 16_000 + 24_000 + padding
+
+
+async def test_the_turn_is_the_segments_behind_its_words():
+    # An earlier turn's segment stays out, even when the agent's reply in between was dropped
+    # and the caller's turn spans two segments around it.
+    model = Saying(
+        "Hello.", "Pause my card ending 7780 for a bit.", "It's somewhere in the house.", "whole"
+    )
+    stt = ParakeetMLXSTTService(loader=lambda _: model, sample_rate=16_000)
+    await run_test(stt, frames_to_send=[])
+    for seconds in (1, 2, 3):
+        [
+            frame
+            async for frame in stt.run_stt(np.zeros(16_000 * seconds + 8_000, np.int16).tobytes())
+        ]
+    turn = "Pause my card ending 7780 for a bit. It's somewhere in the house."
+    assert await stt.turn_transcript(turn) == "whole"
+    assert model.lengths[-1] == 16_000 * (2 + 3) + 8_000
+
+
+async def test_words_that_arent_the_latest_segments_are_left_as_they_are():
+    model = Saying("Freeze my card.", "It ends 4217.")
+    stt = ParakeetMLXSTTService(loader=lambda _: model, sample_rate=16_000)
+    await run_test(stt, frames_to_send=[])
+    for _ in range(2):
+        [frame async for frame in stt.run_stt(np.zeros(24_000, np.int16).tobytes())]
+    assert await stt.turn_transcript("Unfreeze my card. It ends 4217.") is None
+    assert await stt.turn_transcript("It ends 4217.") is None  # one segment
+
+
+async def test_a_noise_after_the_turn_is_left_out():
+    model = Saying("My card", "ends 4217.", "", "My card ends 4217.")
+    stt = ParakeetMLXSTTService(loader=lambda _: model, sample_rate=16_000)
+    await run_test(stt, frames_to_send=[])
+    for seconds in (1, 2, 3):
+        [
+            frame
+            async for frame in stt.run_stt(np.zeros(16_000 * seconds + 8_000, np.int16).tobytes())
+        ]
+    assert await stt.turn_transcript("My card ends 4217.") == "My card ends 4217."
+    assert model.lengths[-1] == 16_000 * (1 + 2) + 8_000
 
 
 async def test_two_seconds_before_speech_is_confirmed_are_kept():
@@ -133,17 +190,6 @@ async def test_two_seconds_before_speech_is_confirmed_are_kept():
     for _ in range(4):
         await stt.process_audio_frame(second, None)
     assert len(stt._audio_buffer) == 2 * 16_000 * 2  # two seconds of 16-bit samples
-
-
-async def test_the_turn_starts_afresh_when_the_agent_replies():
-    model = FakeTranscriber("hello")
-    stt = ParakeetMLXSTTService(loader=lambda _: model, sample_rate=16_000)
-    await run_test(stt, frames_to_send=[])
-    segment = np.zeros(24_000, dtype=np.int16).tobytes()
-    [frame async for frame in stt.run_stt(segment)]
-    [frame async for frame in stt.run_stt(segment)]
-    await run_test(stt, frames_to_send=[BotStartedSpeakingFrame()])
-    assert await stt.turn_transcript() is None
 
 
 def test_transcripts_lose_digit_group_commas():

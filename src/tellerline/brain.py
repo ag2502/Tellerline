@@ -146,6 +146,7 @@ class SinglePromptBrain:
         self.today = today
         self.verified = verified
         self.history = list(history if history is not None else opening_history())
+        self._recorded = 0  # turns this brain has added to the history
 
     def plan(self, heard: str) -> Plan:
         text = understand(heard, self.today)
@@ -195,6 +196,14 @@ class SinglePromptBrain:
             self.verified = True
         self._remember(plan.text or text, spoken)
 
+    def withdraw(self) -> None:
+        """Forget the last turn's words: the caller never heard its reply, and the turn they took
+        back holds what they said in it. What it did stays done (a verification, an action at
+        the bank)."""
+        if self._recorded:
+            del self.history[-2:]
+            self._recorded -= 1
+
     def _said(self) -> str:
         """Everything the caller has said on this call before the current turn."""
         return " ".join(m["content"] for m in self.history if m["role"] == "user")
@@ -227,6 +236,7 @@ class SinglePromptBrain:
             {"role": "user", "content": text},
             {"role": "assistant", "content": spoken},
         ]
+        self._recorded += 1
 
 
 def _is_action(answer: str) -> bool:
@@ -246,6 +256,7 @@ class RouterBrain(SinglePromptBrain):
         super().__init__(today, verified, history)
         self.classifier = classifier
         self.session = Session(verified=verified)
+        self._open_before: str | None = None  # the open task before the last turn
 
     def plan(self, heard: str) -> Plan:
         text = understand(heard, self.today)
@@ -272,6 +283,12 @@ class RouterBrain(SinglePromptBrain):
         )
 
     def record(self, text: str, plan: Plan, action: Action | None, spoken: str) -> None:
+        self._open_before = self.session.open_skill
         self.session.record(plan.step, action, spoken)
         self.verified = self.session.verified
         self._remember(plan.text or text, spoken)
+
+    def withdraw(self) -> None:
+        # A question the caller never heard leaves no task waiting on their answer.
+        super().withdraw()
+        self.session.open_skill = self._open_before

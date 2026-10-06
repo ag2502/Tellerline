@@ -88,3 +88,17 @@ USER_TURN_STOP_TIMEOUT_S = 2.0
 # on cancels it before anything is said over them. It has to cover their pause plus the 0.3 s
 # the VAD needs to confirm speech has resumed (VAD_START_SECS).
 IDENTITY_HOLD_S = 1.0
+# Who has the floor (tellerline.agent.floor, D-033). A reply's first word waits while the VAD can
+# hear the caller, at most this long: confirming speech takes VAD_START_SECS of it, longer when
+# Silero's confidence dips at the start of a word, and a caller who carried on after a pause takes
+# the turn back before a word of the reply is said.
+FLOOR_HOLD_MAX_S = 0.9
+# How long the caller must have gone quiet before a held reply goes out: within a word, Silero's
+# confidence can dip for a frame or two.
+FLOOR_QUIET_S = 0.15
+# The VAD notices a caller who carries on after a pause 0.06 s later (p90 0.10 s), and takes in
+# audio in bursts up to 0.09 s apart. Voice it first heard no later than this after the agent's
+# first word began before that word could reach the caller: they were talking first, and keep the
+# turn without having to say INTERRUPT_MIN_WORDS words. The agent's own voice coming back down the
+# line is far below the caller's level, which the caller gate rejects.
+FLOOR_FIRST_HEARD_S = 0.1

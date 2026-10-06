@@ -4,6 +4,7 @@ import pytest
 from pipecat.frames.frames import (
     BotStoppedSpeakingFrame,
     EndWorkerFrame,
+    LLMContextAssistantTurnFrame,
     LLMContextFrame,
     LLMTextFrame,
 )
@@ -239,7 +240,8 @@ async def test_the_call_ends_only_after_a_goodbye():
 
 async def test_a_turn_heard_in_pieces_is_decided_on_the_whole_transcript():
     # Transcribed segment by segment the goodbye was lost; transcribed whole, it's there.
-    async def whole_turn():
+    async def whole_turn(text):
+        assert text == "That's everything, thanks."
         return "That's everything, thanks. Bye."
 
     service, _, bank, _ = make_service(
@@ -318,3 +320,104 @@ async def test_a_held_reply_is_still_spoken():
     )
     text, _ = await spoken_text(service, "My customer number is 45127890.")
     assert text == "Could you tell me your date of birth, please?"
+
+
+def caller_said(*texts):
+    """A context in which the caller said `texts` and heard no reply in between."""
+    context = LLMContext()
+    for text in texts:
+        context.add_message({"role": "user", "content": text})
+    return context
+
+
+PAUSE = "Pause my card ending 7780 for a bit."
+CARRIED_ON = "It's somewhere in the house."
+FROZEN = {"freeze_card": {"status": "frozen", "reason": "lost"}}
+
+
+async def test_a_reply_the_caller_never_heard_is_withdrawn():
+    # They carried on after a pause and took the turn back before a sentence of the reply was
+    # said: the agent answers both parts as one turn, as if it had waited.
+    service, brain, _, completions = make_service([["Which card is it?"], ["Grand."]], {})
+    frames = [LLMContextFrame(caller_said(PAUSE)), LLMContextFrame(caller_said(PAUSE, CARRIED_ON))]
+    await run_test(service, frames_to_send=frames)
+    second = completions.requests[1]["messages"]
+    assert second[-1] == {"role": "user", "content": f"{PAUSE} {CARRIED_ON}"}
+    assert not any(m["content"] == "Which card is it?" for m in second)
+    assert [m["content"] for m in brain.history[-2:]] == [f"{PAUSE} {CARRIED_ON}", "Grand."]
+
+
+async def test_a_reply_the_caller_heard_is_kept():
+    service, brain, _, completions = make_service([["Which card is it?"], ["Grand."]], {})
+    context = caller_said(PAUSE)
+    frames = [
+        LLMContextFrame(context),
+        LLMContextAssistantTurnFrame(text="Which card is it?", timestamp="now"),
+        LLMContextFrame(caller_said(CARRIED_ON)),
+    ]
+    await run_test(service, frames_to_send=frames)
+    second = completions.requests[1]["messages"]
+    assert {"role": "assistant", "content": "Which card is it?"} in second
+    assert second[-1] == {"role": "user", "content": CARRIED_ON}
+
+
+async def test_what_an_unheard_reply_did_is_not_done_twice():
+    # The card was frozen for the first part; the whole sentence asks for the same, and the bank
+    # isn't asked again.
+    service, _, bank, _ = make_service(
+        [["ACTION freeze card=7780 reason=lost"], ["ACTION freeze card=7780 reason=lost"]], FROZEN
+    )
+    frames = [LLMContextFrame(caller_said(PAUSE)), LLMContextFrame(caller_said(PAUSE, CARRIED_ON))]
+    down, _ = await run_test(service, frames_to_send=frames)
+    assert len(bank.calls) == 1
+    spoken = "".join(f.text for f in down if isinstance(f, LLMTextFrame))
+    assert spoken.count("It's the card ending seven seven eight zero") == 2
+
+
+async def test_a_different_action_for_the_whole_sentence_still_runs():
+    service, _, bank, _ = make_service(
+        [["ACTION freeze card=7780 reason=lost"], ["ACTION freeze card=7780 reason=stolen"]],
+        FROZEN,
+    )
+    frames = [
+        LLMContextFrame(caller_said(PAUSE)),
+        LLMContextFrame(caller_said(PAUSE, "It was stolen.")),
+    ]
+    await run_test(service, frames_to_send=frames)
+    assert [call.arguments["reason"] for call in bank.calls] == ["lost", "stolen"]
+
+
+async def test_the_bank_waits_while_the_caller_can_be_heard():
+    import time
+
+    heard_until = time.monotonic() + 0.15
+    service, _, bank, _ = make_service(
+        [["ACTION freeze card=7780 reason=lost"]],
+        FROZEN,
+        hears_caller=lambda: time.monotonic() < heard_until,
+    )
+    asked_at = []
+    run = bank.run
+
+    async def timed_run(action):
+        asked_at.append(time.monotonic())
+        return await run(action)
+
+    bank.run = timed_run
+    await spoken_text(service, PAUSE)
+    assert asked_at and asked_at[0] >= heard_until
+
+
+async def test_a_withdrawn_turn_is_marked_on_the_timeline_and_the_call_page():
+    from pipecat.processors.frameworks.rtvi.frames import RTVIServerMessageFrame
+
+    from tellerline.agent.recorder import CallTimeline
+
+    timeline = CallTimeline("call-test")
+    service, _, _, _ = make_service([["Which card is it?"], ["Grand."]], {}, timeline=timeline)
+    frames = [LLMContextFrame(caller_said(PAUSE)), LLMContextFrame(caller_said(PAUSE, CARRIED_ON))]
+    down, _ = await run_test(service, frames_to_send=frames)
+    assert timeline.turns[0]["withdrawn"] is True
+    assert "withdrawn" not in timeline.turns[1]
+    messages = [f.data for f in down if isinstance(f, RTVIServerMessageFrame)]
+    assert {"type": "tellerline-withdrawn", "turn": 1} in messages

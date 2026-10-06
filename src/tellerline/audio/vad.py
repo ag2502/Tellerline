@@ -17,8 +17,12 @@ sooner and notices them carry on after a pause in 0.06 s instead of 0.16 s, cutt
 more often than before; with a conversation 20 dB below the caller it starts on the room alone in
 22 lines instead of 49 and lets go of the caller's turn 0.35 s after their last word (p90) instead
 of 0.70 s. With the room 15 dB below, level alone can't tell its voices from the caller's.
+
+It also says whether it can hear the caller right now, and since when, for the floor rules
+(``tellerline.agent.floor``).
 """
 
+import time
 from collections import deque
 
 import numpy as np
@@ -61,6 +65,8 @@ class CallerVAD(SileroVADAnalyzer):
         self._floor_dbfs = floor_dbfs
         self._energies: deque[float] = deque(maxlen=max(1, round(window_s / FRAME_S)))
         self._caller_levels: deque[float] = deque(maxlen=round(memory_s / FRAME_S))
+        self._state = VADState.QUIET
+        self._heard_since: float | None = None
         # The agent's own voice coming back must not teach the VAD the caller's level.
         self._agent_speaking = False
 
@@ -84,3 +90,20 @@ class CallerVAD(SileroVADAnalyzer):
         if len(self._caller_levels) < MIN_LEVEL_FRAMES:
             return self._floor_dbfs
         return max(self._floor_dbfs, float(np.median(self._caller_levels)) - self._margin_db)
+
+    async def analyze_audio(self, buffer: bytes) -> VADState:
+        state = await super().analyze_audio(buffer)
+        if state == VADState.QUIET:
+            self._heard_since = None
+        elif self._heard_since is None:
+            self._heard_since = time.time()
+        self._state = state
+        return state
+
+    def hears_caller(self) -> bool:
+        """The caller's voice right now, confirmed as speech or not yet."""
+        return self._state in (VADState.STARTING, VADState.SPEAKING)
+
+    def heard_since(self) -> float | None:
+        """When (``time.time()``) the VAD first heard the voice it hears now; None in silence."""
+        return self._heard_since

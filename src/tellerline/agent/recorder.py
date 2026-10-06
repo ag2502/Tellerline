@@ -80,6 +80,13 @@ class CallTimeline:
         self.turns.append(record)
         return record
 
+    def withdraw_turn(self, turn: int) -> None:
+        """Mark a turn whose reply the caller never heard: they carried on, and the next turn
+        answers everything they said."""
+        for record in self.turns:
+            if record["turn"] == turn:
+                record["withdrawn"] = True
+
     def add_latency(self, seconds: float, breakdown: dict | None) -> dict[str, Any] | None:
         """Attach a measured reply latency to the latest turn that doesn't have one yet."""
         for record in reversed(self.turns):

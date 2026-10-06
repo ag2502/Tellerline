@@ -14,7 +14,12 @@ from typing import Any, Protocol
 
 from loguru import logger
 from opentelemetry import trace
-from pipecat.frames.frames import BotStoppedSpeakingFrame, EndWorkerFrame, Frame
+from pipecat.frames.frames import (
+    BotStoppedSpeakingFrame,
+    EndWorkerFrame,
+    Frame,
+    LLMContextAssistantTurnFrame,
+)
 from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.frame_processor import FrameDirection
 from pipecat.processors.frameworks.rtvi.frames import RTVIServerMessageFrame
@@ -24,7 +29,7 @@ from pipecat.utils.tracing.service_decorators import traced_llm
 from tellerline.actions import Action, ReplySplitter
 from tellerline.banking.responses import respond
 from tellerline.brain import DIDNT_CATCH, VERIFY_FIRST, Outcome, Plan
-from tellerline.config import IDENTITY_HOLD_S
+from tellerline.config import FLOOR_HOLD_MAX_S, IDENTITY_HOLD_S
 from tellerline.llm_server import MAX_TOKENS, base_url
 
 __all__ = ["DIDNT_CATCH", "VERIFY_FIRST", "TellerlineLLMService"]
@@ -45,6 +50,7 @@ class Brain(Protocol):
     def plan(self, text: str) -> Plan: ...
     def interpret(self, plan: Plan, answer: str) -> Outcome: ...
     def record(self, text: str, plan: Plan, action: Action | None, spoken: str) -> None: ...
+    def withdraw(self) -> None: ...
 
 
 class Bank(Protocol):
@@ -53,6 +59,7 @@ class Bank(Protocol):
 
 class Timeline(Protocol):
     def add_turn(self, record: dict[str, Any]) -> dict[str, Any]: ...
+    def withdraw_turn(self, turn: int) -> None: ...
 
 
 @dataclass
@@ -63,6 +70,14 @@ class TurnResult:
     action: Action | None = None
     instead: str | None = None  # why the line wasn't run as written
     bank: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class Unheard:
+    """A turn whose reply the caller hasn't heard a sentence of yet."""
+
+    result: TurnResult
+    turn: int | None = None  # its number on the call's timeline
 
 
 def _ms(seconds: float) -> float:
@@ -108,7 +123,8 @@ class TellerlineLLMService(OpenAILLMService):
         identity_hold_s: float = IDENTITY_HOLD_S,
         end_grace_s: float = END_GRACE_S,
         end_timeout_s: float = END_TIMEOUT_S,
-        whole_turn: Callable[[], Awaitable[str | None]] | None = None,
+        whole_turn: Callable[[str], Awaitable[str | None]] | None = None,
+        hears_caller: Callable[[], bool] | None = None,
         **kwargs,
     ):
         super().__init__(
@@ -122,6 +138,13 @@ class TellerlineLLMService(OpenAILLMService):
         # The caller's turn transcribed in one pass, when it came in pieces (Parakeet's
         # turn_transcript); None when the turn was a single segment.
         self._whole_turn = whole_turn
+        # Whether the VAD can hear the caller right now (the floor rules); None to never wait.
+        self._hears_caller = hears_caller
+        # The last turn, until the caller has heard a sentence of its reply.
+        self._unheard: Unheard | None = None
+        # What the last turn did, when its reply was withdrawn unheard: the same action asked for
+        # again isn't run twice.
+        self._done: TurnResult | None = None
         self._model = model
         self._today = today
         self._max_failed_verifications = max_failed_verifications
@@ -144,7 +167,8 @@ class TellerlineLLMService(OpenAILLMService):
             # second goodbye.
             logger.debug(f"Call ended; not answering {text!r}")
             return
-        if self._whole_turn is not None and (whole := await self._whole_turn()):
+        await self._withdraw_unheard()
+        if self._whole_turn is not None and (whole := await self._whole_turn(text)):
             # The turn came in pieces (the caller paused); heard whole, words split across a
             # pause aren't lost or doubled.
             if whole != text:
@@ -205,10 +229,12 @@ class TellerlineLLMService(OpenAILLMService):
             await say(result.spoken)
         action, spoken = result.action, result.spoken
         self._brain.record(text, plan, action, spoken)
+        self._done = None
         span.set_attribute("tellerline.model_output", splitter.text.strip())
         span.set_attribute("tellerline.action", action.tool if action else "")
         span.set_attribute("tellerline.spoken", spoken)
-        await self._report(plan, text, splitter.text.strip(), first_token_s, model_s, result)
+        turn = await self._report(plan, text, splitter.text.strip(), first_token_s, model_s, result)
+        self._unheard = Unheard(result, turn)
 
         if action and action.tool in ENDS_CALL:
             self._ending = True
@@ -221,6 +247,9 @@ class TellerlineLLMService(OpenAILLMService):
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         await super().process_frame(frame, direction)
+        if isinstance(frame, LLMContextAssistantTurnFrame) and frame.text.strip():
+            # A sentence of the reply was said (the assistant aggregator keeps only what was).
+            self._unheard = None
         if isinstance(frame, BotStoppedSpeakingFrame) and self._ending and not self._hung_up:
             # The goodbye (or transfer message) has been spoken; let it drain, then hang up.
             if self._end_timer is not None:
@@ -235,6 +264,41 @@ class TellerlineLLMService(OpenAILLMService):
             self._hung_up = True
             await self.push_frame(EndWorkerFrame(), FrameDirection.UPSTREAM)
 
+    async def _withdraw_unheard(self) -> None:
+        """Forget the last turn if the caller never heard a sentence of its reply.
+
+        They carried on after a pause and took the turn back (the floor rules), so this turn
+        holds what they said before as well (``last_user_text``) and is answered afresh, as if
+        the agent had waited. What the withdrawn turn did stays done: the bank isn't asked to do
+        it twice (``_done``).
+        """
+        unheard, self._unheard = self._unheard, None
+        if unheard is None:
+            return
+        self._brain.withdraw()
+        self._done = unheard.result if unheard.result.action else None
+        logger.debug(
+            f"Withdrew turn {unheard.turn}: the caller carried on before hearing its reply"
+        )
+        if self._timeline is not None and unheard.turn is not None:
+            self._timeline.withdraw_turn(unheard.turn)
+        if unheard.turn is not None:
+            message = {"type": "tellerline-withdrawn", "turn": unheard.turn}
+            await self.push_frame(RTVIServerMessageFrame(data=message))
+
+    async def _floor(self) -> None:
+        """Wait while the caller can be heard, at most FLOOR_HOLD_MAX_S.
+
+        A caller who carried on after a pause may change what should be done ("Freeze my card,
+        ... actually, no"). If the VAD confirms they're talking, their turn starts and cancels
+        this one before the bank is asked.
+        """
+        if self._hears_caller is None:
+            return
+        started = time.monotonic()
+        while self._hears_caller() and time.monotonic() - started < FLOOR_HOLD_MAX_S:
+            await asyncio.sleep(0.01)
+
     async def _report(
         self,
         plan: Plan,
@@ -243,8 +307,9 @@ class TellerlineLLMService(OpenAILLMService):
         first_token_s: float | None,
         model_s: float,
         result: TurnResult,
-    ) -> None:
-        """Add the turn to the call's timeline and send it to the call page's glass-box view."""
+    ) -> int | None:
+        """Add the turn to the call's timeline and send it to the call page's glass-box view;
+        the turn's number on the timeline."""
         record = {
             "heard": plan.heard or heard,
             "understood": plan.text or heard,
@@ -272,6 +337,7 @@ class TellerlineLLMService(OpenAILLMService):
         if self._timeline is not None:
             record = self._timeline.add_turn(record)
         await self.push_frame(RTVIServerMessageFrame(data={"type": "tellerline-turn", **record}))
+        return record.get("turn")
 
     async def _act(self, plan: Plan, line: str) -> TurnResult:
         """Validate and run an ACTION line: what to say, the action that happened, and how."""
@@ -280,6 +346,10 @@ class TellerlineLLMService(OpenAILLMService):
             logger.info(f"Not running {line!r}: {outcome.reason}")
             return TurnResult(outcome.say or DIDNT_CATCH, instead=outcome.reason)
         action = outcome.action
+        if self._done is not None and self._done.action == action:
+            # Done already, for a reply the caller never heard.
+            return self._done
+        await self._floor()
         started = time.perf_counter()
         try:
             result = await self._bank.run(action)

@@ -453,3 +453,32 @@ voices from the caller's.
 lines missed and slower confirmation); margins of 9 and 6 dB (fewer false starts, more cut-offs);
 for the room at -15 dB, recognising the caller's voice (a speaker embedding taken from their first
 turns) rather than its level, left for the next phase.
+
+## D-033 The caller keeps the floor (2026-10-06)
+
+**Decision:** The agent doesn't start a reply over a caller who has carried on after a pause. A
+reply's first word waits while the VAD can hear the caller, at most 0.9 s (`FloorGate`). A caller
+the VAD first heard no later than 0.1 s after the reply began takes the turn back on voice alone,
+without the two words an interruption otherwise needs. A reply the caller never heard a sentence
+of is withdrawn: the agent forgets it and answers everything they said since it was last heard,
+as one turn, transcribed in one pass and judged whole by Smart Turn (`ContinuingSmartTurn`). What
+the withdrawn reply did stays done, and the same action asked for again isn't run twice; no action
+runs while the VAD can hear the caller.
+**Why:** Campaign 3's gate had 42 overlaps to campaign 2's 26, with the agent faster: lines with a
+pause mid-sentence ("Pause my card ending 7780 for a bit, | it's somewhere in the house."). Over
+47 such pauses (0.33-0.76 s) in the gate's lines, the reply was ready 0.9-1.1 s after the pause
+began, often after the caller had carried on but before the VAD had confirmed it (0.41-1.21 s
+after they did). The slower agent of campaign 2 had lost that race more often. Each overlap was
+an answer to half a sentence: the date of birth after a customer number taken as a new turn, and
+in both campaigns a dispute opened for 99 euro from "I was charged 49. | 99 by StreamFlix".
+**Result:** On 12 calls made of the gate's paused lines (64 turns): 30 overlaps with these rules
+on Pipecat's VAD, whose 0.16-0.38 s to notice the caller let most replies through the gate; 13
+with the caller VAD (D-032), which notices them in 0.06 s, every one stopped within about 0.4 s
+and answered as the whole sentence (the StreamFlix dispute now for 49.99 euro). Smart Turn still
+judges a few whole sentences unfinished, Seán's identity line in one of the two voices among them
+(0.30, and 0.08 through the noise filter), and those wait out the 2 s fallback; across campaign 3
+that fallback ended 6 of 660 turns.
+**Considered:** A longer VAD stop time or a short hold before every reply (latency on every turn
+to save a few); interrupting on voice alone throughout a reply (the agent's own voice and the room
+would cut it off); undoing a withdrawn turn's action (the bank's state is real; asking again is
+answered from what was done).

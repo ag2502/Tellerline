@@ -60,6 +60,7 @@
   .trace b { color: var(--p1); font-weight: 400; }
   .trace .act { color: var(--bloom); text-shadow: var(--glow); }
   .trace .gap { color: var(--bloom); }
+  .trace.withdrawn { opacity: .55; }
   .glass-off .trace { display: none; }
   details { color: var(--dim); }
   summary { cursor: pointer; }
@@ -181,6 +182,15 @@ function showLatency(message) {
   box.append(traceRow("replied after", `${message.reply_s.toFixed(2)} s${stages ? `  (${stages} ms)` : ""}`, "gap"));
 }
 
+// The caller carried on before hearing a sentence of a reply: it was dropped, and the next turn
+// answers everything they said.
+function showWithdrawn(message) {
+  const box = traces.get(message.turn);
+  if (!box) return;
+  box.classList.add("withdrawn");
+  box.append(traceRow("withdrawn", "you carried on before hearing it; the next turn answers it all"));
+}
+
 function onMessage(raw) {
   let msg;
   try { msg = JSON.parse(raw); } catch { return; }
@@ -189,6 +199,7 @@ function onMessage(raw) {
   if (msg.type === "server-message") {
     if (data.type === "tellerline-turn") showTurn(data);
     if (data.type === "tellerline-latency") showLatency(data);
+    if (data.type === "tellerline-withdrawn") showWithdrawn(data);
     return;
   }
   switch (msg.type) {

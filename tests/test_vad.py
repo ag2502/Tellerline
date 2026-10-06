@@ -1,3 +1,5 @@
+import time
+
 import numpy as np
 from pipecat.audio.vad.vad_analyzer import VADParams, VADState
 
@@ -34,6 +36,26 @@ def patch_silero(monkeypatch):
     monkeypatch.setattr(
         SileroVADAnalyzer, "voice_confidence", lambda self, buffer: 1.0 if self.voice else 0.0
     )
+
+
+async def test_the_vad_hears_the_caller_before_it_confirms_speech(monkeypatch):
+    patch_silero(monkeypatch)
+    vad = make_vad()
+    await feed(vad, tone(-30), 0.2)
+    assert not vad.hears_caller() and vad.heard_since() is None
+
+    vad.voice = True
+    before = time.time()
+    assert await feed(vad, tone(-30), 0.06) == VADState.STARTING  # not yet confirmed...
+    assert vad.hears_caller()  # ...but heard
+    first_heard = vad.heard_since()
+    assert before <= first_heard <= time.time()
+    assert await feed(vad, tone(-30), 0.4) == VADState.SPEAKING
+    assert vad.heard_since() == first_heard
+
+    vad.voice = False
+    assert await feed(vad, tone(-30), 0.4) == VADState.QUIET
+    assert not vad.hears_caller() and vad.heard_since() is None
 
 
 async def test_nothing_quieter_than_the_floor_is_the_caller(monkeypatch):
