@@ -13,8 +13,10 @@ memory. No cloud APIs, no running costs.
 
 ## How a turn works
 
-1. **Hear:** Silero VAD and Smart Turn v3.2 decide the caller has finished; Parakeet
-   transcribes.
+1. **Hear:** Silero VAD, gated on the caller's own speech level rather than the room's, and
+   Smart Turn v3.2 decide the caller has finished; Parakeet transcribes. A reply never starts
+   over a caller who carries on after a pause: it waits, and the agent answers the whole
+   sentence ([D-032, D-033](docs/DECISIONS.md)).
 2. **Route:** a 2 ms CPU intent classifier and the call's state choose a focused prompt. A task
    that just asked the caller a question keeps the conversation until the caller clearly
    changes topic, and nothing but identity checks is reachable before verification.
@@ -81,7 +83,8 @@ about 160 ms. E4B misses the target in every configuration.
 | Intent classifier | [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) on ONNX Runtime (CPU) | MIT |
 | Language model | [Gemma 4](https://huggingface.co/google/gemma-4-E2B-it) E2B, 4-bit, on [mlx-lm](https://github.com/ml-explore/mlx-lm) server | Apache-2.0 |
 | Text to speech | [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) on MLX, espeak-ng phonemes (British voices) | Apache-2.0 |
-| Telephony (Phase 2) | Asterisk 23 + [pipecat-asterisk](https://github.com/NikolayShakin/pipecat-asterisk) | GPL-2.0, BSD-2-Clause |
+| Telephony | [Asterisk](https://www.asterisk.org/) 23 in a container, its WebSocket channel to the agent ([D-030](docs/DECISIONS.md)) | GPL-2.0 (run as a separate program) |
+| Website | [Next.js](https://nextjs.org/) 16, built for Vercel, generated from the results and recorded calls | MIT |
 | Tracing | OpenTelemetry | Apache-2.0 |
 
 Why each choice was made, with the measurements behind it: [docs/DECISIONS.md](docs/DECISIONS.md).
@@ -115,6 +118,32 @@ mock bank and the Gemma 4 server itself. Pipecat's own playground is still at `/
 
 - Step-by-step guide, options and troubleshooting: [docs/RUNNING.md](docs/RUNNING.md)
 - Test customers and things to try: [docs/DEMO.md](docs/DEMO.md)
+
+### Ring it from a phone
+
+Asterisk takes a SIP call and hands it to the same agent over its WebSocket channel. With a
+container runtime (Colima or Docker Desktop):
+
+```bash
+colima start --vm-type vz --port-forwarder grpc
+docker compose -f telephony/asterisk/compose.yaml up -d --build
+```
+
+Then dial **2000** from a softphone on the Mac (user `caller`, password `tellerline`, server
+`127.0.0.1`). Setup, measurement and troubleshooting: [docs/PHONE.md](docs/PHONE.md).
+
+## Website
+
+`site/` is the project's page: a real recorded call replayed with its trace, the measured
+numbers, the decision log and a film of one call. Everything on it is generated from the
+repository, never typed in: `scripts/export_site_data.py` reads `results/` and
+`docs/DECISIONS.md`, and turns calls recorded with `TELLERLINE_RECORD=1` into replays;
+`scripts/render_film.py` renders the film from one of them ([D-029](docs/DECISIONS.md)).
+
+```bash
+python scripts/export_site_data.py --calls     # results, decisions and the calls in scripts/site_calls.json
+cd site && npm install && npm run dev          # http://localhost:3000
+```
 
 ## Benchmarks
 
@@ -168,10 +197,14 @@ src/tellerline/
   banking/        tool definitions and spoken response templates
   speech.py       money, dates and codes written out for text-to-speech
   tts/            Kokoro on MLX
-bench/            benchmarks, labelled cases (dev and test) and the automated WebRTC caller
-scripts/          model download, voice samples
+  agent/phone.py  the phone line: Asterisk's WebSocket channel as a Pipecat transport
+bench/            benchmarks, labelled cases (dev, test, held-out), the automated callers
+                  (bench.caller over WebRTC, bench.phone over SIP) and their scripts
+telephony/        Asterisk for the phone line: container and configuration
+site/             the website (Next.js): replay, numbers, decision log, film
+scripts/          model download, voice samples, the site's data export, the film renderer
 results/          benchmark results (JSONL) and the Phase 0 report
-docs/             plan, decision log and demo guide
+docs/             plan, decision log, running, demo and phone guides
 tests/
 ```
 
@@ -181,6 +214,10 @@ tests/
 - Gemma 4 by Google DeepMind, licensed under Apache-2.0.
 - Kokoro-82M by hexgrad, licensed under Apache-2.0.
 - bge-small-en-v1.5 by BAAI, licensed under MIT.
+- Asterisk by Sangoma, licensed under GPL-2.0; it runs as a separate program in its own container,
+  from the `andrius/asterisk` image.
+- The website's typeface is IBM 3270 by Ricardo Bánffy and contributors, licensed under
+  BSD-3-Clause.
 
 Tellerline Bank is fictional, and all customer data is synthetic.
 
