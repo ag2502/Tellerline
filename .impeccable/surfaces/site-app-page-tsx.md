@@ -30,7 +30,8 @@ happened while both voices play. It refuses the voice-AI default of a glowing or
 glass, an icon feature grid and invented metrics.
 
 OWN-WORLD: P1 phosphor #33ff66 on tube ground #020805 inside curved CRT glass with scanlines,
-fine grain and edge fade; afterimage #176e3a for history, bloom #b6ffb6 for the live line and
+fine grain and edge fade; afterimage #176e3a for decoration, faint #1d8c4a for history and
+timings, bloom #b6ffb6 for the live line and
 cursor, deep glass #07210f for panes, scanline dim #0b331e for rules. One dot-matrix monospace
 face does everything; hierarchy is size steps of that face, case, indentation, a line-number
 gutter and dashed full-width rules. Commands are bracketed; active is inverse video; states print
@@ -61,7 +62,17 @@ Pressing RUN: the caller speaks, the gutter counts, `ACTION freeze card=4217 rea
 prints in bloom, and Tellerline answers in a British voice about a second later, with the reply
 gap printed underneath in milliseconds.
 
-## Unresolved
+## Resolved
 
-- Final latency and accuracy figures arrive from this phase's benchmark runs.
-- Whether the phone-line (Asterisk) path gets its own section depends on the telephony build.
+- Final figures come from campaign 4 (6 October 2026): the 220-turn gate, two to four calls at
+  once, the phone line and both noisy rooms, all read from `results/` by the exporter.
+- The phone line has no window of its own: it is a proof line in the hero, a block in the
+  numbers window and a setup block in the run window.
+
+## Finish
+
+Reviewed 6 October 2026 against this contract and the craft floor, with the detector clean and
+every shipping raster carrying its provenance. Fixed in review: text below 4.5:1 (a faint tier
+for timestamps and timings), the prompt's focus ring, whole lines under reduced motion, the stage
+order in the replay and the film, command wrapping on phones, and missing credits. Verdict:
+ship. Documented in DESIGN.md and `.impeccable/design.json`.

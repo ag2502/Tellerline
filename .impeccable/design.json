@@ -1,0 +1,309 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-06T15:55:23+00:00",
+  "title": "Design System: Tellerline",
+  "extensions": {
+    "colorMeta": {
+      "tube-ground": {
+        "role": "neutral",
+        "displayName": "Tube Ground",
+        "canonical": "#020805",
+        "tonalRamp": [
+          "#050d09",
+          "#1c2722",
+          "#38433d",
+          "#55615b",
+          "#74817b",
+          "#95a29c",
+          "#bac8c1",
+          "#e5f2ec"
+        ]
+      },
+      "deep-glass": {
+        "role": "neutral",
+        "displayName": "Deep Glass",
+        "canonical": "#07210f",
+        "tonalRamp": [
+          "#001002",
+          "#112a18",
+          "#2d4733",
+          "#4a6550",
+          "#69866f",
+          "#8aa790",
+          "#afcdb5",
+          "#d9f8df"
+        ]
+      },
+      "scanline-dim": {
+        "role": "neutral",
+        "displayName": "Scanline Dim",
+        "canonical": "#0b331e",
+        "tonalRamp": [
+          "#001202",
+          "#032c18",
+          "#234933",
+          "#416850",
+          "#60886f",
+          "#81aa8f",
+          "#a6d0b5",
+          "#d0fbde"
+        ]
+      },
+      "afterimage": {
+        "role": "neutral",
+        "displayName": "Afterimage",
+        "canonical": "#176e3a",
+        "tonalRamp": [
+          "#001500",
+          "#003200",
+          "#00501d",
+          "#196f3b",
+          "#40905a",
+          "#63b37a",
+          "#89da9f",
+          "#b3ffc8"
+        ]
+      },
+      "faint-phosphor": {
+        "role": "neutral",
+        "displayName": "Faint Phosphor",
+        "canonical": "#1d8c4a",
+        "tonalRamp": [
+          "#001600",
+          "#003400",
+          "#005212",
+          "#007232",
+          "#299451",
+          "#51b772",
+          "#79de96",
+          "#a4ffc0"
+        ]
+      },
+      "dim-phosphor": {
+        "role": "neutral",
+        "displayName": "Dim Phosphor",
+        "canonical": "#23a14b",
+        "tonalRamp": [
+          "#001600",
+          "#003500",
+          "#005400",
+          "#00751e",
+          "#0d9641",
+          "#43b962",
+          "#6ee187",
+          "#9bffb1"
+        ]
+      },
+      "p1-phosphor": {
+        "role": "primary",
+        "displayName": "P1 Phosphor",
+        "canonical": "#33ff66",
+        "tonalRamp": [
+          "#001600",
+          "#003400",
+          "#005600",
+          "#007a00",
+          "#009f00",
+          "#00c138",
+          "#5de573",
+          "#a1ffac"
+        ]
+      },
+      "bloom": {
+        "role": "primary",
+        "displayName": "Bloom",
+        "canonical": "#b6ffb6",
+        "tonalRamp": [
+          "#001500",
+          "#003100",
+          "#004f0a",
+          "#286f2d",
+          "#4a904d",
+          "#6cb26d",
+          "#91d992",
+          "#bbffbb"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The hero headline and the footer's name only: IBM 3270 Regular, uppercase, Bloom with a strong glow."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Each window's title, written as a shell comment."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Prose, transcripts and tables: IBM 3270 Semi-Condensed, 1.125rem (1.0625rem on phones)."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Keys and the status bar: uppercase with 0.06em tracking."
+      }
+    },
+    "shadows": [
+      {
+        "name": "glow",
+        "value": "text-shadow: 0 0 1px rgb(51 255 102 / 0.55), 0 0 7px rgb(51 255 102 / 0.22)",
+        "purpose": "Default text: the phosphor's own glow."
+      },
+      {
+        "name": "glow-strong",
+        "value": "text-shadow: 0 0 2px rgb(182 255 182 / 0.85), 0 0 14px rgb(51 255 102 / 0.5), 0 0 40px rgb(51 255 102 / 0.22)",
+        "purpose": "Display type, Bloom text, the cursor."
+      },
+      {
+        "name": "key-halo",
+        "value": "box-shadow: 0 0 1.25rem rgb(51 255 102 / 0.32)",
+        "purpose": "The primary key at rest; 0 0 1.75rem rgb(182 255 182 / 0.45) on hover."
+      },
+      {
+        "name": "crt-vignette",
+        "value": "box-shadow: inset 0 0 6rem rgb(0 0 0 / 0.55)",
+        "purpose": "The curved glass's edge, fixed over the page with scanlines and grain."
+      }
+    ],
+    "motion": [
+      {
+        "name": "key-transition",
+        "value": "120ms ease-out (colour), 160ms ease-out (halo)",
+        "purpose": "Keys under the pointer."
+      },
+      {
+        "name": "cursor-blink",
+        "value": "1.06s steps(1, end) infinite",
+        "purpose": "The cursor and live line; off under prefers-reduced-motion."
+      },
+      {
+        "name": "replay-reveal",
+        "value": "in step with the recorded voice",
+        "purpose": "Transcript lines type out as they're spoken; under reduced motion each prints whole when it starts."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "phone",
+        "value": "390px"
+      },
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "xl",
+        "value": "1280px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Key",
+      "kind": "button",
+      "refersTo": "key-primary",
+      "description": "The one primary action in view, in inverse video with a phosphor halo.",
+      "html": "<a class=\"ds-key ds-key-primary\" href=\"#\">View the code</a>",
+      "css": ".ds-key { display: inline-flex; align-items: center; gap: 1ch; padding: 0.55em 1.2ch; border: 1px solid #33ff66; background: transparent; color: #33ff66; font: 18px/1 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; text-transform: uppercase; letter-spacing: 0.06em; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background-color 120ms ease-out, color 120ms ease-out, box-shadow 160ms ease-out; } .ds-key::before { content: '['; } .ds-key::after { content: ']'; } .ds-key:active { transform: translateY(1px); } .ds-key:focus-visible { outline: 2px solid #b6ffb6; outline-offset: 3px; } .ds-key-primary { background: #33ff66; color: #020805; box-shadow: 0 0 1.25rem rgb(51 255 102 / 0.32); } .ds-key-primary:hover { background: #b6ffb6; box-shadow: 0 0 1.75rem rgb(182 255 182 / 0.45); }"
+    },
+    {
+      "name": "Key",
+      "kind": "button",
+      "refersTo": "key",
+      "description": "A secondary command: the phosphor outline, deep glass under the pointer.",
+      "html": "<button class=\"ds-key-outline\">Watch the film</button>",
+      "css": ".ds-key-outline { display: inline-flex; align-items: center; gap: 1ch; padding: 0.55em 1.2ch; border: 1px solid #33ff66; background: transparent; color: #33ff66; text-shadow: 0 0 1px rgb(51 255 102 / 0.55), 0 0 7px rgb(51 255 102 / 0.22); font: 18px/1 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; transition: background-color 120ms ease-out; } .ds-key-outline::before { content: '['; } .ds-key-outline::after { content: ']'; } .ds-key-outline:hover { background: #07210f; } .ds-key-outline:active { transform: translateY(1px); } .ds-key-outline:focus-visible { outline: 2px solid #b6ffb6; outline-offset: 3px; }"
+    },
+    {
+      "name": "Prompt",
+      "kind": "input",
+      "refersTo": "prompt-input",
+      "description": "The replay's command line: a dim prompt and a bloom input that takes real commands.",
+      "html": "<form class=\"ds-prompt\"><span class=\"ds-prompt-ps1\">tellerline:~$</span><input class=\"ds-prompt-input\" placeholder=\"help\" aria-label=\"Type a command\"></form>",
+      "css": ".ds-prompt { display: flex; align-items: baseline; gap: 1ch; font: 18px/1.5 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; background: #020805; padding: 0.5em; } .ds-prompt-ps1 { color: #23a14b; } .ds-prompt-input { flex: 1; min-width: 0; border: 0; background: transparent; color: #b6ffb6; caret-color: #b6ffb6; font: inherit; text-shadow: 0 0 2px rgb(182 255 182 / 0.85), 0 0 14px rgb(51 255 102 / 0.5), 0 0 40px rgb(51 255 102 / 0.22); } .ds-prompt-input::placeholder { color: #23a14b; text-shadow: none; } .ds-prompt-input:focus { background: #07210f; } .ds-prompt-input:focus-visible { outline: 2px solid #b6ffb6; outline-offset: 3px; }"
+    },
+    {
+      "name": "Status Bar",
+      "kind": "nav",
+      "refersTo": "status-bar",
+      "description": "The fixed inverse bar listing the page's windows; the current one reversed back.",
+      "html": "<nav class=\"ds-status\" aria-label=\"Sections\"><span class=\"ds-status-name\">[tellerline]</span><a class=\"ds-status-item ds-status-current\" href=\"#\">0:call*</a><a class=\"ds-status-item\" href=\"#\">1:turn</a><a class=\"ds-status-item\" href=\"#\">2:numbers</a></nav>",
+      "css": ".ds-status { display: flex; align-items: center; gap: 1rem; height: 2.25rem; padding: 0 1rem; background: #33ff66; color: #020805; font: 14.4px/1 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; white-space: nowrap; } .ds-status-name { font-family: 'IBM 3270', ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: 0.025em; } .ds-status-item { padding: 0.25rem 0.7ch; color: inherit; text-decoration: none; } .ds-status-item:hover { background: #07210f; color: #33ff66; } .ds-status-current { background: #020805; color: #33ff66; } .ds-status-item:focus-visible { outline: 2px solid #020805; outline-offset: 2px; }"
+    },
+    {
+      "name": "Window Heading",
+      "kind": "custom",
+      "description": "Each window's title written as a shell comment, over the real command that produced it.",
+      "html": "<header class=\"ds-window\"><h2 class=\"ds-cmd\"><span class=\"ds-cmd-hash\">#</span> Measured by phoning it, not projected</h2><p class=\"ds-cmd-line\"><span class=\"ds-dim\">$</span> python -m bench.caller --turns 220</p></header>",
+      "css": ".ds-window { background: #020805; padding: 2rem; border-top: 1px solid #0b331e; font-family: 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; } .ds-cmd { margin: 0; font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem); line-height: 1.25; font-weight: 400; color: #b6ffb6; text-shadow: 0 0 2px rgb(182 255 182 / 0.85), 0 0 14px rgb(51 255 102 / 0.5), 0 0 40px rgb(51 255 102 / 0.22); } .ds-cmd-hash { color: #23a14b; text-shadow: 0 0 1px rgb(51 255 102 / 0.55), 0 0 7px rgb(51 255 102 / 0.22); } .ds-cmd-line { margin: 0.75rem 0 0; color: #33ff66; text-shadow: 0 0 1px rgb(51 255 102 / 0.55), 0 0 7px rgb(51 255 102 / 0.22); font-size: 17px; } .ds-dim { color: #23a14b; text-shadow: none; }"
+    },
+    {
+      "name": "Transcript Turn",
+      "kind": "custom",
+      "description": "The signature replay: a timestamped caller line, its stages with milliseconds, the measured wait, and the reply printing in bloom.",
+      "html": "<ol class=\"ds-turn\"><li class=\"ds-line\"><span class=\"ds-t\">00:32.3</span><span class=\"ds-who\">CALLER</span><span class=\"ds-said\">My card ending 4217 was taken out of my bag on the bus.</span></li><li class=\"ds-gap\">replied after 0.50 s <span class=\"ds-dim\">· 0.91 s for the caller</span></li><li class=\"ds-stage\"><span class=\"ds-dim\">decided</span><span class=\"ds-act\">ACTION freeze card=4217 reason=stolen</span><span class=\"ds-ms\">357 ms</span></li><li class=\"ds-line\"><span class=\"ds-t\">00:37.0</span><span class=\"ds-who ds-agent\">TELLERLINE</span><span class=\"ds-live\">I've frozen that card for you.<i class=\"ds-cursor\"></i></span></li></ol>",
+      "css": ".ds-turn { list-style: none; margin: 0; padding: 1rem; background: #020805; color: #33ff66; font: 16px/1.6 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; text-shadow: 0 0 1px rgb(51 255 102 / 0.55), 0 0 7px rgb(51 255 102 / 0.22); display: grid; gap: 0.4rem; } .ds-line { display: grid; grid-template-columns: 8ch 11ch 1fr; } .ds-t, .ds-ms { color: #1d8c4a; text-shadow: none; font-variant-numeric: tabular-nums; } .ds-who { color: #23a14b; text-shadow: none; } .ds-agent { color: #33ff66; } .ds-said { color: #23a14b; text-shadow: none; } .ds-gap { padding-left: 19ch; color: #b6ffb6; text-shadow: 0 0 2px rgb(182 255 182 / 0.85), 0 0 14px rgb(51 255 102 / 0.5), 0 0 40px rgb(51 255 102 / 0.22); } .ds-dim { color: #23a14b; text-shadow: none; } .ds-stage { display: grid; grid-template-columns: 19ch 10ch 1fr auto; font-size: 0.9em; } .ds-stage .ds-dim { grid-column: 2; } .ds-act, .ds-live { color: #b6ffb6; text-shadow: 0 0 2px rgb(182 255 182 / 0.85), 0 0 14px rgb(51 255 102 / 0.5), 0 0 40px rgb(51 255 102 / 0.22); } .ds-cursor { display: inline-block; width: 0.62em; height: 1.05em; margin-left: 0.1em; vertical-align: -0.15em; background: #b6ffb6; box-shadow: 0 0 2px rgb(182 255 182 / 0.85), 0 0 14px rgb(51 255 102 / 0.5), 0 0 40px rgb(51 255 102 / 0.22); animation: ds-blink 1.06s steps(1, end) infinite; } @keyframes ds-blink { 50% { opacity: 0; } } @media (prefers-reduced-motion: reduce) { .ds-cursor { animation: none; } }"
+    },
+    {
+      "name": "Data Table",
+      "kind": "custom",
+      "description": "Measured results as plain rows: dim lower-case headings, scanline rules, tabular numbers.",
+      "html": "<table class=\"ds-table\"><thead><tr><th>calls</th><th>median</th><th>9 in 10</th><th>replies</th></tr></thead><tbody><tr><td>1</td><td>0.97 s</td><td>1.23 s</td><td>204</td></tr><tr><td>4</td><td>0.95 s</td><td>1.21 s</td><td>50</td></tr></tbody></table>",
+      "css": ".ds-table { border-collapse: collapse; background: #020805; color: #33ff66; text-shadow: 0 0 1px rgb(51 255 102 / 0.55), 0 0 7px rgb(51 255 102 / 0.22); font: 16px/1.5 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; } .ds-table th { color: #23a14b; text-shadow: none; font-weight: 400; text-align: left; padding: 0.5rem 2ch 0.5rem 0; } .ds-table td { border-top: 1px solid #0b331e; padding: 0.5rem 2ch 0.5rem 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The call prints itself.",
+    "overview": "The page is an operator's terminal in a midnight machine room. A real recorded call replays as a tmux-style session: every line the caller said, every route, ACTION line and millisecond prints as it happened while both voices play. Everything else on the page continues the same session: a heading is a shell comment, under it the real command that produced what follows, then that command's output. The page is read and played, never decorated; it refuses the voice-AI defaults of a glowing orb, gradient glass, an icon feature grid and invented metrics.\n\nThe world is one phosphor at several intensities on a black-green tube, behind curved CRT glass with scanlines, a fine grain and an edge fade. One dot-matrix monospace face (IBM 3270) carries everything, from the display headline to the per-stage timings; hierarchy comes from size steps, case, indentation, a timestamp gutter and dashed rules. What is active is in inverse video. States print themselves (`playing dispute`, `command not found`, `replied after 0.50 s`). Density is a working terminal's: generous between windows, tight inside them.",
+    "keyCharacteristics": [
+      "One colour, P1 phosphor, at six text and surface intensities; nothing else exists.",
+      "One face, IBM 3270, in two widths: Regular for display, Semi-Condensed for everything else.",
+      "Square everything: no radius, no cards, no drop shadows; frames are 1 px lines.",
+      "Commands are bracketed keys; the active one is inverse.",
+      "Every number shown is read from exported run data, and its source command is printed above it."
+    ],
+    "rules": [
+      {
+        "name": "The One Phosphor Rule",
+        "body": "No colour outside this scale appears anywhere, not even for errors or status. Meaning comes from intensity, inverse video and words.",
+        "section": "colors"
+      },
+      {
+        "name": "The Text Floor Rule",
+        "body": "Text is never drawn in Afterimage. The dimmest text is Faint Phosphor (4.7:1); Afterimage is for lines, bars and glyphs that carry no reading.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Numbers Rule",
+        "body": "Every timing, count and timestamp is set with tabular numerals, so columns of milliseconds line up as a terminal's would.",
+        "section": "typography"
+      },
+      {
+        "name": "The Light-Not-Lift Rule",
+        "body": "Emphasis is brightness. A surface never rises off the page; a line glows harder.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** print the command that produced a number above it, and link its result file.",
+      "**Do** keep every colour on the phosphor scale above; express state with intensity, inverse video and words.",
+      "**Do** keep text at Faint Phosphor (4.7:1) or brighter, and set timings in tabular numerals.",
+      "**Do** wrap commands only between words, and keep all eight windows reachable from the status bar and the 0-7 keys.",
+      "**Do** print motion-free under `prefers-reduced-motion`: the replay, cursor and smooth scroll all have still equivalents."
+    ],
+    "donts": [
+      "**Don't** add a colour, a gradient, a rounded corner, a card or a drop shadow.",
+      "**Don't** use an orb, glass panels, an icon feature grid or an invented metric: the page's proof is a recorded call and measured runs.",
+      "**Don't** draw text in Afterimage (#176e3a); it is for lines and unplayed bars.",
+      "**Don't** type a number into the page by hand; it is read from the exported results."
+    ]
+  }
+}

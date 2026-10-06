@@ -23,3 +23,5 @@ results/recordings/
 
 # Impeccable decision-page sessions (answers live in the surface brief)
 .impeccable/questions/
+# Impeccable review screenshots: regenerated for each finish review
+.impeccable/review/
