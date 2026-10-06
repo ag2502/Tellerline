@@ -448,7 +448,13 @@ s, with no more cut-offs (59 against 62). With the room 25 dB below the caller, 
 altogether fell from 3 to 1. With it 20 dB below, the VAD started on the room alone in 22 lines
 instead of 49, and let go of the caller's turn 0.35 s after their last word (p90) instead of 0.70
 s. At 15 dB below it barely helps (91 lines against 95): level can't tell a near conversation's
-voices from the caller's.
+voices from the caller's. Live, in campaign 4: with people talking 20 dB below the caller, 22 of
+30 turns were timed (p90 1.67 s) and 6 went unanswered; at 15 dB, 23 of 40 with 17 overlaps (p90
+5.29 s). The quiet-room gate and the phone line held (D-033). Much of what goes wrong in the room
+is no longer turn-taking: the background talk gets into the transcript ("Pause my card ending
+7780 for a bit" heard as the room's "I couldn't believe that"), and some short lines come out
+empty. Trimming the 2 s pre-roll to where the caller's voice begins rescued some of those lines
+offline but cut the first words of others, so it isn't used.
 **Considered:** Pipecat's threshold with the caller gate on top (7 false starts at -20 dB, but 6
 lines missed and slower confirmation); margins of 9 and 6 dB (fewer false starts, more cut-offs);
 for the room at -15 dB, recognising the caller's voice (a speaker embedding taken from their first
@@ -477,7 +483,12 @@ with the caller VAD (D-032), which notices them in 0.06 s, every one stopped wit
 and answered as the whole sentence (the StreamFlix dispute now for 49.99 euro). Smart Turn still
 judges a few whole sentences unfinished, Seán's identity line in one of the two voices among them
 (0.30, and 0.08 through the noise filter), and those wait out the 2 s fallback; across campaign 3
-that fallback ended 6 of 660 turns.
+that fallback ended 6 of 660 turns. The 220-turn gate (campaign 4, with D-032): overlaps fell
+from 42 to 10, each cut off within about 0.4 s and answered as the whole sentence; 33 turns that
+were overlaps are now replies, timed at p50 0.97 s and p90 1.44 s; on the 162 turns timed in both
+gates the wait is unchanged (median difference +1 ms). The gate held 12 replies that were then
+dropped, gave the turn back on voice 8 times, withdrew 24 unheard turns, and nothing went
+unanswered: p50 0.97 s, p90 1.23 s, p95 1.51 s.
 **Considered:** A longer VAD stop time or a short hold before every reply (latency on every turn
 to save a few); interrupting on voice alone throughout a reply (the agent's own voice and the room
 would cut it off); undoing a withdrawn turn's action (the bank's state is real; asking again is

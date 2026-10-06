@@ -6,9 +6,10 @@ transactions, freezing a lost card, disputes, and handing over to a human. Speec
 recognition, the language model and the voice all run on one MacBook Air M5 with 16 GB of
 memory. No cloud APIs, no running costs.
 
-> **Status: Phase 1 gate passed.** The voice agent runs end to end over WebRTC with a mock bank.
-> An automated caller timed 182 replies over 220 scripted turns: p50 1.01 s, p90 1.40 s, within
-> the 1.5 s target ([D-026](docs/DECISIONS.md)). See [docs/PLAN.md](docs/PLAN.md) and the
+> **Status: Phase 2 done.** Tellerline answers browser calls over WebRTC and phone calls through
+> Asterisk, with a mock bank. An automated caller timed 204 replies over 214 scripted turns: p50
+> 0.97 s, p90 1.23 s, within the 1.5 s target; by phone, all 40 turns, p90 1.22 s
+> ([D-032, D-033](docs/DECISIONS.md)). See [docs/PLAN.md](docs/PLAN.md) and the
 > [Phase 0 results](results/PHASE0.md).
 
 ## How a turn works
@@ -27,24 +28,32 @@ memory. No cloud APIs, no running costs.
 5. **Act and speak:** the bank runs the action and a template speaks the result, so balances
    and dates always come from data rather than the model. Kokoro reads it in a British voice.
 
-## Phase 1 results
+## Measured results
 
-Measured by phoning the running agent: `bench.caller` speaks scripted caller lines over WebRTC
-and times each reply from the caller's last sample to the agent's first audible one. MacBook Air
-M5 on battery with other apps open (about 7 GB in swap).
+Measured by phoning the running agent: `bench.caller` speaks scripted caller lines over WebRTC,
+`bench.phone` over SIP through Asterisk, and both time each reply from the caller's last sample
+to the agent's first audible one. MacBook Air M5 on battery with other apps open (about 12 GB in
+swap), 6 October 2026.
 
-| Calls at once | Replies measured | Overlaps | Unanswered | p50 | p90 |
-|---|---:|---:|---:|---:|---:|
-| 1 (the gate) | 182 | 26 | 0 | 1.01 s | 1.40 s |
-| 2 | 27 | 1 | 0 | 1.04 s | 1.43 s |
-| 3 | 35 | 4 | 1 | 0.94 s | 1.11 s |
-| 4 | 44 | 10 | 0 | 0.95 s | 1.22 s |
-| 1, in a noisy room | 27 | 1 | 5 | 5.10 s | 9.95 s |
+| Line | Calls at once | Replies timed | Overlaps | Unanswered | p50 | p90 |
+|---|---:|---:|---:|---:|---:|---:|
+| WebRTC (the gate) | 1 | 204 of 214 | 10 | 0 | 0.97 s | 1.23 s |
+| WebRTC | 2 | 28 of 28 | 0 | 0 | 1.00 s | 1.29 s |
+| WebRTC | 3 | 40 of 42 | 2 | 0 | 0.97 s | 1.19 s |
+| WebRTC | 4 | 50 of 53 | 3 | 0 | 0.95 s | 1.21 s |
+| Phone (G.711 through Asterisk) | 1 | 40 of 40 | 0 | 0 | 0.89 s | 1.22 s |
+| WebRTC, people talking 20 dB below the caller | 1 | 22 of 30 | 2 | 6 | 1.12 s | 1.67 s |
+| WebRTC, people talking 15 dB below the caller | 1 | 23 of 40 | 17 | 0 | 1.64 s | 5.29 s |
 
-An overlap is a turn where the agent started talking before the caller had finished; it's
-counted apart rather than as a fast reply. Quiet-room latency holds with four calls at once. A
-noisy room (other people talking 15 dB below the caller) doesn't work yet: the background talk
-keeps the caller's turn open.
+An overlap is a turn where the agent's voice started before the caller had finished: they had
+carried on after a pause just as a reply began. The agent stops within about 0.4 s and answers
+the whole sentence ([D-033](docs/DECISIONS.md)); before that, the gate had 42 overlaps, each an
+answer to half a sentence. Quiet-room latency holds with four calls at once.
+
+A noisy room still doesn't work. Listening for the caller's own level keeps the room from holding
+their turn open ([D-032](docs/DECISIONS.md)), but the background talk also gets into what speech
+recognition hears, which only separating the caller's voice will fix. (Phase 1 reported its
+noisy room as 15 dB below the caller; the bench's calibration was off, and it was 7.4 dB.)
 
 On the held-out set, written before this phase's tuning, Gemma 4 E2B with the router now gets
 every single-turn case and all 8 dialogues right (72% and 6 of 8 before; D-023, D-024).
