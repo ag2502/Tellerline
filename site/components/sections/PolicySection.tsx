@@ -47,8 +47,10 @@ export function PolicySection() {
             </tbody>
           </table>
           <p className="dim mt-5 max-w-[56ch] text-[0.95em]">
-            Every call opens by saying it is an AI. The call ends only once the caller has said
-            goodbye, and the agent waits for its last words to be heard before it hangs up.
+            Every call opens by saying it is an AI. A reply never starts over a caller who
+            carries on after a pause, and nothing reaches the bank while they&apos;re still
+            talking. The call ends only once the caller has said goodbye, and the agent waits for
+            its last words to be heard before it hangs up.
           </p>
         </div>
 
