@@ -1,2 +1,5 @@
 # Never upload local environment files: the Vercel CLI writes tokens into them.
 .env*
+# Vercel installs packages and builds the site itself.
+node_modules/
+.next/
