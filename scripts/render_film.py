@@ -105,8 +105,25 @@ def encode(folder: Path, audio: Path, out: Path) -> None:
     )
 
 
+POSTER_ORIGIN = (
+    "Not generated. A frame of Tellerline's film, rendered by scripts/render_film.py from "
+    "site/components/FilmFrame.tsx (the site's /render-film/{slug} page drawn by Playwright at "
+    "1920x1080), 1.5 s after the call's second ACTION line. The call is a real recording of the "
+    "agent (scripts/site_calls.json, {slug})."
+)
+
+
+def record_origin(path: Path, text: str) -> None:
+    """Write where an image came from into the JPEG itself: a COM segment, in the form the
+    Impeccable design tooling's provenance scan reads."""
+    payload = b"impeccable:prompt\x00" + text.encode()
+    segment = b"\xff\xfe" + (len(payload) + 2).to_bytes(2, "big") + payload
+    data = path.read_bytes()
+    path.write_bytes(data[:2] + segment + data[2:])  # straight after the start-of-image marker
+
+
 def poster(folder: Path, call: dict, out: Path) -> None:
-    """The frame just after the first ACTION line, when the screen says the most."""
+    """The frame just after the second ACTION line, when the screen says the most."""
     actions = [t["t"] for t in call["turns"] if t["model"]["output"].startswith("ACTION")]
     moment = INTRO_S + (actions[1] if len(actions) > 1 else actions[0] if actions else 10) + 1.5
     index = min(int(moment * FPS), len(list(folder.glob("*.png"))) - 1)
@@ -244,6 +261,7 @@ def main() -> None:
         print(f"{count} frames for {length:.1f} s; encoding")
         encode(work / "frames", work / "audio.wav", FILM / "tellerline.mp4")
         poster(work / "frames", call, FILM / "poster.jpg")
+        record_origin(FILM / "poster.jpg", POSTER_ORIGIN.format(slug=args.slug))
     captions(call, FILM / "tellerline.vtt")
     size = (FILM / "tellerline.mp4").stat().st_size / 1e6
     print(f"site/public/film/tellerline.mp4: {size:.1f} MB, poster.jpg and tellerline.vtt written")
