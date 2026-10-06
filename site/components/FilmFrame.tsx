@@ -74,7 +74,7 @@ export function FilmFrame({ call, numbers }: Props) {
                 <span className={`${line.tone === "action" ? "bloom" : "text-p1"} line-clamp-2`}>
                   {line.value}
                 </span>
-                <span className="after tabular text-right">{line.ms}</span>
+                <span className="faint tabular text-right">{line.ms}</span>
               </div>
             ))}
           </div>
@@ -111,7 +111,7 @@ function FilmLine({ line, now }: { line: Line; now: number }) {
   const live = share > 0 && share < 1;
   return (
     <li className="grid grid-cols-[4.5em_9em_1fr]">
-      <span className="after tabular">{clock(line.at).slice(0, 5)}</span>
+      <span className="faint tabular">{clock(line.at).slice(0, 5)}</span>
       <span className={line.kind === "agent" ? "text-p1" : "dim"}>
         {line.kind === "agent" ? "TELLERLINE" : "CALLER"}
       </span>

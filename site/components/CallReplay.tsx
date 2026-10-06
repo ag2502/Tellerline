@@ -213,7 +213,7 @@ export function CallReplay({ calls, initial }: Props) {
     <div className="flex h-full min-h-0 flex-col gap-4">
       <div className="pane-title">
         <span>replay</span>
-        <span className="after">{call.call_id}</span>
+        <span className="faint">{call.call_id}</span>
       </div>
 
       <div role="tablist" aria-label="Recorded calls" className="flex flex-wrap gap-x-5 gap-y-2">
@@ -371,7 +371,7 @@ function CommandLine({ execute }: { execute: (input: string) => Promise<string> 
       <ol aria-live="polite" className="space-y-0.5">
         {history.map((line, index) => (
           <li key={index}>
-            <span className="after">tellerline:~$ {line.input}</span>
+            <span className="faint">tellerline:~$ {line.input}</span>
             <span className="dim block pl-[2ch]">{line.output}</span>
           </li>
         ))}
@@ -391,7 +391,7 @@ function CommandLine({ execute }: { execute: (input: string) => Promise<string> 
           autoComplete="off"
           autoCapitalize="off"
           spellCheck={false}
-          className="min-w-0 flex-1 bg-transparent text-bloom caret-bloom placeholder:text-after focus:bg-glass focus-visible:outline-none"
+          className="min-w-0 flex-1 bg-transparent text-bloom caret-bloom placeholder:text-dim focus:bg-glass focus-visible:outline-none"
         />
       </div>
     </form>
@@ -435,7 +435,7 @@ function TranscriptLine({
         <span className="hidden sm:block" />
         <span className="dim">{line.label}</span>
         <span className={`${tone} min-w-0 break-words`}>{line.value}</span>
-        <span className="after tabular hidden text-right sm:block">
+        <span className="faint tabular hidden text-right sm:block">
           {line.ms === null ? "" : `${formatMs(line.ms)}`}
         </span>
       </li>
@@ -450,7 +450,7 @@ function TranscriptLine({
       <button
         type="button"
         onClick={() => onSeek(line.at)}
-        className="after tabular hidden cursor-pointer self-start text-left hover:text-p1 sm:block"
+        className="faint tabular hidden cursor-pointer self-start text-left hover:text-p1 sm:block"
         aria-label={`Play from ${clock(line.at)}`}
       >
         {clock(line.at)}

@@ -11,6 +11,7 @@
   --color-glass: #07210f; /* deep glass: panes, pressed keys */
   --color-scan: #0b331e; /* scanline dim: rules and frames */
   --color-after: #176e3a; /* afterimage: decoration only (3.2:1) */
+  --color-faint: #1d8c4a; /* faint: timestamps, timings, history; the dimmest text (4.7:1) */
   --color-dim: #23a14b; /* secondary text (6:1) */
   --color-p1: #33ff66; /* phosphor: text (14:1) */
   --color-bloom: #b6ffb6; /* bloom: the live line, the cursor, display type */
@@ -187,6 +188,11 @@
 
   .after {
     color: var(--color-after);
+    text-shadow: none;
+  }
+
+  .faint {
+    color: var(--color-faint);
     text-shadow: none;
   }
 

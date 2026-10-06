@@ -50,7 +50,7 @@ export function MemorySection() {
                 <tr key={model.key} className="border-t border-scan">
                   <td className="py-2 pr-[1ch]">
                     {model.name}
-                    <span className="after block text-[0.8em]">{model.licence}</span>
+                    <span className="faint block text-[0.8em]">{model.licence}</span>
                   </td>
                   <td className="dim">{model.role}</td>
                   <td className="dim hidden sm:table-cell">{model.where}</td>

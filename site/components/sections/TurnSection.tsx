@@ -58,7 +58,7 @@ export function TurnSection() {
                     ) : null}
                   </span>
                   <span className="tabular col-start-3 text-left sm:col-start-auto sm:text-right">
-                    {item.value === null ? <span className="after">{item.note}</span> : ms(item.value)}
+                    {item.value === null ? <span className="faint">{item.note}</span> : ms(item.value)}
                   </span>
                 </li>
               );
