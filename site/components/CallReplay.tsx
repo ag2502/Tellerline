@@ -14,7 +14,21 @@ const WHO = { agent: "TELLERLINE", caller: "CALLER" } as const;
 const SECTIONS = ["call", "turn", "numbers", "policy", "memory", "log", "film", "run"];
 const HELP = "run [call] · pause · calls · goto <section> · clone · github · clear";
 
+// With reduced motion, a line prints whole the moment it's spoken instead of typing out.
+function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => setReduced(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  return reduced;
+}
+
 export function CallReplay({ calls, initial }: Props) {
+  const reducedMotion = useReducedMotion();
   const [call, setCall] = useState<Call>(initial);
   const [loading, setLoading] = useState<string | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
@@ -298,7 +312,14 @@ export function CallReplay({ calls, initial }: Props) {
           </li>
         ) : null}
         {shown.map((line, position) => (
-          <TranscriptLine key={`${call.slug}-${position}`} line={line} now={now} playing={playing} onSeek={seek} />
+          <TranscriptLine
+            key={`${call.slug}-${position}`}
+            line={line}
+            now={now}
+            playing={playing}
+            instant={reducedMotion}
+            onSeek={seek}
+          />
         ))}
         {failed ? (
           <li role="alert" className="bloom">
@@ -391,7 +412,7 @@ function CommandLine({ execute }: { execute: (input: string) => Promise<string> 
           autoComplete="off"
           autoCapitalize="off"
           spellCheck={false}
-          className="min-w-0 flex-1 bg-transparent text-bloom caret-bloom placeholder:text-dim focus:bg-glass focus-visible:outline-none"
+          className="min-w-0 flex-1 bg-transparent text-bloom caret-bloom placeholder:text-dim focus:bg-glass"
         />
       </div>
     </form>
@@ -402,11 +423,13 @@ function TranscriptLine({
   line,
   now,
   playing,
+  instant = false,
   onSeek,
 }: {
   line: Line;
   now: number;
   playing: boolean;
+  instant?: boolean;
   onSeek: (seconds: number) => void;
 }) {
   if (line.kind === "gap") {
@@ -442,8 +465,9 @@ function TranscriptLine({
     );
   }
   const share = spokenShare(line.spans, now);
-  const visible = line.text.slice(0, Math.round(share * line.text.length));
-  const live = playing && share > 0 && share < 1;
+  const shown = instant && share > 0 ? 1 : share;
+  const visible = line.text.slice(0, Math.round(shown * line.text.length));
+  const live = playing && !instant && share > 0 && share < 1;
   const colour = line.kind === "agent" ? (live ? "bloom" : "text-p1") : "text-dim";
   return (
     <li className="grid grid-cols-[1fr] pt-2 sm:grid-cols-[8ch_11ch_1fr]">
