@@ -1,10 +1,11 @@
-"""Start everything a call needs, then serve the browser call page.
+"""Start everything a call needs, then serve the browser call page and the phone line.
 
-    python -m tellerline.agent            # open http://localhost:7860/client
+    python -m tellerline.agent            # open http://localhost:7860/call/
 
 Starts the mock bank (in this process) and the Gemma 4 server (a child process) unless they're
 already running, preloads the speech models and intent classifier so the first call doesn't
 wait for them, then hands over to Pipecat's development runner with the WebRTC transport.
+Asterisk hands phone calls to the same server at /phone (tellerline.agent.phone, docs/PHONE.md).
 """
 
 import asyncio
@@ -25,6 +26,8 @@ from tellerline.agent.bot import (  # noqa: F401  (the runner looks up `bot`)
     bot,
 )
 from tellerline.agent.observability import RESULTS_DIR, setup_file_tracing
+from tellerline.agent.phone import PATH as PHONE_PATH
+from tellerline.agent.phone import mount_phone_line
 from tellerline.bank.api import create_app
 from tellerline.bank.client import BANK_URL
 from tellerline.config import KOKORO_MLX_MODELS, STT_MODEL, TTS_MLX_VARIANT
@@ -138,7 +141,9 @@ def main() -> None:
     from pipecat.runner.run import main as run_runner
 
     mount_call_page(app)
+    mount_phone_line(app)
     logger.info("Call page: http://localhost:7860/call/")
+    logger.info(f"Phone line for Asterisk: ws://localhost:7860{PHONE_PATH} (docs/PHONE.md)")
     run_runner()
 
 

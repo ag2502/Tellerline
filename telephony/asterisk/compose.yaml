@@ -1,0 +1,24 @@
+# Asterisk for Tellerline's phone line (docs/PHONE.md).
+#
+# Asterisk answers SIP calls on port 5060 and hands each one to the agent over its WebSocket
+# channel (etc/extensions.conf, etc/websocket_client.conf). The agent runs on the Mac, outside
+# the container, at host.docker.internal:7860. After changing etc/, rebuild:
+#     docker compose up -d --build
+services:
+  asterisk:
+    build: .
+    image: tellerline-asterisk
+    command: ["/usr/sbin/asterisk", "-C", "/etc/tellerline/asterisk.conf", "-f", "-vvv", "-T", "-n",
+              "-U", "asterisk", "-p"]
+    ports:
+      - "127.0.0.1:5060:5060/udp"
+      - "127.0.0.1:10000-10019:10000-10019/udp"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # The image's own check wants modules this line doesn't load; Asterisk answering is enough.
+    healthcheck:
+      test: ["CMD", "asterisk", "-rx", "core show uptime"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: unless-stopped

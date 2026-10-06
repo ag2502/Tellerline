@@ -379,3 +379,50 @@ calls were recorded for the site.
 **Considered:** A live demo through a tunnel to the Mac (works only while the Mac is awake and
 serving); a screen-recorded video (not reproducible); showing only the agent-side gaps (they look
 faster than the measured numbers, for a reason a visitor can't see).
+
+## D-030 The phone line: Asterisk's WebSocket channel, Tellerline's own serializer (2026-10-06)
+
+**Decision:** Phone calls reach the agent through Asterisk 23 in a container. A SIP call to
+extension 2000 is bridged with `Dial(WebSocket/tellerline/c(slin16)f(json))`: Asterisk opens a
+websocket to the agent's `/phone` route for each call and streams 16 kHz signed linear audio, with
+JSON control events. The agent runs the browser call's pipeline over Pipecat's FastAPI websocket
+transport, with a serializer written for chan_websocket (`tellerline.agent.phone`): the call
+counts as connected at MEDIA_START, an interruption sends FLUSH_MEDIA, the end of the call sends
+HANGUP, and the agent's audio goes out at most 0.2 s ahead of what the caller hears. Phone calls
+use a VAD confidence of 0.5 (browser calls 0.8). Asterisk loads only the 46 modules the line
+needs, from configuration built into its image. `bench.phone`, a small SIP user agent, places
+bench.caller's scripted calls with G.711 mu-law audio and times each reply.
+**Why:** The plan named the community `pipecat-asterisk` package. Its transport keeps up to
+seconds of the agent's speech queued in Asterisk, sending a second or more at a time, which
+leaves Pipecat believing the agent has stopped talking while the caller still hears it; barge-in
+and the end of a call (D-024) depend on that timing. The protocol is small: one audio format, a
+few events and commands. On live phone calls Silero's median confidence was 0.81 against 0.95 on
+browser audio, and at 0.8 short lines ("Yes please.", "Grand, cheers.") never started a turn: of
+42 live utterances it heard 37 at 0.8, 40 at 0.7 and all 42 at 0.5, with no more false starts.
+**Result:** 40 benchmark turns by phone on the MacBook Air M5 (mains power, Asterisk in a 2 GB
+Colima VM alongside the agent): 34 replies measured, none unanswered, 4 overlaps; p50 0.78 s,
+p90 1.23 s, p95 1.40 s, within the 1.5 s target. The goodbye script by phone: 18 of 18 answered,
+p50 0.77 s, p90 1.12 s. The five demo calls by phone took the right actions throughout.
+**Considered:** `pipecat-asterisk` 0.1.4; Asterisk's AudioSocket (no message to flush queued audio
+when the caller interrupts); a SIP stack inside the agent (no PBX, so no route to a real number).
+
+## D-031 What the phone line found: the start of a turn and the words around a pause (2026-10-06)
+
+**Decision:** Three changes to how the agent hears a caller, for both lines. Two seconds of audio
+from before the VAD confirms speech are kept (Pipecat keeps one). A turn that arrived in more
+than one VAD segment is transcribed again in one pass before the agent decides. And a date, like
+a card or customer number, must appear in what the caller said (D-027) before it reaches the bank.
+**Why:** The VAD confirms speech 0.8-0.9 s after it begins, so Pipecat's one second of pre-roll
+had almost no margin; on phone audio the first words of a turn were lost ("I've lost my card"
+heard as "lost my card"). Each pause ends a segment that is transcribed alone, and a word begun
+just before the VAD declared the pause lands half in each: on phone audio Parakeet wrote "four
+five one two seven. | seven eight nine zero", nine digits for an eight-digit number. Tested
+offline on five caller lines, browser and phone audio, segment-by-segment transcription lost or
+doubled words where the whole utterance came out right every time. And on a phone call cut off
+after "It was thirty-four euro", the model supplied the dispute's date itself.
+**Result:** The phone line went from losing the opening of most turns to the results in D-030.
+Dialogue accuracy is unchanged on every split (held-out 100% and 8 of 8, test 95% and 7 of 7,
+dev 97%). A turn heard in pieces now costs one more Parakeet pass, tens of milliseconds.
+**Considered:** Carrying the last 0.2 s of a segment into the next (tested: no better); lowering the
+VAD stop time (more pieces, not fewer); grounding amounts too (a partial "34" is still in the
+caller's words, so it wouldn't have helped).

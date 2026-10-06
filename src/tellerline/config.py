@@ -61,6 +61,12 @@ VAD_STOP_SECS = 0.2
 # Stricter than Pipecat's defaults (0.7, 0.2 s, 0.6) so background voices and noise don't count
 # as the caller: speech must be more certain, last longer, and be closer to the microphone.
 VAD_CONFIDENCE = 0.8
+# Silero is less sure of telephone-band speech: on G.711 audio from Asterisk its median confidence
+# fell from 0.95 to 0.81, and at 0.8 short lines ("Yes please.", "Grand, cheers.") never started
+# a turn. Over 42 utterances from live phone calls, 0.8 caught 37, 0.7 and 0.6 caught 40, and 0.5
+# caught all 42 with no more false starts than 0.7. A phone's audio has usually been through the
+# handset's own noise suppression already.
+PHONE_VAD_CONFIDENCE = 0.5
 VAD_START_SECS = 0.3
 VAD_MIN_VOLUME = 0.65
 # While the agent is talking, the caller must say this many words to interrupt it. A cough, a

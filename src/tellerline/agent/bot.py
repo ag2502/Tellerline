@@ -1,4 +1,8 @@
-"""Build and run one call: WebRTC in, Parakeet, turn detection, the agent, Kokoro, WebRTC out."""
+"""Build and run one call: audio in, Parakeet, turn detection, the agent, Kokoro, audio out.
+
+Calls arrive over WebRTC from the browser call page (Pipecat's development runner) or from
+Asterisk as phone calls (tellerline.agent.phone); both run the same pipeline.
+"""
 
 import os
 import uuid
@@ -30,6 +34,7 @@ from tellerline.bank.client import BankClient
 from tellerline.brain import GREETING, RouterBrain
 from tellerline.config import (
     LLM_MODELS,
+    PHONE_VAD_CONFIDENCE,
     STT_SAMPLE_RATE,
     TTS_DEFAULT_VOICE,
     USER_TURN_STOP_TIMEOUT_S,
@@ -62,10 +67,11 @@ transport_params = {
 }
 
 
-def user_params(llm: TellerlineLLMService) -> LLMUserAggregatorParams:
+def user_params(llm: TellerlineLLMService, line: str = "webrtc") -> LLMUserAggregatorParams:
     """Turn-taking: when the caller has started and finished speaking.
 
-    With noise handling off (to measure its effect) these are Pipecat's defaults.
+    With noise handling off (to measure its effect) these are Pipecat's defaults. A phone line
+    takes a lower VAD confidence: Silero is less sure of telephone-band speech.
     """
     if not NOISE_HANDLING:
         return LLMUserAggregatorParams(
@@ -73,7 +79,7 @@ def user_params(llm: TellerlineLLMService) -> LLMUserAggregatorParams:
             user_turn_stop_timeout=USER_TURN_STOP_TIMEOUT_S,
         )
     vad = VADParams(
-        confidence=VAD_CONFIDENCE,
+        confidence=PHONE_VAD_CONFIDENCE if line == "phone" else VAD_CONFIDENCE,
         start_secs=VAD_START_SECS,
         stop_secs=VAD_STOP_SECS,
         min_volume=VAD_MIN_VOLUME,
@@ -87,12 +93,19 @@ def user_params(llm: TellerlineLLMService) -> LLMUserAggregatorParams:
     )
 
 
-async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
+async def run_bot(transport: BaseTransport, runner_args: RunnerArguments, line: str = "webrtc"):
+    """Run one call. `line` names how the caller is connected ("webrtc" or "phone")."""
     call_id = f"call-{uuid.uuid4().hex[:8]}"
-    logger.info(f"Starting {call_id}")
+    logger.info(f"Starting {call_id} ({line})")
 
     timeline = CallTimeline(
-        call_id, metadata={"llm": LLM_MODEL, "voice": VOICE, "noise_handling": NOISE_HANDLING}
+        call_id,
+        metadata={
+            "llm": LLM_MODEL,
+            "voice": VOICE,
+            "noise_handling": NOISE_HANDLING,
+            "line": line,
+        },
     )
     recorder = CallRecorder(timeline) if RECORDING else None
     bank = BankClient()
@@ -109,7 +122,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments):
 
     context = LLMContext()
     user_aggregator, assistant_aggregator = LLMContextAggregatorPair(
-        context, user_params=user_params(llm)
+        context, user_params=user_params(llm, line)
     )
     processors = [
         transport.input(),
