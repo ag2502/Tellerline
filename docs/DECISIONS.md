@@ -426,3 +426,30 @@ dev 97%). A turn heard in pieces now costs one more Parakeet pass, tens of milli
 **Considered:** Carrying the last 0.2 s of a segment into the next (tested: no better); lowering the
 VAD stop time (more pieces, not fewer); grounding amounts too (a partial "34" is still in the
 caller's words, so it wouldn't have helped).
+
+## D-032 Listen for the caller, not the room (2026-10-06)
+
+**Decision:** The VAD gates Silero's verdict on the caller's own speech level instead of Pipecat's
+volume threshold. A frame is the caller's voice when Silero is confident (0.8) and the last 200 ms
+of audio is above -45 dBFS and within 12 dB of the median level of the caller's confirmed speech
+over the last 10 s, learnt only while the agent is silent (`tellerline.audio.vad`). And
+bench.caller's noisy room is now set against the caller's measured speech level.
+**Why:** Pipecat measures loudness (BS.1770) over the last 400 ms, smooths it, and compares it with
+a fixed 0.65 (about -45 LUFS). The long window made the VAD slow to hear the caller: 0.5 s from
+their first word to confirmed speech, 0.16 s just to notice them carry on after a pause, which is
+too late to stop a reply starting over them (D-033). The fixed threshold let background talk in as
+the caller. And the bench had mislabelled its noisy room: it assumed the caller's lines were at
+0.12 RMS (-18.4 dBFS) when they speak at -25.9 dBFS, so the "-15 dB" room of Phase 1 and both
+measurement campaigns was 7.4 dB below the caller, someone talking right beside them.
+**Result:** Simulated on the 99 gate lines with the agent's noise filter, a room loop mixed in and
+Pipecat's VAD state machine replayed: in a quiet room the caller is confirmed 0.13 s sooner (0.38
+s from their first word, p50) and noticed 0.06 s after carrying on after a pause instead of 0.16
+s, with no more cut-offs (59 against 62). With the room 25 dB below the caller, lines missed
+altogether fell from 3 to 1. With it 20 dB below, the VAD started on the room alone in 22 lines
+instead of 49, and let go of the caller's turn 0.35 s after their last word (p90) instead of 0.70
+s. At 15 dB below it barely helps (91 lines against 95): level can't tell a near conversation's
+voices from the caller's.
+**Considered:** Pipecat's threshold with the caller gate on top (7 false starts at -20 dB, but 6
+lines missed and slower confirmation); margins of 9 and 6 dB (fewer false starts, more cut-offs);
+for the room at -15 dB, recognising the caller's voice (a speaker embedding taken from their first
+turns) rather than its level, left for the next phase.

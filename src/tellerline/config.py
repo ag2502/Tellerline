@@ -58,8 +58,8 @@ TTS_DEFAULT_VOICE = "bf_emma"
 LATENCY_TARGET_P90_S = 1.5
 # Silence Silero VAD waits for before Smart Turn decides whether the caller has finished.
 VAD_STOP_SECS = 0.2
-# Stricter than Pipecat's defaults (0.7, 0.2 s, 0.6) so background voices and noise don't count
-# as the caller: speech must be more certain, last longer, and be closer to the microphone.
+# Stricter than Pipecat's defaults (0.7, 0.2 s) so background voices and noise don't count as the
+# caller: speech must be more certain and last longer, and be the caller's (CALLER_*, below).
 VAD_CONFIDENCE = 0.8
 # Silero is less sure of telephone-band speech: on G.711 audio from Asterisk its median confidence
 # fell from 0.95 to 0.81, and at 0.8 short lines ("Yes please.", "Grand, cheers.") never started
@@ -68,7 +68,15 @@ VAD_CONFIDENCE = 0.8
 # handset's own noise suppression already.
 PHONE_VAD_CONFIDENCE = 0.5
 VAD_START_SECS = 0.3
-VAD_MIN_VOLUME = 0.65
+# The caller, not the room (tellerline.audio.vad, D-032). In place of Pipecat's volume threshold,
+# Silero's verdict counts only when the last CALLER_WINDOW_S of audio is above CALLER_FLOOR_DBFS
+# (where Pipecat's threshold was, about -45 LUFS) and within CALLER_MARGIN_DB of the caller's
+# speech level over the last CALLER_MEMORY_S of their speech. A 12 dB margin cut nobody off more
+# often than Pipecat's threshold did, over the benchmark's 99 lines; 9 and 6 dB did.
+CALLER_WINDOW_S = 0.2
+CALLER_MARGIN_DB = 12.0
+CALLER_FLOOR_DBFS = -45.0
+CALLER_MEMORY_S = 10.0
 # While the agent is talking, the caller must say this many words to interrupt it. A cough, a
 # door or someone talking in the background shouldn't cut the agent off.
 INTERRUPT_MIN_WORDS = 2

@@ -8,7 +8,6 @@ import os
 import uuid
 
 from loguru import logger
-from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.audio.vad.vad_analyzer import VADParams
 from pipecat.frames.frames import TTSSpeakFrame
 from pipecat.pipeline.pipeline import Pipeline
@@ -30,6 +29,7 @@ from tellerline.agent.observability import TurnLatencyLog
 from tellerline.agent.recorder import CallRecorder, CallTimeline, TimelineObserver
 from tellerline.agent.turns import turn_start_strategies, turn_stop_strategies
 from tellerline.audio.noise import RNNoiseSuppressor
+from tellerline.audio.vad import CallerVAD
 from tellerline.bank.client import BankClient
 from tellerline.brain import GREETING, RouterBrain
 from tellerline.config import (
@@ -39,7 +39,6 @@ from tellerline.config import (
     TTS_DEFAULT_VOICE,
     USER_TURN_STOP_TIMEOUT_S,
     VAD_CONFIDENCE,
-    VAD_MIN_VOLUME,
     VAD_START_SECS,
     VAD_STOP_SECS,
 )
@@ -75,17 +74,17 @@ def user_params(llm: TellerlineLLMService, line: str = "webrtc") -> LLMUserAggre
     """
     if not NOISE_HANDLING:
         return LLMUserAggregatorParams(
-            vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=VAD_STOP_SECS)),
+            vad_analyzer=CallerVAD(params=VADParams(stop_secs=VAD_STOP_SECS), caller_gate=False),
             user_turn_stop_timeout=USER_TURN_STOP_TIMEOUT_S,
         )
     vad = VADParams(
         confidence=PHONE_VAD_CONFIDENCE if line == "phone" else VAD_CONFIDENCE,
         start_secs=VAD_START_SECS,
         stop_secs=VAD_STOP_SECS,
-        min_volume=VAD_MIN_VOLUME,
     )
     return LLMUserAggregatorParams(
-        vad_analyzer=SileroVADAnalyzer(params=vad),
+        # Gated on the caller's own speech level, in place of Pipecat's volume threshold.
+        vad_analyzer=CallerVAD(params=vad),
         user_turn_strategies=UserTurnStrategies(
             start=turn_start_strategies(lambda: llm.ending), stop=turn_stop_strategies()
         ),
