@@ -87,7 +87,8 @@ about 160 ms. E4B misses the target in every configuration.
 | Stage | Choice | Licence |
 |---|---|---|
 | Pipeline | [Pipecat](https://github.com/pipecat-ai/pipecat) 1.10 | BSD-2-Clause |
-| Voice activity and turn detection | Silero VAD, Smart Turn v3.2 | MIT, BSD-2-Clause |
+| Noise suppression | [RNNoise](https://github.com/xiph/rnnoise) on the caller's audio, before everything else | BSD-3-Clause |
+| Voice activity and turn detection | Silero VAD, gated on the caller's own level ([D-032](docs/DECISIONS.md)); Smart Turn v3.2 | MIT, BSD-2-Clause |
 | Speech to text | [Parakeet TDT 0.6B v3](https://huggingface.co/nvidia/parakeet-tdt-0.6b-v3) on MLX via [mlx-audio](https://github.com/Blaizzy/mlx-audio) | CC-BY-4.0 |
 | Intent classifier | [bge-small-en-v1.5](https://huggingface.co/BAAI/bge-small-en-v1.5) on ONNX Runtime (CPU) | MIT |
 | Language model | [Gemma 4](https://huggingface.co/google/gemma-4-E2B-it) E2B, 4-bit, on [mlx-lm](https://github.com/ml-explore/mlx-lm) server | Apache-2.0 |
@@ -223,6 +224,9 @@ tests/
 - Gemma 4 by Google DeepMind, licensed under Apache-2.0.
 - Kokoro-82M by hexgrad, licensed under Apache-2.0.
 - bge-small-en-v1.5 by BAAI, licensed under MIT.
+- Silero VAD by Silero, licensed under MIT; Smart Turn v3.2 and Pipecat by Daily, licensed under
+  BSD-2-Clause.
+- RNNoise by Xiph.Org and Jean-Marc Valin, licensed under BSD-3-Clause.
 - Asterisk by Sangoma, licensed under GPL-2.0; it runs as a separate program in its own container,
   from the `andrius/asterisk` image.
 - The website's typeface is IBM 3270 by Ricardo Bánffy and contributors, licensed under

@@ -9,6 +9,8 @@ const CREDITS = [
   ["Smart Turn v3.2", "Pipecat", "BSD-2-Clause", "https://github.com/pipecat-ai/smart-turn"],
   ["Pipecat", "Daily", "BSD-2-Clause", "https://github.com/pipecat-ai/pipecat"],
   ["MLX", "Apple", "MIT", "https://github.com/ml-explore/mlx"],
+  ["RNNoise", "Xiph.Org", "BSD-3-Clause", "https://github.com/xiph/rnnoise"],
+  ["Asterisk", "Sangoma", "GPL-2.0, run as a separate program", "https://www.asterisk.org/"],
   ["IBM 3270 font", "Ricardo Banffy and contributors", "BSD-3-Clause", "/fonts/LICENSE-3270.txt"],
 ] as const;
 
