@@ -506,12 +506,18 @@ async def run(args: argparse.Namespace, place: PlaceCall | None = None, bench: s
             passed=passed,
         )
 
-    print(
+    counts = (
         f"\n{stats['n']} turns measured, {timeouts} without a reply, {overlaps} where the agent "
-        f"spoke before the caller finished: p50 {ms(stats['p50'])} ms, "
-        f"p90 {ms(stats['p90'])} ms, p95 {ms(stats['p95'])} ms -> "
-        f"{'within' if passed else 'over'} the {LATENCY_TARGET_P90_S} s p90 target"
+        "spoke before the caller finished"
     )
+    if not stats["n"]:
+        print(f"{counts}: no reply was timed")
+    else:
+        print(
+            f"{counts}: p50 {ms(stats['p50'])} ms, p90 {ms(stats['p90'])} ms, "
+            f"p95 {ms(stats['p95'])} ms -> "
+            f"{'within' if passed else 'over'} the {LATENCY_TARGET_P90_S} s p90 target"
+        )
     print(f"Results: {writer.path}")
 
 
