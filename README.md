@@ -94,7 +94,7 @@ about 160 ms. E4B misses the target in every configuration.
 | Language model | [Gemma 4](https://huggingface.co/google/gemma-4-E2B-it) E2B, 4-bit, on [mlx-lm](https://github.com/ml-explore/mlx-lm) server | Apache-2.0 |
 | Text to speech | [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) on MLX, espeak-ng phonemes (British voices) | Apache-2.0 |
 | Telephony | [Asterisk](https://www.asterisk.org/) 23 in a container, its WebSocket channel to the agent ([D-030](docs/DECISIONS.md)) | GPL-2.0 (run as a separate program) |
-| Website | [Next.js](https://nextjs.org/) 16, built for Vercel, generated from the results and recorded calls | MIT |
+| Website | [Next.js](https://nextjs.org/) 16 on Vercel, generated from the results and recorded calls | MIT |
 | Tracing | OpenTelemetry | Apache-2.0 |
 
 Why each choice was made, with the measurements behind it: [docs/DECISIONS.md](docs/DECISIONS.md).
@@ -144,15 +144,17 @@ Then dial **2000** from a softphone on the Mac (user `caller`, password `tellerl
 
 ## Website
 
-`site/` is the project's page: a real recorded call replayed with its trace, the measured
-numbers, the decision log and a film of one call. Everything on it is generated from the
-repository, never typed in: `scripts/export_site_data.py` reads `results/` and
-`docs/DECISIONS.md`, and turns calls recorded with `TELLERLINE_RECORD=1` into replays;
-`scripts/render_film.py` renders the film from one of them ([D-029](docs/DECISIONS.md)).
+**[tellerline.vercel.app](https://tellerline.vercel.app)**: a real recorded call replayed with its
+trace, the measured numbers, the decision log and a film of one call, built from `site/`.
+Everything on it is generated from the repository, never typed in:
+`scripts/export_site_data.py` reads `results/` and `docs/DECISIONS.md`, and turns calls recorded
+with `TELLERLINE_RECORD=1` into replays; `scripts/render_film.py` renders the film from one of
+them ([D-029](docs/DECISIONS.md)).
 
 ```bash
 python scripts/export_site_data.py --calls     # results, decisions and the calls in scripts/site_calls.json
 cd site && npm install && npm run dev          # http://localhost:3000
+cd site && npx vercel deploy --prod            # publish to tellerline.vercel.app
 ```
 
 ## Benchmarks
