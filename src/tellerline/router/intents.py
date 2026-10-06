@@ -81,6 +81,10 @@ EXAMPLES: dict[str, list[str]] = {
         "I need to query a charge on my account.",
         "Someone bought something online and it wasn't me.",
         "That payment to the petrol station is wrong.",
+        # Asked for outright, with the payment's details: an open card task must not keep these.
+        "Please dispute the 25 euro payment to Dublin Bus.",
+        "I'd like to dispute a charge of 60 euro from Ryanair on Monday.",
+        "Can you raise a dispute on that transaction for me?",
     ],
     "general": [
         "I want to speak to a person.",
