@@ -1,9 +1,9 @@
 "use client";
 
-import { Environment, Lightformer } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 
 import { stage } from "@/lib/stage";
@@ -31,16 +31,29 @@ export default function Scene({ data }: { data: Formation["data"] }) {
       camera={{ fov: FOV, position: [0, 0, DISTANCE], near: 0.1, far: 100 }}
     >
       <Fins data={data} />
-      <ambientLight intensity={0.55} />
+      <ambientLight intensity={0.45} />
       <directionalLight position={[-6, 9, 8]} intensity={1.6} />
       <directionalLight position={[8, -4, 6]} intensity={0.35} />
-      <Environment resolution={256} frames={1}>
-        <Lightformer form="rect" intensity={2.2} position={[0, 6, 6]} scale={[14, 4, 1]} />
-        <Lightformer form="rect" intensity={1.1} position={[-8, 0, 4]} scale={[3, 10, 1]} />
-        <Lightformer form="rect" intensity={0.9} position={[8, 2, 2]} scale={[3, 8, 1]} />
-      </Environment>
+      <Room />
     </Canvas>
   );
+}
+
+// A soft studio room for the fins' gloss to reflect, built once from three's own room preset.
+function Room() {
+  const { gl, scene } = useThree();
+  useEffect(() => {
+    const generator = new THREE.PMREMGenerator(gl);
+    const texture = generator.fromScene(new RoomEnvironment(), 0.04).texture;
+    scene.environment = texture;
+    scene.environmentIntensity = 0.28;
+    return () => {
+      scene.environment = null;
+      texture.dispose();
+      generator.dispose();
+    };
+  }, [gl, scene]);
+  return null;
 }
 
 function Fins({ data }: { data: Formation["data"] }) {
