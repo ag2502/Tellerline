@@ -52,14 +52,23 @@
     -webkit-text-size-adjust: 100%;
   }
 
-  @media (prefers-reduced-motion: no-preference) {
-    html {
-      scroll-behavior: smooth;
-    }
+  /* Lenis drives the scroll; the browser's own smoothing would fight it. */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
   }
 
   body {
     margin: 0;
+    overflow-x: clip;
     min-height: 100dvh;
     color: var(--color-ink);
     font-family: var(--font-sans);
@@ -229,6 +238,47 @@
 
   .box:first-child {
     border-left: 0;
+  }
+
+  /* A bay's 3D band shows only once the scene is running; without WebGL the bay's own figures
+     carry it. */
+  .stage-band {
+    display: none;
+  }
+
+  html[data-stage] .stage-band {
+    display: block;
+  }
+
+  /* The headline's letters rise once into place, a beat apart. */
+  @media (prefers-reduced-motion: no-preference) {
+    .rise {
+      animation: rise 1000ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: calc(var(--i) * 24ms + 150ms);
+    }
+
+    /* A bay's title and lead rise in as the bay arrives. */
+    [data-reveal] {
+      clip-path: inset(0 0 100% 0);
+      transform: translateY(1.2rem);
+      transition:
+        clip-path 900ms cubic-bezier(0.16, 1, 0.3, 1),
+        transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-reveal][data-in] {
+      clip-path: inset(0 0 -10% 0);
+      transform: none;
+    }
+  }
+
+  @keyframes rise {
+    from {
+      transform: translateY(108%);
+    }
+    to {
+      transform: translateY(0);
+    }
   }
 
   /* A strip entering the bay: down one step out of the printer, a little past, then home. */

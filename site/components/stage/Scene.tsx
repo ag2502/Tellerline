@@ -1,0 +1,188 @@
+"use client";
+
+import { Environment, Lightformer } from "@react-three/drei";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
+import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+
+import { stage } from "@/lib/stage";
+
+import { type Formation, formations, type SlotRect } from "./formations";
+
+// The page's one 3D scene: a few hundred glossy fins on a fixed canvas behind the content. In
+// the hero they are the recorded call, both voices in time; as the page scrolls they lift off
+// and settle into whichever bay's stage is in view, as that bay's own data. With no stage in
+// view they sink below the fold, out of the way of reading.
+
+const FOV = 30;
+const DISTANCE = 20;
+const SLOTS = ["hero", "turn", "numbers", "memory"] as const;
+
+export type SlotName = (typeof SLOTS)[number];
+
+export default function Scene({ data }: { data: Formation["data"] }) {
+  return (
+    <Canvas
+      className="!fixed inset-0 !h-[100lvh] !w-full"
+      style={{ pointerEvents: "none" }}
+      dpr={[1, 1.75]}
+      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      camera={{ fov: FOV, position: [0, 0, DISTANCE], near: 0.1, far: 100 }}
+    >
+      <Fins data={data} />
+      <ambientLight intensity={0.55} />
+      <directionalLight position={[-6, 9, 8]} intensity={1.6} />
+      <directionalLight position={[8, -4, 6]} intensity={0.35} />
+      <Environment resolution={256} frames={1}>
+        <Lightformer form="rect" intensity={2.2} position={[0, 6, 6]} scale={[14, 4, 1]} />
+        <Lightformer form="rect" intensity={1.1} position={[-8, 0, 4]} scale={[3, 10, 1]} />
+        <Lightformer form="rect" intensity={0.9} position={[8, 2, 2]} scale={[3, 8, 1]} />
+      </Environment>
+    </Canvas>
+  );
+}
+
+function Fins({ data }: { data: Formation["data"] }) {
+  const mesh = useRef<THREE.InstancedMesh>(null);
+  const { size, viewport } = useThree();
+  const count = 240;
+  const geometry = useMemo(() => new RoundedBoxGeometry(1, 1, 1, 3, 0.16), []);
+  const material = useMemo(
+    () =>
+      new THREE.MeshPhysicalMaterial({
+        roughness: 0.32,
+        metalness: 0,
+        clearcoat: 0.8,
+        clearcoatRoughness: 0.25,
+        sheen: 0.2,
+      }),
+    [],
+  );
+
+  // Each fin's current state, eased every frame toward where its formation wants it.
+  const state = useMemo(
+    () => ({
+      position: new Float32Array(count * 3),
+      scale: new Float32Array(count * 3),
+      color: new Float32Array(count * 3),
+      target: {
+        position: new Float32Array(count * 3),
+        scale: new Float32Array(count * 3),
+        color: new Float32Array(count * 3),
+      },
+      started: false,
+    }),
+    [count],
+  );
+  const slots = useRef(new Map<SlotName, HTMLElement>());
+  const matrix = useMemo(() => new THREE.Matrix4(), []);
+  const quaternion = useMemo(() => new THREE.Quaternion(), []);
+  const euler = useMemo(() => new THREE.Euler(), []);
+  const vector = useMemo(() => new THREE.Vector3(), []);
+  const scaleVector = useMemo(() => new THREE.Vector3(), []);
+  const colour = useMemo(() => new THREE.Color(), []);
+
+  useEffect(() => {
+    const find = () => {
+      for (const name of SLOTS) {
+        const element = document.querySelector<HTMLElement>(`[data-stage-slot="${name}"]`);
+        if (element) slots.current.set(name, element);
+      }
+    };
+    find();
+    const observer = new MutationObserver(find);
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const element = mesh.current;
+    if (!element) return;
+    element.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(count * 3), 3);
+  }, [count]);
+
+  useFrame((frame, delta) => {
+    const element = mesh.current;
+    if (!element || !element.instanceColor) return;
+    const width = size.width;
+    const height = size.height;
+    const perPixel = viewport.height / height; // world units per CSS pixel at the fins' plane
+
+    // The stage most in view decides the formation; none in view, the fins sink out of sight.
+    let best: SlotName | null = null;
+    let bestShare = 0.12;
+    let rect: SlotRect | null = null;
+    for (const name of SLOTS) {
+      const slot = slots.current.get(name);
+      if (!slot) continue;
+      const box = slot.getBoundingClientRect();
+      const visible = Math.max(0, Math.min(box.bottom, height) - Math.max(box.top, 0));
+      const share = visible / Math.max(1, Math.min(box.height, height));
+      if (share > bestShare) {
+        bestShare = share;
+        best = name;
+        rect = {
+          x: (box.left + box.width / 2 - width / 2) * perPixel,
+          y: -(box.top + box.height / 2 - height / 2) * perPixel,
+          width: box.width * perPixel,
+          height: box.height * perPixel,
+        };
+      }
+    }
+
+    const time = frame.clock.elapsedTime;
+    const target = state.target;
+    if (best && rect) {
+      formations[best]({ data, rect, count, time, target, now: stage.now, playing: stage.playing, board: stage.board, call: stage.call, reduced: stage.reduced });
+    } else {
+      // Rest: the fins drop below the fold and shrink, keeping their order.
+      for (let i = 0; i < count; i++) {
+        target.position[i * 3] = ((i / count) - 0.5) * viewport.width;
+        target.position[i * 3 + 1] = -viewport.height * 0.75;
+        target.position[i * 3 + 2] = 0;
+        target.scale[i * 3] = target.scale[i * 3 + 1] = target.scale[i * 3 + 2] = 0.05;
+      }
+    }
+
+    // Fins start below the fold and rise into their first formation.
+    if (!state.started) {
+      for (let i = 0; i < count; i++) {
+        state.position[i * 3] = target.position[i * 3];
+        state.position[i * 3 + 1] = -viewport.height * 0.7 - (i % 7) * 0.4;
+        state.position[i * 3 + 2] = 0;
+        state.color.set(target.color.subarray(i * 3, i * 3 + 3), i * 3);
+      }
+      state.started = true;
+    }
+
+    // Ease toward the targets: fast enough to follow a scroll, slow enough to read as flight.
+    const ease = stage.reduced ? 1 : 1 - Math.exp(-delta * 5.5);
+    const easeColour = stage.reduced ? 1 : 1 - Math.exp(-delta * 8);
+    const tiltX = stage.reduced ? 0 : stage.pointer.y * 0.06;
+    const tiltY = stage.reduced ? 0 : stage.pointer.x * 0.12;
+    for (let i = 0; i < count; i++) {
+      for (let k = 0; k < 3; k++) {
+        const j = i * 3 + k;
+        // A little lag down the line, so a formation change ripples rather than jumps.
+        const stagger = stage.reduced ? 1 : Math.min(1, ease * (1 - (i / count) * 0.45));
+        state.position[j] += (target.position[j] - state.position[j]) * stagger;
+        state.scale[j] += (target.scale[j] - state.scale[j]) * stagger;
+        state.color[j] += (target.color[j] - state.color[j]) * easeColour;
+      }
+      vector.set(state.position[i * 3], state.position[i * 3 + 1], state.position[i * 3 + 2]);
+      scaleVector.set(Math.max(0.0001, state.scale[i * 3]), Math.max(0.0001, state.scale[i * 3 + 1]), Math.max(0.0001, state.scale[i * 3 + 2]));
+      euler.set(tiltX, tiltY + (best === "hero" ? (vector.x / Math.max(1, viewport.width)) * -0.5 : 0), 0);
+      quaternion.setFromEuler(euler);
+      matrix.compose(vector, quaternion, scaleVector);
+      element.setMatrixAt(i, matrix);
+      colour.setRGB(state.color[i * 3], state.color[i * 3 + 1], state.color[i * 3 + 2], THREE.SRGBColorSpace);
+      element.setColorAt(i, colour);
+    }
+    element.instanceMatrix.needsUpdate = true;
+    element.instanceColor.needsUpdate = true;
+  });
+
+  return <instancedMesh ref={mesh} args={[geometry, material, count]} frustumCulled={false} />;
+}
+

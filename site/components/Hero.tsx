@@ -1,27 +1,20 @@
-import { data, percent, seconds } from "@/lib/data";
-import type { Call, CallSummary } from "@/lib/types";
+import { Fragment } from "react";
 
-import { CallBoard } from "./CallBoard";
+import { data, percent, seconds } from "@/lib/data";
+
 import { FilmIcon, GitHubIcon } from "./icons";
 import { REPO } from "./links";
 
-// The first viewport: the claim on the left, and the call's strip board filling the rest,
-// waiting on Play.
-export function Hero({ calls, call, film }: { calls: CallSummary[]; call: Call; film: boolean }) {
+// Under the stage: one sentence, the measured claims as strips, and the two ways on.
+export function ProofBand({ film }: { film: boolean }) {
   return (
-    <section id="call" aria-label="Tellerline, and a recorded call you can play" className="px-[var(--gutter)] pb-20 pt-8 lg:pb-24 lg:pt-12">
-      <div className="mx-auto grid max-w-[90rem] gap-x-14 gap-y-12 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.55fr)]">
-        <div className="flex flex-col gap-7 lg:pt-4">
-          <h1 className="callsign text-[clamp(2.5rem,1.2rem+4.5vw,4.5rem)] lg:text-[clamp(2.2rem,4vw-0.4rem,3.2rem)]">
-            Bank calls, answered
-            <br />
-            on one MacBook&nbsp;Air.
-          </h1>
-          <p className="max-w-[40ch] text-[1.12rem] leading-relaxed text-ink-2">
+    <section aria-label="What was measured" className="relative z-10 px-[var(--gutter)] pb-20 pt-14">
+      <div className="mx-auto grid max-w-[90rem] items-start gap-x-14 gap-y-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.6fr)]">
+        <div className="flex flex-col gap-6" data-reveal-target="">
+          <p className="max-w-[40ch] text-[1.2rem] leading-relaxed">
             Tellerline verifies callers and handles their banking in British English. Hearing,
-            deciding and speaking all run on the Mac. Play a real call and watch each turn print.
+            deciding and speaking all run on the Mac; nothing leaves it.
           </p>
-          <Proof />
           <div className="flex flex-wrap gap-3">
             <a className="key" data-primary="" href={REPO}>
               <GitHubIcon />
@@ -39,8 +32,7 @@ export function Hero({ calls, call, film }: { calls: CallSummary[]; call: Call; 
             )}
           </div>
         </div>
-
-        <CallBoard calls={calls} initial={call} />
+        <Proof />
       </div>
     </section>
   );
@@ -63,19 +55,19 @@ function Proof() {
   ].filter(Boolean) as { what: string; command: string; result: string }[];
   if (!lines.length) return null;
   return (
-    <ul className="flex flex-col gap-2" aria-label="Measured on the MacBook Air M5">
+    <ul className="grid gap-2 md:grid-cols-3" aria-label="Measured on the MacBook Air M5" data-reveal-target="">
       {lines.map((line) => (
         <li key={line.command} className="holder-plain">
-          <div className="strip grid grid-cols-[6.25rem_1fr] items-center">
+          <div className="strip grid h-full grid-cols-[6.25rem_1fr] items-center md:grid-cols-1 md:items-start">
             <span className="box label">{line.what}</span>
-            <span className="box">
+            <span className="box md:border-l-0 md:border-t md:border-rule">
               <span className="block text-[0.98rem] font-semibold">{line.result}</span>
               <code className="block text-[0.72rem] text-ink-3">
                   {`python -m ${line.command}`.split(" ").map((word, index) => (
-                    <span key={index} className="whitespace-nowrap">
+                    <Fragment key={index}>
                       {index ? " " : ""}
-                      {word}
-                    </span>
+                      <span className="whitespace-nowrap">{word}</span>
+                    </Fragment>
                   ))}
                 </code>
             </span>

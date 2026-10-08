@@ -1,0 +1,40 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+
+// A band of the page's measured claims running across the board, faster while the page scrolls.
+export function Marquee({ items }: { items: string[] }) {
+  const track = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = track.current;
+    if (!element || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let offset = 0;
+    let lastY = window.scrollY;
+    let speed = 0;
+    let frame = 0;
+    let last = performance.now();
+    const loop = (time: number) => {
+      const delta = Math.min(0.05, (time - last) / 1000);
+      last = time;
+      const y = window.scrollY;
+      speed += (Math.abs(y - lastY) * 6 - speed) * 0.1;
+      lastY = y;
+      offset -= (60 + speed) * delta;
+      const half = element.scrollWidth / 2;
+      if (-offset > half) offset += half;
+      element.style.transform = `translate3d(${offset}px, 0, 0)`;
+      frame = requestAnimationFrame(loop);
+    };
+    frame = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+  const line = items.join("  ·  ") + "  ·  ";
+  return (
+    <div className="relative z-10 overflow-hidden border-y-2 border-ink bg-amber py-3" aria-hidden="true">
+      <div ref={track} className="callsign flex w-max whitespace-nowrap text-[clamp(1.6rem,1rem+2.4vw,3.2rem)] will-change-transform">
+        <span className="pr-[0.5em]">{line}</span>
+        <span className="pr-[0.5em]">{line}</span>
+      </div>
+    </div>
+  );
+}

@@ -8,23 +8,26 @@ export function Section({
   number,
   title,
   command,
+  stage,
   children,
 }: {
   id: string;
   number: number;
   title: string;
   command: string;
+  // A band where the 3D scene sets this bay's data, with what it shows written under it.
+  stage?: { name: "turn" | "numbers" | "memory"; caption: string };
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} aria-labelledby={`${id}-title`} className="bay border-t border-rail">
+    <section id={id} aria-labelledby={`${id}-title`} className="bay relative z-10 border-t border-rail">
       <div className="mx-auto max-w-[90rem]">
-        <div className="flex items-start gap-4 sm:gap-5">
+        <div className="flex items-start gap-4 sm:gap-5" data-reveal-target="">
           <span className="plate mt-1 shrink-0 sm:mt-2" aria-hidden="true">
             {number}
           </span>
           <div className="min-w-0">
-            <h2 id={`${id}-title`} className="headline text-[clamp(2rem,1.25rem+2.6vw,3.5rem)]">
+            <h2 id={`${id}-title`} className="headline text-[clamp(2.2rem,1.1rem+3.6vw,4.75rem)]">
               {title}
             </h2>
             <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[0.85rem]">
@@ -33,6 +36,12 @@ export function Section({
             </p>
           </div>
         </div>
+        {stage ? (
+          <figure className="stage-band relative mt-10" aria-hidden="true">
+            <div data-stage-slot={stage.name} className="h-[clamp(13rem,22vw,20rem)]" />
+            <figcaption className="label mt-3">{stage.caption}</figcaption>
+          </figure>
+        ) : null}
         <div className="mt-12 sm:mt-14">{children}</div>
       </div>
     </section>

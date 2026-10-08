@@ -2,136 +2,30 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
+import { useCall } from "./CallContext";
+
 import { type Board, buildBoard, clock, type Span } from "@/lib/timeline";
-import type { Call, CallSummary } from "@/lib/types";
+import type { Call } from "@/lib/types";
 
 import { PauseIcon, PlayIcon, ReplayIcon } from "./icons";
 import { REPO } from "./links";
 import { Greeting, Strip } from "./Strips";
 import { Waveform } from "./Waveform";
 
-type Props = { calls: CallSummary[]; initial: Call };
-
 const SECTIONS = ["call", "turn", "numbers", "policy", "memory", "log", "film", "run"];
 const HELP = "run [call] · pause · calls · goto <bay> · clone · github · clear";
 const FEED_MS = 420;
 const SNAP = "cubic-bezier(0.3, 1.45, 0.55, 1)";
 
-// With reduced motion, strips and lines print whole the moment they're reached, and nothing moves.
-function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReduced(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
-  return reduced;
-}
-
-export function CallBoard({ calls, initial }: Props) {
-  const reducedMotion = useReducedMotion();
-  const [call, setCall] = useState<Call>(initial);
-  const [loading, setLoading] = useState<string | null>(null);
-  const [failed, setFailed] = useState<string | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [buffering, setBuffering] = useState(false);
-  const [started, setStarted] = useState(false);
-  const [now, setNow] = useState(0);
+export function CallBoard() {
+  const { calls, call, board, now, nowRef, playing, buffering, started, finished, loading, failed, reducedMotion, toggle, pause, seek, choose, playCall } =
+    useCall();
   const [pulled, setPulled] = useState<number | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
-  const nowRef = useRef(0);
-  const audio = useRef<HTMLAudioElement>(null);
-  const cache = useRef(new Map<string, Call>([[initial.slug, initial]]));
   const bay = useRef<HTMLOListElement>(null);
-  const board = useMemo(() => buildBoard(call), [call]);
 
-  // The audio element is the board's one clock. React redraws about sixteen times a second while
-  // it plays; the waveform reads the same clock every frame. Pause it and every strip freezes.
-  useEffect(() => {
-    if (!playing) return;
-    let frame = 0;
-    let last = 0;
-    const tick = (time: number) => {
-      if (audio.current) nowRef.current = audio.current.currentTime;
-      if (time - last > 60) {
-        last = time;
-        setNow(nowRef.current);
-      }
-      frame = requestAnimationFrame(tick);
-    };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [playing]);
-
-  const toggle = useCallback(async () => {
-    const element = audio.current;
-    if (!element) return;
-    if (!element.paused) {
-      element.pause();
-      return;
-    }
-    if (element.ended || element.currentTime >= call.duration_s - 0.05) {
-      element.currentTime = 0;
-      nowRef.current = 0;
-      setNow(0);
-    }
-    setStarted(true);
-    try {
-      await element.play();
-    } catch {
-      setPlaying(false);
-    }
-  }, [call.duration_s]);
-
-  const seek = useCallback((seconds: number) => {
-    const element = audio.current;
-    if (!element) return;
-    element.currentTime = seconds;
-    nowRef.current = seconds;
-    setNow(seconds);
-    setStarted(true);
-  }, []);
-
-  const choose = useCallback(
-    async (slug: string) => {
-      if (slug === call.slug && !failed) return;
-      audio.current?.pause();
-      setFailed(null);
-      let next = cache.current.get(slug);
-      if (!next) {
-        setLoading(slug);
-        try {
-          const response = await fetch(`/calls/${slug}.json`);
-          if (!response.ok) throw new Error(`HTTP ${response.status}`);
-          next = (await response.json()) as Call;
-          cache.current.set(slug, next);
-        } catch {
-          setFailed(slug);
-          setLoading(null);
-          return;
-        }
-        setLoading(null);
-      }
-      nowRef.current = 0;
-      setNow(0);
-      setStarted(false);
-      setPlaying(false);
-      setPulled(null);
-      setCall(next);
-    },
-    [call.slug, failed],
-  );
-
-  // `run 2` (or `run dispute`) picks a call; it starts playing once that call has loaded.
-  const pendingPlay = useRef(false);
-  useEffect(() => {
-    if (pendingPlay.current) {
-      pendingPlay.current = false;
-      void toggle();
-    }
-  }, [call, toggle]);
+  // A new call clears the pulled strip.
+  useEffect(() => setPulled(null), [call.slug]);
 
   const execute = useCallback(
     async (input: string): Promise<string> => {
@@ -153,7 +47,7 @@ export function CallBoard({ calls, initial }: Props) {
         case "run":
         case "play": {
           if (!argument) {
-            if (audio.current?.paused) await toggle();
+            await playCall(call.slug);
             return `playing ${call.title}`;
           }
           const number = Number(argument);
@@ -161,17 +55,12 @@ export function CallBoard({ calls, initial }: Props) {
             ? calls[number - 1]
             : calls.find((item) => item.slug === argument || item.title === argument || item.slug.startsWith(argument));
           if (!target) return `no call called ${argument}. Try calls.`;
-          if (target.slug === call.slug) {
-            if (audio.current?.paused) await toggle();
-          } else {
-            pendingPlay.current = true;
-            await choose(target.slug);
-          }
+          await playCall(target.slug);
           return `playing ${target.title}`;
         }
         case "pause":
         case "stop":
-          audio.current?.pause();
+          pause();
           return "paused";
         case "goto":
         case "cd":
@@ -193,30 +82,13 @@ export function CallBoard({ calls, initial }: Props) {
           return SECTIONS.includes(verb) ? section(verb) : `command not found: ${verb}. Try help.`;
       }
     },
-    [call.slug, call.title, calls, choose, toggle],
+    [call.slug, call.title, calls, pause, playCall],
   );
-
-  // Space plays or pauses the call when nothing else has the keyboard and the board is in view.
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement;
-      if (event.key !== " " || target.closest("button, a, input, textarea, summary, [role=slider]")) return;
-      const pane = document.getElementById("call");
-      if (!pane) return;
-      const rect = pane.getBoundingClientRect();
-      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-      event.preventDefault();
-      void toggle();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [toggle]);
 
   // Strips in the bay, newest at the top: those whose caller has started speaking.
   const fed = started ? board.strips.filter((strip) => strip.feedAt <= now + 1e-6) : [];
   const visible = [...fed].reverse();
   const live = playing && fed.length ? fed[fed.length - 1].turn : null;
-  const finished = started && !playing && now >= call.duration_s - 0.05;
   const index = calls.findIndex((item) => item.slug === call.slug);
 
   // Nothing glides: when a strip feeds in at the top, the strips below snap down one step.
@@ -392,20 +264,6 @@ export function CallBoard({ calls, initial }: Props) {
         </details>
       </div>
 
-      <audio
-        ref={audio}
-        src={call.audio}
-        preload="none"
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        onEnded={() => {
-          setPlaying(false);
-          nowRef.current = call.duration_s;
-          setNow(call.duration_s);
-        }}
-        onWaiting={() => setBuffering(true)}
-        onPlaying={() => setBuffering(false)}
-      />
     </div>
   );
 }

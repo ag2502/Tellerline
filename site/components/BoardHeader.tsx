@@ -54,9 +54,9 @@ export function BoardHeader({ bays }: { bays: Bay[] }) {
   }, [bays]);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-rail bg-board shadow-[0_1px_0_rgb(255_255_255/0.6)]">
+    <header className="sticky top-0 z-40 border-b border-rail bg-board shadow-[0_1px_0_rgb(255_255_255/0.6)]">
       <div className="mx-auto flex h-[var(--header-h)] max-w-[90rem] items-center gap-3 px-[var(--gutter)] sm:gap-6">
-        <a href="#call" className="flex shrink-0 items-center gap-2.5 no-underline" aria-label="Tellerline, to the top">
+        <a href="#top" className="flex shrink-0 items-center gap-2.5 no-underline" aria-label="Tellerline, to the top">
           <StripMark className="h-[18px] w-[34px]" />
           <span className="callsign text-[1.35rem] tracking-[0.01em]">Tellerline</span>
         </a>

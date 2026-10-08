@@ -34,7 +34,7 @@ export function NumbersSection({ number }: { number: number }) {
   ];
 
   return (
-    <Section id="numbers" number={number} title="Measured by phoning it, not projected" command="python -m bench.caller --turns 220">
+    <Section id="numbers" number={number} stage={{ name: "numbers", caption: `every one of the ${gate.measured} timed replies as a block, stacked by the caller's wait from 0 to 1.5 s; grey ones waited longer` }} title="Measured by phoning it, not projected" command="python -m bench.caller --turns 220">
       <div className="grid items-start gap-x-14 gap-y-12 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <div className="flex flex-col gap-6">
           <p className="prose-width text-[1.15rem] leading-relaxed">
