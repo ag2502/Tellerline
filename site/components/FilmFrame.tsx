@@ -1,16 +1,26 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import { buildTimeline, clock, type Line, spokenShare } from "@/lib/timeline";
+import { type Board, buildBoard, clock, onScale, SCALE_S, type TurnStrip } from "@/lib/timeline";
 import type { Call } from "@/lib/types";
+
+import { Ruler } from "./Scale";
+import { StripMark } from "./StripMark";
+import { Greeting, PenCircle, Strip } from "./Strips";
+import { Waveform } from "./Waveform";
 
 // One frame of the film at time t, drawn the same way every time so a headless browser can step
 // through it: scripts/render_film.py calls window.__setFilmTime(t) and takes a screenshot.
-// The film runs INTRO_S of title card, the call itself, then OUTRO_S of end card.
+// The film runs INTRO_S of title card, the call itself, then OUTRO_S of end card. It is the
+// page's own strip board, laid out at 1422 by 800 and drawn at 1.35 times that: 1920 by 1080.
 
 export const INTRO_S = 6;
 export const OUTRO_S = 6;
+
+const FEED_S = 0.42; // as long as a strip takes to feed in on the page
+const PEN_S = 0.48; // and the pen to circle a wait
+const GAP_PX = 10; // between strips in the bay
 
 declare global {
   interface Window {
@@ -21,12 +31,12 @@ declare global {
 
 type Props = { call: Call; numbers: { p50: number; p90: number; turns: number } | null };
 
-// Lines scrolling off the top fade out rather than being cut through.
-const FADE_TOP = "linear-gradient(to bottom, transparent 0, black 22%)";
+// Every frame is a still: nothing animates by the wall clock, only by the film's own.
+const STILL = "*,*::before,*::after{transition:none!important;animation:none!important}";
 
 export function FilmFrame({ call, numbers }: Props) {
   const [time, setTime] = useState(0);
-  const timeline = useMemo(() => buildTimeline(call), [call]);
+  const board = useMemo(() => buildBoard(call), [call]);
 
   useEffect(() => {
     window.__filmLength = INTRO_S + call.duration_s + OUTRO_S;
@@ -39,194 +49,235 @@ export function FilmFrame({ call, numbers }: Props) {
   }, [call.duration_s]);
 
   const now = time - INTRO_S;
-  if (now < 0) return <TitleCard call={call} fade={Math.min(1, (INTRO_S - time) / 0.4)} />;
-  if (now > call.duration_s) return <EndCard numbers={numbers} />;
-
-  const shown = timeline.lines.filter((line) => line.at <= now + 1e-6);
-  // The conversation on the left; each turn's stages go in the panel on the right.
-  const recent = shown.filter((line) => line.kind !== "stage").slice(-12);
-  const turnLines = currentTurn(shown);
-
   return (
-    <div className="flex h-[1080px] w-[1920px] flex-col overflow-hidden bg-tube px-16 pb-0 pt-12 text-[30px] leading-[1.45]">
-      <header className="flex items-baseline justify-between">
-        <span className="display text-[40px]">Tellerline</span>
-        <span className="dim">a real call, recorded on a MacBook Air M5</span>
-        <span className="bloom tabular">{clock(now)}</span>
-      </header>
-      <div className="rule mt-6" />
-      <div className="mt-8 grid min-h-0 flex-1 grid-cols-[1.35fr_1fr] gap-14">
-        <ol
-          className="flex min-h-0 flex-col justify-end space-y-3 overflow-hidden"
-          style={{ maskImage: FADE_TOP, WebkitMaskImage: FADE_TOP }}
-        >
-          {recent.map((line, index) => (
-            <FilmLine key={`${line.kind}-${line.at}-${index}`} line={line} now={now} />
-          ))}
-        </ol>
-        <aside className="flex flex-col gap-8 border-l border-scan pl-12">
-          <Stopwatch shown={shown} now={now} />
-          <div className="space-y-3">
-            <p className="dim">this turn</p>
-            {turnLines.map((line, index) => (
-              <div key={index} className="grid grid-cols-[5.5em_1fr_4.5em] gap-x-4 text-[28px]">
-                <span className="dim">{line.label}</span>
-                <span className={`${line.tone === "action" ? "bloom" : "text-p1"} line-clamp-2`}>
-                  {line.value}
-                </span>
-                <span className="faint tabular text-right">{line.ms}</span>
-              </div>
-            ))}
-          </div>
-        </aside>
-      </div>
-      <FilmStrip call={call} now={now} gaps={timeline.gaps} />
-      <div className="inverse -mx-16 mt-6 flex h-[52px] items-center gap-8 px-16 text-[26px]">
-        <span>[tellerline]</span>
-        <span>0:call*</span>
-        <span>Gemma 4 E2B, Parakeet, Kokoro: all on the Mac</span>
-      </div>
+    <div className="h-[800px] w-[1422px] overflow-hidden" style={{ zoom: 1.35 }}>
+      <style>{STILL}</style>
+      {now < 0 ? (
+        <TitleCard call={call} />
+      ) : now > call.duration_s ? (
+        <EndCard numbers={numbers} />
+      ) : (
+        <FilmBoard call={call} board={board} now={now} />
+      )}
     </div>
   );
 }
 
-function FilmLine({ line, now }: { line: Line; now: number }) {
-  if (line.kind === "gap") {
-    const waiting = now < line.until;
-    const seconds = Math.min(now, line.until) - line.at;
-    return (
-      <li className="tabular pl-[13.5em]">
-        <span className="bloom">
-          {waiting ? "waiting " : "replied after "}
-          {seconds.toFixed(2)}&nbsp;s
-        </span>
-        {!waiting && line.callerWait !== null ? (
-          <span className="dim block text-[24px]">{line.callerWait.toFixed(2)}&nbsp;s for the caller</span>
-        ) : null}
-      </li>
-    );
-  }
-  if (line.kind === "stage") return null;
-  const share = spokenShare(line.spans, now);
-  const live = share > 0 && share < 1;
-  return (
-    <li className="grid grid-cols-[4.5em_9em_1fr]">
-      <span className="faint tabular">{clock(line.at).slice(0, 5)}</span>
-      <span className={line.kind === "agent" ? "text-p1" : "dim"}>
-        {line.kind === "agent" ? "TELLERLINE" : "CALLER"}
-      </span>
-      <span className={line.kind === "agent" ? (live ? "bloom" : "text-p1") : "dim"}>
-        {line.text.slice(0, Math.round(share * line.text.length))}
-        {live ? <span className="cursor" style={{ animation: "none" }} /> : null}
-      </span>
-    </li>
-  );
-}
+function FilmBoard({ call, board, now }: { call: Call; board: Board; now: number }) {
+  const nowRef = useRef(now);
+  nowRef.current = now;
+  const list = useRef<HTMLOListElement>(null);
+  const fed = board.strips.filter((strip) => strip.feedAt <= now + 1e-6);
+  const newest = fed[fed.length - 1];
 
-function Stopwatch({ shown, now }: { shown: Line[]; now: number }) {
-  const gap = [...shown].reverse().find((line) => line.kind === "gap");
-  if (!gap || gap.kind !== "gap") {
-    return <p className="dim text-[28px]">the reply gap appears when the caller stops talking</p>;
-  }
-  const waiting = now < gap.until;
-  const seconds = Math.min(now, gap.until) - gap.at;
-  const heard = !waiting && gap.callerWait !== null;
-  return (
-    <div>
-      <p className="dim">{waiting ? "the caller has stopped" : "Tellerline answered after"}</p>
-      <p className="display tabular text-[132px] leading-none">{seconds.toFixed(2)}&nbsp;s</p>
-      <p className="dim mt-4 text-[26px]" style={{ visibility: heard ? "visible" : "hidden" }}>
-        {gap.callerWait === null ? "" : `${gap.callerWait.toFixed(2)} s by the time the caller heard it`}
-      </p>
-    </div>
-  );
-}
-
-function currentTurn(shown: Line[]): { label: string; value: string; ms: string; tone?: string }[] {
-  const last = [...shown].reverse().find((line) => line.kind === "caller");
-  if (!last || last.kind !== "caller") return [];
-  return shown
-    .filter((line) => line.kind === "stage" && line.turn === last.turn)
-    .map((line) => {
-      const stage = line as Extract<Line, { kind: "stage" }>;
-      const ms = stage.ms === null ? "" : `${stage.ms < 1 ? "<1" : Math.round(stage.ms)} ms`;
-      return { label: stage.label, value: stage.value, ms, tone: stage.tone };
-    });
-}
-
-function FilmStrip({ call, now, gaps }: { call: Call; now: number; gaps: [number, number][] }) {
-  const columns = 300;
-  const hz = call.envelope_hz;
-  const bars = Array.from({ length: columns }, (_, column) => {
-    const from = Math.floor(((column / columns) * call.duration_s) * hz);
-    const to = Math.max(from + 1, Math.floor((((column + 1) / columns) * call.duration_s) * hz));
-    let up = 0;
-    let down = 0;
-    for (let i = from; i < to; i++) {
-      up = Math.max(up, call.envelope.caller[i] ?? 0);
-      down = Math.max(down, call.envelope.agent[i] ?? 0);
+  // A new strip feeds in at the top and the rest snap down one step, on the film's clock.
+  useLayoutEffect(() => {
+    const element = list.current;
+    if (!element) return;
+    const first = element.firstElementChild as HTMLElement | null;
+    const age = newest ? now - newest.feedAt : Number.POSITIVE_INFINITY;
+    if (first && age < FEED_S) {
+      const step = first.offsetHeight + GAP_PX;
+      element.style.transform = `translateY(${(-step * (1 - snap(age / FEED_S))).toFixed(2)}px)`;
+    } else {
+      element.style.transform = "";
     }
-    return { up: up / 255, down: down / 255, played: column / columns <= now / call.duration_s };
   });
+
   return (
-    <div className="relative mt-6 h-[120px] w-full" aria-hidden="true">
-      <div className="absolute inset-x-0 top-[60px] h-px bg-after" />
-      <div className="flex h-full items-stretch gap-[2px]">
-        {bars.map((bar, index) => (
-          <div key={index} className="relative flex-1">
-            <div
-              className="absolute bottom-[60px] w-full"
-              style={{ height: `${bar.up * 56}px`, background: bar.played ? "#23a14b" : "#0b331e" }}
-            />
-            <div
-              className="absolute top-[61px] w-full"
-              style={{ height: `${bar.down * 56}px`, background: bar.played ? "#33ff66" : "#0b331e" }}
+    <div className="flex h-full flex-col gap-4 px-8 pb-6 pt-5">
+      <header className="flex items-center justify-between gap-6">
+        <span className="flex items-center gap-3">
+          <StripMark className="h-[20px] w-[38px]" />
+          <span className="callsign text-[1.65rem]">Tellerline</span>
+        </span>
+        <span className="text-[0.95rem] text-ink-2">
+          A real call, recorded on a MacBook Air M5. The caller&apos;s voice is synthetic.
+        </span>
+        <span className="print text-[1.45rem] font-semibold">{clock(now)}</span>
+      </header>
+
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)] gap-5">
+        <div className="well min-h-0 overflow-hidden p-3">
+          <ol ref={list} className="flex min-h-full flex-col" style={{ gap: GAP_PX }}>
+            {[...fed].reverse().map((strip) => (
+              <li key={strip.turn}>
+                <Strip strip={strip} now={now} live={strip === newest} instant pulled={false} pen={penProgress(strip, now)} />
+              </li>
+            ))}
+            {board.greeting && now >= board.greeting.at ? (
+              <li className="mt-auto">
+                <Greeting greeting={board.greeting} now={now} instant={false} />
+              </li>
+            ) : null}
+          </ol>
+        </div>
+        <Waits board={board} now={now} newest={newest} />
+      </div>
+
+      <div className="holder-agent">
+        <div className="strip px-4 pb-2.5 pt-2.5">
+          <div className="flex items-baseline justify-between gap-4">
+            <p className="callsign text-[1.3rem]">
+              {call.title}
+              <span className="print ml-3 align-middle text-[0.72rem] font-normal normal-case tracking-normal text-ink-3">
+                {call.call_id}
+              </span>
+            </p>
+            <p className="flex items-center gap-4 text-[0.8rem] text-ink-2">
+              <span className="flex items-center gap-1.5">
+                <i className="inline-block h-3 w-1.5 rounded-[1px] bg-[#d9a21f]" /> caller
+              </span>
+              <span className="flex items-center gap-1.5">
+                <i className="inline-block h-3 w-1.5 rounded-[1px] bg-blue" /> Tellerline
+              </span>
+              <span className="flex items-center gap-1.5">
+                <i className="inline-block h-1.5 w-4 border-x-[1.5px] border-b-[1.5px] border-ink" /> the wait
+              </span>
+            </p>
+          </div>
+          <div className="mt-2">
+            <Waveform
+              caller={call.envelope.caller}
+              agent={call.envelope.agent}
+              hz={call.envelope_hz}
+              duration={call.duration_s}
+              gaps={board.gaps}
+              now={nowRef}
+              playing
+              highlight={null}
+              onSeek={() => {}}
+              label={`The whole call, ${call.title}`}
             />
           </div>
-        ))}
+        </div>
       </div>
-      {gaps.map(([start, end]) => (
-        <div
-          key={start}
-          className="absolute bottom-0 h-[6px] border-x border-b border-bloom"
-          style={{ left: `${(start / call.duration_s) * 100}%`, width: `${((end - start) / call.duration_s) * 100}%` }}
-        />
-      ))}
-      <div
-        className="absolute top-0 h-[114px] w-[3px] bg-bloom"
-        style={{ left: `${(now / call.duration_s) * 100}%`, boxShadow: "0 0 12px #b6ffb6" }}
-      />
     </div>
   );
 }
 
-function TitleCard({ call, fade }: { call: Call; fade: number }) {
+// The right of the board: the live wait, large, circled in pen when Tellerline answers; under it
+// every wait in the call so far on the page's one scale.
+function Waits({ board, now, newest }: { board: Board; now: number; newest: TurnStrip | undefined }) {
+  const timed = board.strips.filter((strip) => strip.wait && now >= strip.wait.from);
+  const current = newest?.wait && now >= newest.wait.from ? newest : timed[timed.length - 1];
+  const wait = current?.wait ?? null;
+  const answered = wait ? now >= wait.until : false;
+  const value = wait ? Math.min(now, wait.until) - wait.from : null;
   return (
-    <div
-      className="flex h-[1080px] w-[1920px] flex-col justify-center gap-10 bg-tube px-40"
-      style={{ opacity: fade }}
-    >
-      <p className="dim text-[34px]">[tellerline]</p>
-      <h1 className="display max-w-[18ch] text-[104px]">Bank calls, answered on one MacBook Air.</h1>
-      <p className="max-w-[54ch] text-[34px] leading-snug">
-        A real call. {call.summary} The caller is a synthetic voice; everything Tellerline says is
-        generated live on the Mac.
-      </p>
+    <aside className="flex min-h-0 flex-col gap-4">
+      <div className="holder-turn">
+        <div className="strip px-6 pb-5 pt-4">
+          <p className="label">{current ? `turn ${current.turn}: the caller waited` : "the wait"}</p>
+          <p className="mt-4 h-[4.25rem]">
+            {value !== null ? (
+              <span className={`print relative inline-block text-[4.25rem] font-semibold leading-none ${answered && current === newest ? "text-red-ink" : ""}`}>
+                {value.toFixed(2)}
+                <span className="text-[0.42em] font-normal"> s</span>
+                {answered && current ? (
+                  <PenCircle settled={current !== newest} instant progress={(now - wait!.until) / PEN_S} weight={1.4} />
+                ) : null}
+              </span>
+            ) : (
+              <span className="text-[1.05rem] text-ink-2">The wait is timed from the caller&apos;s last word.</span>
+            )}
+          </p>
+          <p className="mt-4 min-h-[1.5em] text-[0.95rem] text-ink-2">
+            {answered && wait?.callerWait != null ? `${wait.callerWait.toFixed(2)} s for the caller, WebRTC both ways` : " "}
+          </p>
+        </div>
+      </div>
+
+      <div className="holder-plain min-h-0 flex-1">
+        <div className="strip flex h-full flex-col px-5 pb-3 pt-4">
+          <p className="label">every wait in this call, on one scale</p>
+          <ol className="mt-4 flex flex-col gap-2.5">
+            {timed.map((strip) => {
+              const span = strip.wait!;
+              const seconds = Math.min(now, span.until) - span.from;
+              return (
+                <li key={strip.turn} className="grid grid-cols-[3.25rem_minmax(0,1fr)_3.5rem] items-center gap-3">
+                  <span className="print text-[0.8rem] text-ink-3">turn {strip.turn}</span>
+                  <span className="scale-ticks relative block h-4 rounded-[1px] bg-[#f3f5f7]">
+                    <span
+                      className={`absolute inset-y-0.5 left-0 rounded-[1px] ${strip === current ? "bg-blue" : "bg-ink"}`}
+                      style={{ width: `${onScale(seconds) * 100}%` }}
+                    />
+                  </span>
+                  <span className="print text-right text-[0.85rem] font-semibold">{seconds.toFixed(2)} s</span>
+                </li>
+              );
+            })}
+          </ol>
+          <div className="mt-auto grid grid-cols-[3.25rem_minmax(0,1fr)_3.5rem] gap-3 pt-2">
+            <span />
+            <Ruler />
+            <span />
+          </div>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function penProgress(strip: TurnStrip, now: number): number | undefined {
+  if (!strip.wait || now < strip.wait.until) return undefined;
+  return (now - strip.wait.until) / PEN_S;
+}
+
+function TitleCard({ call }: { call: Call }) {
+  return (
+    <div className="flex h-full flex-col justify-center px-24">
+      <div className="holder-turn max-w-[64rem]">
+        <div className="strip px-12 pb-12 pt-10">
+          <p className="flex items-center gap-3">
+            <StripMark className="h-[22px] w-[42px]" />
+            <span className="callsign text-[1.6rem]">Tellerline</span>
+          </p>
+          <h1 className="callsign mt-8 max-w-[16ch] text-[4.4rem]">Bank calls, answered on one MacBook Air.</h1>
+          <p className="mt-8 max-w-[54ch] text-[1.25rem] leading-snug text-ink-2">
+            A real call. {call.summary} The caller is a synthetic voice; everything Tellerline says
+            is generated live on the Mac.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
 
 function EndCard({ numbers }: { numbers: Props["numbers"] }) {
   return (
-    <div className="flex h-[1080px] w-[1920px] flex-col justify-center gap-10 bg-tube px-40">
-      <p className="display text-[96px]">Tellerline</p>
-      {numbers ? (
-        <p className="max-w-[56ch] text-[38px] leading-snug">
-          Over {numbers.turns} measured replies, half arrived within {numbers.p50.toFixed(2)} s and nine
-          in ten within {numbers.p90.toFixed(2)} s.
-        </p>
-      ) : null}
-      <p className="bloom text-[44px]">github.com/ag2502/Tellerline</p>
+    <div className="flex h-full flex-col justify-center px-24">
+      <div className="holder-agent max-w-[64rem]">
+        <div className="strip px-12 pb-12 pt-10">
+          <p className="callsign text-[4rem]">Tellerline</p>
+          {numbers ? (
+            <p className="mt-6 max-w-[48ch] text-[1.45rem] leading-snug">
+              Over {numbers.turns} measured replies, half arrived within {numbers.p50.toFixed(2)} s and
+              nine in ten within {numbers.p90.toFixed(2)} s, on the {SCALE_S} s target.
+            </p>
+          ) : null}
+          <p className="key mt-10 w-fit text-[1.35rem]" data-primary="">
+            github.com/ag2502/Tellerline
+          </p>
+        </div>
+      </div>
     </div>
   );
+}
+
+// The page's snap, cubic-bezier(0.3, 1.45, 0.55, 1), solved for a given share of its time.
+function snap(x: number): number {
+  const [x1, y1, x2, y2] = [0.3, 1.45, 0.55, 1];
+  const curve = (t: number, a: number, b: number) => 3 * a * (1 - t) ** 2 * t + 3 * b * (1 - t) * t ** 2 + t ** 3;
+  const slope = (t: number, a: number, b: number) => 3 * a * (1 - t) ** 2 + 6 * (b - a) * (1 - t) * t + 3 * (1 - b) * t ** 2;
+  const share = Math.min(1, Math.max(0, x));
+  let t = share;
+  for (let i = 0; i < 10; i++) {
+    const error = curve(t, x1, x2) - share;
+    const d = slope(t, x1, x2);
+    if (Math.abs(error) < 1e-6 || Math.abs(d) < 1e-6) break;
+    t = Math.min(1, Math.max(0, t - error / d));
+  }
+  return curve(t, y1, y2);
 }

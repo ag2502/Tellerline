@@ -8,71 +8,66 @@ related_targets: ["site"]
 # Surface brief: Tellerline website (site/)
 
 Scope: the public launch site for Tellerline, one long page plus generated OG images, deployed
-on Vercel. Visitor mode: Persuade.
+on Vercel at tellerline.vercel.app. Visitor mode: Persuade. Redesign (6 October 2026): the
+green-phosphor terminal world is replaced; product truth, content and functions stay.
 
 Audience and job: engineers and hiring managers judging the project in one or two minutes; they
-must hear a real call, believe the measured numbers, and open the GitHub repository (primary
-action). Watching the film is the secondary action.
+must hear a real call first, believe the measured numbers, and open the GitHub repository
+(primary action). Watching the film is the secondary action.
 
 Proof on hand: real recorded calls (both voices, transcripts, per-stage timings) exported from
 the agent's recorder; benchmark results under results/; the decision log; live repository data
 from GitHub. Nothing else may be claimed.
 
+Must survive, in the new form: the call replay with real audio and per-stage timings, the typed
+command prompt, the decision log, the film, the run guide and the credits.
+
 Constraints: every number on the page is read from exported run data at build time, never typed
 in by hand; caller voices in recordings are synthetic and must be labelled so; model credits
 and licences stay visible; works at 390 px; keyboard-first; reduced motion prints instantly.
+The owner rejected: dark and techy, the generic AI startup look, static and plain, busy and
+dense.
 
 ## Direction contract
 
-THESIS: The call prints itself. A real Tellerline call replays as an operator's terminal
-session: every line the caller said, every route, ACTION line and millisecond prints as it
-happened while both voices play. It refuses the voice-AI default of a glowing orb, gradient
-glass, an icon feature grid and invented metrics.
+THESIS: Every turn is a flight strip. A real call replays on an air-traffic strip board: each
+caller turn feeds a printed strip that fills box by box (heard, routed, decided, bank) as both
+voices play, and moves down the bay. It refuses the voice-AI orb, gradient glass, icon grids
+and the terminal it replaces.
 
-OWN-WORLD: P1 phosphor #33ff66 on tube ground #020805 inside curved CRT glass with scanlines,
-fine grain and edge fade; afterimage #176e3a for decoration, faint #1d8c4a for history and
-timings, bloom #b6ffb6 for the live line and
-cursor, deep glass #07210f for panes, scanline dim #0b331e for rules. One dot-matrix monospace
-face does everything; hierarchy is size steps of that face, case, indentation, a line-number
-gutter and dashed full-width rules. Commands are bracketed; active is inverse video; states print
-themselves. No other colour exists. Voices are braille-dot waveforms drawn from the real audio.
+OWN-WORLD: Brushed aluminium board #E7EAED, white strips #FFFFFF in coloured holders: amber
+#F2C14E for the caller's side, blue #2F6FD6 for Tellerline's; print ink #16191D; red pen #D93A2B
+only on the live turn. Mona Sans (width axis: condensed for strip print, normal for prose) and
+Martian Mono for measured values. Ruled boxes with tiny labels, bay designators, pen circles and
+ticks drawn as SVG strokes. Raised lines: one clock (the call's timecode drives the board;
+pause freezes every strip), one hot ink (red only on the live turn), nothing glides (strips snap
+one step, overshoot, settle), one scale (every timing on the same ruled 0-1.5 s scale), one pull
+(pulling a strip opens its trace).
 
-STORY: The visitor lands inside a tmux-style session where a real call waits. They press RUN and
-hear Tellerline answer while each turn prints what was heard, where it was routed, the ACTION
-line, the bank's answer and every stage's milliseconds. Scrolling continues the same session
-(how a turn works, the gate's numbers, safety by construction, what fits in 16 GB, the decision
-log, the film), and it ends at git clone and the GitHub link.
+STORY: The visitor presses Play and hears Aoife's call while strips print and fill in sync, the
+red pen circling each reply time. Scrolling moves through bays on the same board: one strip
+pulled out (a turn's anatomy on the scale), the measured numbers (the gate as a histogram on
+that scale, capacity as parallel bays, the phone line), what an unverified caller can reach,
+memory, the decision log as filed strips, the film, and the run guide, ending at GitHub.
 
-FIRST VIEWPORT: Full-viewport CRT. Left pane, about 58%: the call session, header printed, the
-greeting already on screen and a waveform beneath it, waiting on RUN. Right pane: a dot-matrix
-display headline over three lines, one plain sentence, real numbers as prompt lines, then the
-actions: inverse [ RUN THE CALL ] and outlined [ GITHUB ]. Bottom: an inverse tmux status bar
-whose window list is the navigation. On phones the right pane leads and the call pane follows.
+FIRST VIEWPORT: A board header with the wordmark, bay tabs and the GitHub key. Left third: the
+headline over two lines, one sentence, three measured proof strips, GitHub key and film key.
+Right two-thirds: the call board: four call designators, a header strip with the two-voice
+waveform and clock, the greeting strip already printed, and a large Play key. Phones: claim,
+then board.
 
-FORM: Green-phosphor terminal in a midnight machine room (catalog challenger
-signals-instruments-phosphor-terminal-midnight, chosen over the assigned The Scope in re-roll
-round 1). Seed key b67b08be. Signature interaction: RUN replays a real recorded call with sound,
-printing each turn and its stage timings in sync; a typed prompt accepts real commands.
+FORM: Air traffic control flight progress strips, candidate 3 of my ordered seven; seed key
+21b97a7f.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
 ## Memorable moment
 
-Pressing RUN: the caller speaks, the gutter counts, `ACTION freeze card=4217 reason=stolen`
-prints in bloom, and Tellerline answers in a British voice about a second later, with the reply
-gap printed underneath in milliseconds.
+Pressing Play: a strip snaps down out of the printer, "Hi, I think my bank card has been
+stolen." prints in its caller box, ROUTE and DECIDE fill in, `ACTION freeze card=4217
+reason=stolen` prints, and the red pen circles "0.50 s" as Tellerline answers.
 
-## Resolved
+## Unresolved
 
-- Final figures come from campaign 4 (6 October 2026): the 220-turn gate, two to four calls at
-  once, the phone line and both noisy rooms, all read from `results/` by the exporter.
-- The phone line has no window of its own: it is a proof line in the hero, a block in the
-  numbers window and a setup block in the run window.
-
-## Finish
-
-Reviewed 6 October 2026 against this contract and the craft floor, with the detector clean and
-every shipping raster carrying its provenance. Fixed in review: text below 4.5:1 (a faint tier
-for timestamps and timings), the prompt's focus ring, whole lines under reduced motion, the stage
-order in the replay and the film, command wrapping on phones, and missing credits. Verdict:
-ship. Documented in DESIGN.md and `.impeccable/design.json`.
+- The command prompt's form in this world (a scratchpad entry line under the board).
+- OG image and favicon redrawn in the new world.

@@ -1,20 +1,22 @@
 import type { Metadata, Viewport } from "next";
-import localFont from "next/font/local";
+import { Martian_Mono, Mona_Sans } from "next/font/google";
 
 import { SITE_URL } from "@/lib/site";
 
 import "./globals.css";
 
-// IBM 3270: the lettering of the green-screen terminals bank tellers worked at for decades.
-// BSD-3-Clause, Ricardo Banffy and the 3270font authors (public/fonts/LICENSE-3270.txt).
-const wide = localFont({
-  src: "./fonts/3270-Regular.woff2",
-  variable: "--font-3270",
+// Mona Sans for words, pulled condensed for what a strip prints in capitals; Martian Mono for
+// measured values. Both are variable in width, and both are SIL Open Font License.
+const mona = Mona_Sans({
+  subsets: ["latin"],
+  axes: ["wdth"],
+  variable: "--font-mona",
   display: "swap",
 });
-const semi = localFont({
-  src: "./fonts/3270-SemiCondensed.woff2",
-  variable: "--font-3270-semi",
+const martian = Martian_Mono({
+  subsets: ["latin"],
+  axes: ["wdth"],
+  variable: "--font-martian",
   display: "swap",
 });
 
@@ -51,19 +53,14 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#020805",
-  colorScheme: "dark",
+  themeColor: "#e7eaed",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-GB" className={`${wide.variable} ${semi.variable}`}>
-      <body>
-        {children}
-        <div className="crt" aria-hidden="true">
-          <i />
-        </div>
-      </body>
+    <html lang="en-GB" className={`${mona.variable} ${martian.variable}`}>
+      <body>{children}</body>
     </html>
   );
 }

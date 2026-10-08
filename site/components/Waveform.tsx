@@ -4,18 +4,20 @@ import { useEffect, useRef } from "react";
 
 import type { Span } from "@/lib/timeline";
 
-// The whole call as a dot-matrix strip: the caller above the line, Tellerline below it. The
-// part already played glows; the gaps between a caller finishing and Tellerline answering are
-// marked underneath, since they are what this project measures.
+// The whole call as a printed trace: the caller above the line in amber, Tellerline below it in
+// blue, inked in as the call plays. The waits between a caller finishing and Tellerline answering
+// are bracketed underneath, since they are what this project measures.
 
-const DOT = 2;
+const BAR = 2;
 const PITCH = 3;
 const COLOURS = {
-  idle: "#176e3a",
-  caller: "#23a14b",
-  agent: "#33ff66",
-  head: "#b6ffb6",
-  gap: "#b6ffb6",
+  idle: "#c3cad2",
+  caller: "#d9a21f",
+  agent: "#2f6fd6",
+  axis: "#9aa3ad",
+  head: "#16191d",
+  gap: "#16191d",
+  band: "rgba(242, 193, 78, 0.22)",
 };
 
 type Props = {
@@ -26,11 +28,12 @@ type Props = {
   gaps: Span[];
   now: React.RefObject<number>;
   playing: boolean;
+  highlight: Span | null;
   onSeek: (seconds: number) => void;
   label: string;
 };
 
-export function Waveform({ caller, agent, hz, duration, gaps, now, playing, onSeek, label }: Props) {
+export function Waveform({ caller, agent, hz, duration, gaps, now, playing, highlight, onSeek, label }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -63,39 +66,54 @@ export function Waveform({ caller, agent, hz, duration, gaps, now, playing, onSe
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
       context.clearRect(0, 0, width, height);
 
+      const trace = height - 12; // room underneath for the wait brackets
+      const middle = Math.round(trace / 2);
+      const reach = middle - 2;
+      if (highlight) {
+        const x1 = (highlight[0] / duration) * width;
+        const x2 = (highlight[1] / duration) * width;
+        context.fillStyle = COLOURS.band;
+        context.fillRect(x1, 0, Math.max(2, x2 - x1), trace);
+      }
+
       const columns = Math.floor(width / PITCH);
-      const lane = Math.floor((height - 10) / 2 / PITCH); // dots per half, leaving room for gap marks
-      const middle = lane * PITCH;
       const played = (now.current ?? 0) / duration;
       for (let column = 0; column < columns; column++) {
         const from = (column / columns) * duration;
         const to = ((column + 1) / columns) * duration;
         const isPlayed = column / columns <= played;
         const x = column * PITCH;
-        const up = Math.round(level(caller, from, to) * lane);
-        context.fillStyle = isPlayed ? COLOURS.caller : COLOURS.idle;
-        for (let dot = 0; dot < up; dot++) context.fillRect(x, middle - (dot + 1) * PITCH, DOT, DOT);
-        const down = Math.round(level(agent, from, to) * lane);
-        context.fillStyle = isPlayed ? COLOURS.agent : COLOURS.idle;
-        for (let dot = 0; dot < down; dot++) context.fillRect(x, middle + dot * PITCH + 1, DOT, DOT);
+        const up = Math.max(0, Math.round(level(caller, from, to) * reach));
+        if (up) {
+          context.fillStyle = isPlayed ? COLOURS.caller : COLOURS.idle;
+          context.fillRect(x, middle - up, BAR, up);
+        }
+        const down = Math.max(0, Math.round(level(agent, from, to) * reach));
+        if (down) {
+          context.fillStyle = isPlayed ? COLOURS.agent : COLOURS.idle;
+          context.fillRect(x, middle + 1, BAR, down);
+        }
       }
-      // The axis, then each reply gap as a bracket under the strip.
-      context.fillStyle = COLOURS.idle;
-      for (let x = 0; x < width; x += PITCH * 2) context.fillRect(x, middle, DOT, 1);
+      // The axis, then each reply wait as a bracket under the trace.
+      context.fillStyle = COLOURS.axis;
+      for (let x = 0; x < width; x += 6) context.fillRect(x, middle, 3, 1);
       context.fillStyle = COLOURS.gap;
       for (const [start, end] of gaps) {
         const x1 = (start / duration) * width;
         const x2 = Math.max(x1 + 2, (end / duration) * width);
-        context.fillRect(x1, height - 4, x2 - x1, 1);
-        context.fillRect(x1, height - 7, 1, 4);
-        context.fillRect(x2 - 1, height - 7, 1, 4);
+        context.fillRect(x1, height - 3, x2 - x1, 1.5);
+        context.fillRect(x1, height - 8, 1.5, 6);
+        context.fillRect(x2 - 1.5, height - 8, 1.5, 6);
       }
-      const head = Math.min(width - 2, played * width);
+      const head = Math.min(width - 2, Math.max(0, played * width));
       context.fillStyle = COLOURS.head;
-      context.shadowColor = "rgba(182, 255, 182, 0.8)";
-      context.shadowBlur = 8;
-      context.fillRect(head, 0, 2, height - 9);
-      context.shadowBlur = 0;
+      context.fillRect(head, 0, 2, trace);
+      context.beginPath();
+      context.moveTo(head - 4, 0);
+      context.lineTo(head + 6, 0);
+      context.lineTo(head + 1, 6);
+      context.closePath();
+      context.fill();
       lastDrawn = now.current ?? 0;
     };
 
@@ -111,7 +129,7 @@ export function Waveform({ caller, agent, hz, duration, gaps, now, playing, onSe
       cancelAnimationFrame(frame);
       observer.disconnect();
     };
-  }, [caller, agent, hz, duration, gaps, now, playing]);
+  }, [caller, agent, hz, duration, gaps, now, playing, highlight]);
 
   const seek = (event: React.PointerEvent<HTMLCanvasElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -139,7 +157,7 @@ export function Waveform({ caller, agent, hz, duration, gaps, now, playing, onSe
       aria-valuetext={`${Math.round(now.current ?? 0)} of ${Math.round(duration)} seconds`}
       onPointerDown={seek}
       onKeyDown={step}
-      className="block h-[4.75rem] w-full cursor-pointer touch-none"
+      className="block h-[4.25rem] w-full cursor-pointer touch-none rounded-[2px]"
     />
   );
 }

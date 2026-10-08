@@ -1,212 +1,165 @@
-import { Fragment } from "react";
-
 import { data, percent, seconds } from "@/lib/data";
-import type { CallerRun } from "@/lib/types";
+import { SCALE_S } from "@/lib/timeline";
+import type { Accuracy, CallerRun } from "@/lib/types";
 
+import { Ruler, Spread, SpreadKey } from "../Scale";
+import { Histogram } from "./Histogram";
 import { Section, Source } from "./Section";
 
-const TARGET_S = 1.5;
-const HISTOGRAM_CAP_S = 2.0; // longer replies share the last row
-const BAR_WIDTH = 34; // blocks in the longest bar
-const BAR_WIDTH_NARROW = 14; // on a phone
+type Row = { key: string; label: string; note: string; run: CallerRun; muted?: boolean };
 
-export function NumbersSection() {
+export function NumbersSection({ number }: { number: number }) {
   const gate = data.live.gate;
   if (!gate?.latency_s) return null;
   const { p50, p90, p95 } = gate.latency_s;
-  const within = p90 <= TARGET_S;
+  const within = p90 <= SCALE_S;
+  const phone = data.live.phone;
+  const before = data.live.before;
+  const rows: Row[] = [
+    ...data.live.capacity
+      .filter((run) => run.latency_s)
+      .map((run) => ({
+        key: run.file,
+        label: run.concurrency === 1 ? "one call" : `${run.concurrency} calls at once`,
+        note: `${run.calls} calls, ${run.measured} replies${run.overlaps ? `, ${run.overlaps} overlaps` : ""}`,
+        run,
+      })),
+    ...(phone?.latency_s
+      ? [{ key: "phone", label: "by phone", note: `Asterisk, 8 kHz G.711, ${phone.measured} replies`, run: phone }]
+      : []),
+    ...(before?.latency_s
+      ? [{ key: "before", label: "before this phase", note: `a ${before.turns}-turn pilot, ${before.measured} replies`, run: before, muted: true }]
+      : []),
+  ];
 
   return (
-    <Section id="numbers" title="Measured by phoning it, not projected" command="python -m bench.caller --turns 220">
-      <div className="grid gap-16 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="space-y-8">
-          <p className="max-w-[60ch] text-[1.1em] leading-relaxed">
-            An automated caller rang the agent over WebRTC {gate.calls} times, spoke{" "}
-            {gate.turns} turns and timed each reply from its own last word to Tellerline&apos;s
-            first sound. Half of the {gate.measured} replies arrived within{" "}
-            <span className="bloom">{seconds(p50)}</span>, nine in ten within{" "}
-            <span className="bloom">{seconds(p90)}</span>.
+    <Section id="numbers" number={number} title="Measured by phoning it, not projected" command="python -m bench.caller --turns 220">
+      <div className="grid items-start gap-x-14 gap-y-12 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+        <div className="flex flex-col gap-6">
+          <p className="prose-width text-[1.15rem] leading-relaxed">
+            An automated caller rang the agent over WebRTC {gate.calls} times, spoke {gate.turns}{" "}
+            turns and timed each reply from its own last word to Tellerline&apos;s first sound. Half
+            of the {gate.measured} replies arrived within <strong>{seconds(p50)}</strong>, nine in ten
+            within <strong>{seconds(p90)}</strong>.
           </p>
-          <p className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
-            <span className="inverse px-[1ch] py-0.5 uppercase tracking-wide">
-              {within ? "within target" : "over target"}
-            </span>
-            <span className="dim">
-              The target is nine in ten within {TARGET_S} s
-              {within ? "" : `; this run missed it by ${Math.round((p90 - TARGET_S) * 1000)} ms`}.
-            </span>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[0.95rem] text-ink-2">
+            <span className={`stamp ${within ? "text-blue-ink" : "text-ink"}`}>{within ? "within target" : "over target"}</span>
+            The target is nine in ten within {SCALE_S} s
+            {within ? "" : `; this run missed it by ${Math.round((p90 - SCALE_S) * 1000)} ms`}.
           </p>
-          <Histogram run={gate} />
-          <p className="dim max-w-[62ch] text-[0.95em]">
+          <p className="prose-width text-[0.95rem] leading-relaxed text-ink-2">
             In {gate.overlaps} more turns Tellerline&apos;s voice started before the caller had
             finished: they carried on after a pause just as a reply began. It stopped within about
             0.4&nbsp;s and answered the whole sentence. These turns are counted apart rather than as
             fast replies.
-            {gate.without_reply ? ` ${gate.without_reply} turns got no reply.` : ""} p95{" "}
-            {seconds(p95)}.
+            {gate.without_reply ? ` ${gate.without_reply} turns got no reply.` : " Every turn got a reply."} The
+            slowest one in twenty took longer than {seconds(p95)}.
           </p>
           <Source file={`results/${gate.file}`}>Every turn of this run, with the agent&apos;s own trace</Source>
         </div>
 
-        <div className="space-y-14">
-          <Capacity runs={data.live.capacity} />
-          {data.live.phone?.latency_s ? <Phone run={data.live.phone} /> : null}
-          <Accuracy />
-          {data.live.noisy.length ? <Noisy runs={data.live.noisy} /> : null}
+        <Histogram run={gate} />
+      </div>
+
+      <div className="mt-20 grid gap-x-14 gap-y-8 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+        <div>
+          <h3 className="headline text-[1.6rem]">Every run, on the same scale</h3>
+          <p className="prose-width mt-3 text-[0.95rem] leading-relaxed text-ink-2">
+            Several automated callers at once on one Mac, the callers themselves running on it
+            too; then the same caller dialling in through Asterisk on G.711, the 8 kHz audio of an
+            ordinary phone call, answered over Asterisk&apos;s WebSocket channel.
+          </p>
+          {phone ? (
+            <p className="mt-4">
+              <Source file={`results/${phone.file}`}>The phone-line run</Source>
+            </p>
+          ) : null}
         </div>
+        <ScaleRows rows={rows} label="Reply times of each run: half within, and nine in ten within" />
+      </div>
+
+      <div className="mt-20 grid gap-x-14 gap-y-16 xl:grid-cols-2">
+        <AccuracyStrips />
+        {data.live.noisy.length ? <Noisy runs={data.live.noisy} /> : null}
       </div>
     </Section>
   );
 }
 
-function Histogram({ run }: { run: CallerRun }) {
-  const rows: { label: string; from: number; count: number }[] = [];
-  let over = 0;
-  for (const bin of run.histogram) {
-    if (bin.from >= HISTOGRAM_CAP_S) over += bin.count;
-    else rows.push({ label: `${bin.from.toFixed(1)} s`, from: bin.from, count: bin.count });
-  }
-  if (over) rows.push({ label: `${HISTOGRAM_CAP_S.toFixed(1)} s+`, from: HISTOGRAM_CAP_S, count: over });
-  const most = Math.max(...rows.map((row) => row.count));
-  const { p50, p90 } = run.latency_s!;
-  const marks = (from: number) => {
-    const found = [];
-    if (p50 >= from && p50 < from + 0.1) found.push("median");
-    if (p90 >= from && p90 < from + 0.1) found.push("9 in 10");
-    return found.join(", ");
-  };
-
+// Runs as parallel strips on one ruler: label, the spread on the scale, the two figures.
+function ScaleRows({ rows, label }: { rows: Row[]; label: string }) {
   return (
-    <table className="w-full border-collapse text-[0.92em]">
-      <caption className="dim mb-3 text-left">
-        Replies by how long the caller waited, in tenths of a second
-      </caption>
-      <thead className="sr-only">
-        <tr>
-          <th scope="col">Wait</th>
-          <th scope="col">Replies</th>
-          <th scope="col">Marker</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row) => (
-          <Fragment key={row.label}>
-            {Math.abs(row.from - TARGET_S) < 1e-9 ? (
-              <tr aria-hidden="true">
-                <td colSpan={3} className="py-1">
-                  <span className="after">──── </span>
-                  <span className="dim">target {TARGET_S.toFixed(1)} s</span>
-                  <span className="after"> ────</span>
-                </td>
-              </tr>
-            ) : null}
-            <tr>
-              <th
-                scope="row"
-                className="dim w-[7ch] whitespace-nowrap pr-[1ch] text-left font-normal tabular"
-              >
-                {row.label}
-              </th>
-              <td className="whitespace-nowrap">
-                <span className={row.from + 0.1 <= TARGET_S + 1e-9 ? "text-p1" : "bloom"} aria-hidden="true">
-                  <span className="hidden sm:inline">{bar(row.count, most, BAR_WIDTH)}</span>
-                  <span className="sm:hidden">{bar(row.count, most, BAR_WIDTH_NARROW)}</span>
-                </span>
-                <span className="dim tabular"> {row.count}</span>
-              </td>
-              <td className="bloom whitespace-nowrap pl-[1ch] text-right">{marks(row.from)}</td>
-            </tr>
-          </Fragment>
-        ))}
-      </tbody>
-    </table>
+    <figure aria-label={label} className="flex flex-col gap-3">
+      <SpreadKey />
+      <ol className="flex flex-col gap-2">
+        {rows.map((row) => {
+          const spread = row.run.latency_s!;
+          return (
+            <li key={row.key} className="holder-plain">
+              <div className="strip grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[9.5rem_minmax(0,1fr)_7.5rem]">
+                <div className="box">
+                  <span className={`block font-semibold leading-tight ${row.muted ? "text-ink-2" : ""}`}>{row.label}</span>
+                  <span className="block text-[0.74rem] leading-snug text-ink-3">{row.note}</span>
+                </div>
+                <div className="box col-span-2 row-start-2 flex items-center border-l-0 border-t border-rule px-[0.7rem] py-2.5 sm:col-span-1 sm:col-start-2 sm:row-start-1 sm:border-l sm:border-t-0 sm:px-[0.9rem]">
+                  <span className="block w-full">
+                    <Spread p50={spread.p50} p90={spread.p90} />
+                  </span>
+                </div>
+                <div className="box flex flex-col items-end justify-center text-right">
+                  <span className="print text-[0.8rem] text-ink-2">
+                    <span className="sr-only">half within </span>
+                    {seconds(spread.p50)}
+                  </span>
+                  <span className={`print text-[0.98rem] font-semibold ${row.muted ? "text-ink-2" : ""}`}>
+                    <span className="sr-only">, nine in ten within </span>
+                    {seconds(spread.p90)}
+                  </span>
+                </div>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+      <Ruler className="ml-[calc(10px+0.7rem)] mr-[calc(3px+0.7rem)] sm:ml-[calc(10px+9.5rem+1px+0.9rem)] sm:mr-[calc(3px+7.5rem+0.9rem)]" />
+    </figure>
   );
 }
 
-function bar(count: number, most: number, width: number): string {
-  return "▬".repeat(Math.max(count ? 1 : 0, Math.round((count / most) * width)));
-}
-
-function Capacity({ runs }: { runs: CallerRun[] }) {
-  const measured = runs.filter((run) => run.latency_s);
-  if (measured.length < 2) return null;
-  return (
-    <div>
-      <h3 className="bloom mb-2">Calls at once</h3>
-      <p className="dim mb-4 max-w-[58ch] text-[0.95em]">
-        One Mac, several automated callers at the same time, each run timed the same way. The
-        callers themselves run on the same Mac.
-      </p>
-      <table className="w-full border-collapse text-[0.92em] tabular">
-        <thead>
-          <tr className="dim text-left">
-            <th scope="col" className="pb-2 font-normal">calls</th>
-            <th scope="col" className="pb-2 font-normal">median</th>
-            <th scope="col" className="pb-2 font-normal">9 in 10</th>
-            <th scope="col" className="pb-2 font-normal">replies</th>
-            <th scope="col" className="pb-2 font-normal">overlaps</th>
-          </tr>
-        </thead>
-        <tbody>
-          {measured.map((run) => (
-            <tr key={run.file} className="border-t border-scan">
-              <td className="py-1.5">{run.concurrency}</td>
-              <td>{seconds(run.latency_s!.p50)}</td>
-              <td className={run.latency_s!.p90 <= TARGET_S ? "" : "bloom"}>
-                {seconds(run.latency_s!.p90)}
-              </td>
-              <td>{run.measured}</td>
-              <td>{run.overlaps}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function Accuracy() {
+function AccuracyStrips() {
   const { holdout, holdout_before, test, dev, counts } = data.accuracy;
   const rows = [
-    { name: "held-out, before this phase", run: holdout_before, split: "holdout" },
+    { name: "held-out, before this phase", run: holdout_before, split: "holdout", muted: true },
     { name: "held-out, now", run: holdout, split: "holdout" },
     { name: "Phase 0 test set, now", run: test, split: "test" },
-    { name: "dev set (tuning only)", run: dev, split: "dev" },
-  ].filter((row) => row.run);
+    { name: "dev set, for tuning only", run: dev, split: "dev" },
+  ].filter((row): row is { name: string; run: Accuracy; split: string; muted?: boolean } => Boolean(row.run));
   return (
     <div>
-      <h3 className="bloom mb-2">Getting the action right</h3>
-      <p className="dim mb-4 max-w-[58ch] text-[0.95em]">
+      <h3 className="headline text-[1.6rem]">Getting the action right</h3>
+      <p className="prose-width mt-3 text-[0.95rem] leading-relaxed text-ink-2">
         Gemma 4 E2B with the router, on caller turns written before any tuning. A turn counts only
         if the right action ran with the right values, or nothing ran when nothing should.
       </p>
-      <table className="w-full border-collapse text-[0.92em] tabular">
-        <thead>
-          <tr className="dim text-left">
-            <th scope="col" className="pb-2 font-normal">set</th>
-            <th scope="col" className="pb-2 font-normal">single turns</th>
-            <th scope="col" className="pb-2 font-normal">dialogue turns</th>
-            <th scope="col" className="pb-2 font-normal">whole dialogues</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(({ name, run, split }) => (
-            <tr key={name} className="border-t border-scan">
-              <td className="py-1.5 pr-[1ch]">
-                {name}
-                <span className="dim block text-[0.85em]">
-                  {counts[split]?.cases} cases, {counts[split]?.dialogues} dialogues
-                </span>
-              </td>
-              <td>{percent(run!.single_turn)}</td>
-              <td>{percent(run!.dialogue_turns)}</td>
-              <td>{percent(run!.dialogues)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <ol className="mt-6 flex flex-col gap-2">
+        {rows.map(({ name, run, split, muted }) => (
+          <li key={name} className={muted ? "holder-plain" : "holder-agent"}>
+            <dl className="strip grid grid-cols-3 sm:grid-cols-[minmax(0,1.5fr)_repeat(3,minmax(0,1fr))]">
+              <div className="box col-span-3 border-b border-rule sm:col-span-1 sm:border-b-0">
+                <dt className={`font-semibold leading-tight ${muted ? "text-ink-2" : ""}`}>{name}</dt>
+                <dd className="m-0 text-[0.74rem] leading-snug text-ink-3">
+                  {counts[split]?.cases} turns, {counts[split]?.dialogues} dialogues
+                </dd>
+              </div>
+              <Figure label="single turns" value={percent(run.single_turn)} muted={muted} />
+              <Figure label="dialogue turns" value={percent(run.dialogue_turns)} muted={muted} />
+              <Figure label="whole dialogues" value={percent(run.dialogues)} muted={muted} />
+            </dl>
+          </li>
+        ))}
+      </ol>
       {holdout ? (
-        <p className="mt-3">
+        <p className="mt-5">
           <Source file={`results/${holdout.file}`}>The held-out run, turn by turn</Source>
         </p>
       ) : null}
@@ -214,21 +167,11 @@ function Accuracy() {
   );
 }
 
-function Phone({ run }: { run: CallerRun }) {
-  const { p50, p90 } = run.latency_s!;
+function Figure({ label, value, muted }: { label: string; value: string; muted?: boolean }) {
   return (
-    <div>
-      <h3 className="bloom mb-2">Over a phone line</h3>
-      <p className="max-w-[58ch] text-[0.95em] leading-relaxed">
-        The same caller dialled in through Asterisk on G.711, the 8 kHz audio of an ordinary phone
-        call, and Tellerline answered over Asterisk&apos;s WebSocket channel. Half of{" "}
-        {run.measured} replies arrived within <span className="bloom">{seconds(p50)}</span>, nine
-        in ten within <span className="bloom">{seconds(p90)}</span>
-        {run.overlaps ? `, with ${run.overlaps} overlaps counted apart` : ""}.
-      </p>
-      <p className="mt-3">
-        <Source file={`results/${run.file}`}>The phone-line run</Source>
-      </p>
+    <div className="box flex flex-col justify-between gap-1 [&:nth-child(2)]:border-l-0 sm:[&:nth-child(2)]:border-l">
+      <dt className="label">{label}</dt>
+      <dd className={`print m-0 text-[1.25rem] font-semibold leading-tight ${muted ? "text-ink-2" : ""}`}>{value}</dd>
     </div>
   );
 }
@@ -236,32 +179,44 @@ function Phone({ run }: { run: CallerRun }) {
 function Noisy({ runs }: { runs: CallerRun[] }) {
   return (
     <div>
-      <h3 className="bloom mb-2">Not solved yet: other people talking</h3>
-      <p className="max-w-[58ch] text-[0.95em] leading-relaxed">
+      <h3 className="headline text-[1.6rem]">Not solved yet: other people talking</h3>
+      <p className="prose-width mt-3 text-[0.95rem] leading-relaxed text-ink-2">
         The same calls with a conversation and room noise underneath, set against the
         caller&apos;s own speech level. Tellerline listens for the caller&apos;s level, so the room
         no longer holds their turn open, but the other voices still get into what it hears.
         Separating the caller&apos;s voice is the next piece of work.
       </p>
-      <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-[2ch] gap-y-2 text-[0.95em]">
+      <ol className="mt-6 flex flex-col gap-2">
         {runs.map((run) => (
-          <Fragment key={run.file}>
-            <dt className="dim whitespace-nowrap">{Math.abs(run.background_db ?? 0)} dB below</dt>
-            <dd className="m-0">
-              {run.measured} of {run.turns} turns timed
+          <li key={run.file} className="holder-plain">
+            <div className="strip grid grid-cols-[minmax(0,1fr)_auto]">
+              <div className="box">
+                <span className="block font-semibold leading-tight">
+                  room {Math.abs(run.background_db ?? 0)} dB below the caller
+                </span>
+                <span className="block text-[0.8rem] leading-snug text-ink-2">
+                  {run.measured} of {run.turns} turns timed
+                  {run.without_reply ? `, ${run.without_reply} unanswered` : ""}
+                  {run.overlaps ? `, ${run.overlaps} overlaps` : ""}.{" "}
+                  <Source file={`results/${run.file}`}>Run</Source>
+                </span>
+              </div>
+              <div className="box flex flex-col items-end justify-center text-right">
+                <span className="label">nine in ten</span>
+                <span className="print text-[0.98rem] font-semibold">
+                  {run.latency_s ? seconds(run.latency_s.p90) : "not timed"}
+                </span>
+              </div>
               {run.latency_s ? (
-                <>
-                  , nine in ten within <span className="bloom">{seconds(run.latency_s.p90)}</span>
-                </>
+                <div className="col-span-2 border-t border-rule px-[0.7rem] py-2.5">
+                  <Spread p50={run.latency_s.p50} p90={run.latency_s.p90} />
+                </div>
               ) : null}
-              {run.without_reply ? `, ${run.without_reply} unanswered` : ""}
-              {run.overlaps ? `, ${run.overlaps} overlaps` : ""}.{" "}
-              <Source file={`results/${run.file}`}>Run</Source>
-            </dd>
-          </Fragment>
+            </div>
+          </li>
         ))}
-      </dl>
+      </ol>
+      <Ruler className="ml-[calc(10px+0.7rem)] mr-[calc(3px+0.7rem)] mt-1" />
     </div>
   );
 }
-
