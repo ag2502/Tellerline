@@ -13,7 +13,12 @@ export function Marquee({ items }: { items: string[] }) {
     let speed = 0;
     let frame = 0;
     let last = performance.now();
+    let visible = true;
     const loop = (time: number) => {
+      if (!visible) {
+        frame = 0;
+        return;
+      }
       const delta = Math.min(0.05, (time - last) / 1000);
       last = time;
       const y = window.scrollY;
@@ -25,8 +30,20 @@ export function Marquee({ items }: { items: string[] }) {
       element.style.transform = `translate3d(${offset}px, 0, 0)`;
       frame = requestAnimationFrame(loop);
     };
+    // Off screen it stops; back on screen it picks up where it was.
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !frame) {
+        last = performance.now();
+        frame = requestAnimationFrame(loop);
+      }
+    });
+    observer.observe(element);
     frame = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(frame);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+    };
   }, []);
   const line = items.join("  ·  ") + "  ·  ";
   return (

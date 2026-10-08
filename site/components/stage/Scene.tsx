@@ -27,45 +27,17 @@ export default function Scene({ data }: { data: Formation["data"] }) {
     <Canvas
       className="!fixed inset-0 !h-[100lvh] !w-full"
       style={{ pointerEvents: "none" }}
-      dpr={[1, 1.75]}
-      shadows="soft"
+      dpr={[1, 1.5]}
+      frameloop="demand"
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       camera={{ fov: FOV, position: [0, 0, DISTANCE], near: 0.1, far: 100 }}
     >
       <Fins data={data} />
       <ambientLight intensity={0.38} />
-      <directionalLight
-        position={[-3, 5, 16]}
-        intensity={1.7}
-        castShadow
-        shadow-mapSize={[2048, 2048]}
-        shadow-bias={-0.0006}
-        shadow-radius={6}
-        shadow-camera-left={-16}
-        shadow-camera-right={16}
-        shadow-camera-top={10}
-        shadow-camera-bottom={-10}
-        shadow-camera-near={1}
-        shadow-camera-far={40}
-      />
+      <directionalLight position={[-3, 5, 16]} intensity={1.7} />
       <directionalLight position={[8, -4, 6]} intensity={0.3} />
-      {/* The wall behind the fins: invisible but for the shadows they cast on it. */}
-      <Wall />
       <Room />
     </Canvas>
-  );
-}
-
-// The wall behind the fins: invisible but for the shadows they cast on it. On a phone's narrow
-// stage the shadows smear the thin fins, so it stays bare.
-function Wall() {
-  const { size } = useThree();
-  if (size.width < 700) return null;
-  return (
-    <mesh position={[0, 0, -1.6]} receiveShadow>
-      <planeGeometry args={[80, 50]} />
-      <shadowMaterial transparent opacity={0.07} />
-    </mesh>
   );
 }
 
@@ -88,16 +60,15 @@ function Room() {
 
 function Fins({ data }: { data: Formation["data"] }) {
   const mesh = useRef<THREE.InstancedMesh>(null);
-  const { size, viewport } = useThree();
+  const { size, viewport, invalidate } = useThree();
   const count = 240;
-  const geometry = useMemo(() => new RoundedBoxGeometry(1, 1, 1, 3, 0.16), []);
+  const geometry = useMemo(() => new RoundedBoxGeometry(1, 1, 1, 2, 0.16), []);
   const material = useMemo(
     () =>
-      new THREE.MeshPhysicalMaterial({
-        // Anodised aluminium: metal under a tint, brushed along the fin.
-        roughness: 0.5,
-        metalness: 0.22,
-        anisotropy: 0.9,
+      new THREE.MeshStandardMaterial({
+        // Anodised aluminium: metal under a tint.
+        roughness: 0.42,
+        metalness: 0.3,
       }),
     [],
   );
@@ -134,10 +105,21 @@ function Fins({ data }: { data: Formation["data"] }) {
       }
     };
     find();
-    const observer = new MutationObserver(find);
-    observer.observe(document.body, { childList: true, subtree: true });
-    return () => observer.disconnect();
-  }, []);
+    // The bays are server-rendered, so they are all there once the scene mounts; look again
+    // after load in case the scene beat a late one.
+    window.addEventListener("load", find);
+    // The scene draws on demand: a scroll or a resize wakes it.
+    const wake = () => invalidate();
+    window.addEventListener("scroll", wake, { passive: true });
+    window.addEventListener("resize", wake);
+    window.addEventListener("pointermove", wake, { passive: true });
+    return () => {
+      window.removeEventListener("load", find);
+      window.removeEventListener("scroll", wake);
+      window.removeEventListener("resize", wake);
+      window.removeEventListener("pointermove", wake);
+    };
+  }, [invalidate]);
 
   useEffect(() => {
     const element = mesh.current;
@@ -221,6 +203,7 @@ function Fins({ data }: { data: Formation["data"] }) {
     const easeColour = stage.reduced ? 1 : 1 - Math.exp(-delta * 8);
     const tiltX = stage.reduced ? 0 : stage.pointer.y * 0.06;
     const tiltY = stage.reduced ? 0 : stage.pointer.x * 0.12;
+    let moving = false;
     for (let i = 0; i < count; i++) {
       for (let k = 0; k < 3; k++) {
         const j = i * 3 + k;
@@ -229,6 +212,7 @@ function Fins({ data }: { data: Formation["data"] }) {
         state.position[j] += (target.position[j] - state.position[j]) * stagger;
         state.scale[j] += (target.scale[j] - state.scale[j]) * stagger;
         state.color[j] += (target.color[j] - state.color[j]) * easeColour;
+        if (Math.abs(target.position[j] - state.position[j]) > 0.002 || Math.abs(target.scale[j] - state.scale[j]) > 0.002) moving = true;
       }
       vector.set(state.position[i * 3], state.position[i * 3 + 1], state.position[i * 3 + 2]);
       scaleVector.set(Math.max(0.0001, state.scale[i * 3]), Math.max(0.0001, state.scale[i * 3 + 1]), Math.max(0.0001, state.scale[i * 3 + 2]));
@@ -241,8 +225,11 @@ function Fins({ data }: { data: Formation["data"] }) {
     }
     element.instanceMatrix.needsUpdate = true;
     element.instanceColor.needsUpdate = true;
+    // Keep drawing while a stage is in view (the call and the pointer move it) or the fins are
+    // still in flight; otherwise the scene sleeps until the next scroll.
+    if (best || moving) invalidate();
   });
 
-  return <instancedMesh ref={mesh} args={[geometry, material, count]} frustumCulled={false} castShadow />;
+  return <instancedMesh ref={mesh} args={[geometry, material, count]} frustumCulled={false} />;
 }
 

@@ -19,6 +19,7 @@ export function Pointer() {
     let frame = 0;
     let key: HTMLElement | null = null;
     const onMove = (event: PointerEvent) => {
+      if (!frame) frame = requestAnimationFrame(loop);
       x = event.clientX;
       y = event.clientY;
       const hit = (event.target as HTMLElement).closest<HTMLElement>("a, button, summary, [role=slider], [data-stage-slot=hero], input");
@@ -39,11 +40,12 @@ export function Pointer() {
       element.style.transform = `translate3d(${rx - size / 2}px, ${ry - size / 2}px, 0)`;
       element.style.width = element.style.height = `${size}px`;
       element.style.opacity = String(0.35 + open * 0.5);
-      frame = requestAnimationFrame(loop);
+      // At rest the loop stops; the next pointer move starts it again.
+      const settled = Math.abs(x - rx) < 0.3 && Math.abs(y - ry) < 0.3 && Math.abs(target - open) < 0.01;
+      frame = settled ? 0 : requestAnimationFrame(loop);
     };
     element.style.display = "block";
     window.addEventListener("pointermove", onMove, { passive: true });
-    frame = requestAnimationFrame(loop);
     return () => {
       window.removeEventListener("pointermove", onMove);
       cancelAnimationFrame(frame);
