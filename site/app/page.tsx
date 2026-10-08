@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { ProofBand } from "@/components/Hero";
 import { HeroStage } from "@/components/HeroStage";
 import { Marquee } from "@/components/Marquee";
+import { Pointer } from "@/components/Pointer";
 import { Reveals } from "@/components/Reveals";
 import { FilmSection } from "@/components/sections/FilmSection";
 import { LogSection } from "@/components/sections/LogSection";
@@ -77,6 +78,7 @@ export default async function Page() {
       </a>
       <SmoothScroll />
       <Reveals />
+      <Pointer />
       <Stage data={stageData()} />
       <BoardHeader bays={bays} />
       <CallProvider calls={data.calls} initial={first}>

@@ -16,7 +16,7 @@ export function HeroStage() {
   return (
     <section id="top" aria-label="Tellerline, and a recorded call you can play" className="relative flex min-h-[calc(100svh-var(--header-h))] flex-col overflow-x-clip px-[var(--gutter)] pb-5 pt-[clamp(1.25rem,3vw,2.5rem)]">
       <Title />
-      <div data-stage-slot="hero" className="relative -mt-[2vw] min-h-[28svh] flex-1 sm:min-h-[34svh]" />
+      <Sculpture />
       <Deck />
     </section>
   );
@@ -66,6 +66,26 @@ function Title() {
         </span>
       ))}
     </h1>
+  );
+}
+
+// The stage's slot: the scene draws the call here; a click plays it from that moment. The strip
+// board's waveform below is the keyboard way to do the same.
+function Sculpture() {
+  const { call, seek, toggle, playing } = useCall();
+  return (
+    <div
+      data-stage-slot="hero"
+      title="Play from here"
+      className="relative -mt-[2vw] min-h-[28svh] flex-1 cursor-pointer sm:min-h-[34svh]"
+      onClick={(event) => {
+        const box = event.currentTarget.getBoundingClientRect();
+        const span = box.width * 0.96;
+        const share = (event.clientX - (box.left + (box.width - span) / 2)) / span;
+        seek(Math.min(1, Math.max(0, share)) * call.duration_s);
+        if (!playing) void toggle();
+      }}
+    />
   );
 }
 

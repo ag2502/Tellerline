@@ -27,6 +27,7 @@ type Input = {
   board: Board | null;
   call: Call | null;
   reduced: boolean;
+  pointer: { x: number; y: number; inside: boolean }; // world units, over the stage
 };
 
 const SCALE_S = 1.5;
@@ -77,7 +78,7 @@ function level(values: number[], hz: number, from: number, to: number): number {
 
 // The hero: the recorded call left to right, the caller above the line in amber and Tellerline
 // below in blue, inked in as it plays. Each wait is a bead on the line; the live one is red.
-function hero({ rect, count, time, target, now, playing, board, call, reduced }: Input) {
+function hero({ rect, count, time, target, now, playing, board, call, reduced, pointer }: Input) {
   const columns = Math.floor(count / 2);
   if (!call || !board) return hide(target, 0, count, rect);
   const duration = call.duration_s;
@@ -105,10 +106,12 @@ function hero({ rect, count, time, target, now, playing, board, call, reduced }:
     const near = playing ? Math.max(0, 1 - Math.abs(middle - now) / 1.4) : 0;
     const breathe = reduced ? 1 : 1 + 0.07 * Math.sin(time * 1.3 + c * 0.23);
     const reach = 0.47 * rect.height;
+    // The pointer lifts the fins it passes over, like a hand over the keys.
+    const lift = pointer.inside && !reduced ? Math.max(0, 1 - Math.abs(x - pointer.x) / (rect.width * 0.06)) * 0.14 * rect.height : 0;
     const up = Math.min(reach, (0.025 + 0.36 * level(call.envelope.caller, call.envelope_hz, from, to) + 0.12 * liveCaller * near) * rect.height * breathe);
     const down = Math.min(reach, (0.025 + 0.36 * level(call.envelope.agent, call.envelope_hz, from, to) + 0.12 * liveAgent * near) * rect.height * breathe);
-    put(target, c * 2, x, rect.y + gap + up / 2, z, width * 0.6, up, width * 1.1, played ? COLOURS.amber : COLOURS.amberPale);
-    put(target, c * 2 + 1, x, rect.y - gap - down / 2, z, width * 0.6, down, width * 1.1, played ? COLOURS.blue : COLOURS.bluePale);
+    put(target, c * 2, x, rect.y + gap + (up + lift) / 2, z + lift * 0.6, width * 0.6, up + lift, width * 1.1, played ? COLOURS.amber : COLOURS.amberPale);
+    put(target, c * 2 + 1, x, rect.y - gap - (down + lift) / 2, z + lift * 0.6, width * 0.6, down + lift, width * 1.1, played ? COLOURS.blue : COLOURS.bluePale);
   }
   hide(target, columns * 2, count, rect);
 }

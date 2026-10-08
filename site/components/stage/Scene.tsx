@@ -134,7 +134,14 @@ function Fins({ data }: { data: Formation["data"] }) {
     const time = frame.clock.elapsedTime;
     const target = state.target;
     if (best && rect) {
-      formations[best]({ data, rect, count, time, target, now: stage.now, playing: stage.playing, board: stage.board, call: stage.call, reduced: stage.reduced });
+      const px = (stage.pointer.x * width) / 2;
+      const py = (stage.pointer.y * height) / 2;
+      const pointer = {
+        x: px * perPixel,
+        y: -py * perPixel,
+        inside: Math.abs(px * perPixel - rect.x) < rect.width / 2 && Math.abs(-py * perPixel - rect.y) < rect.height / 2,
+      };
+      formations[best]({ data, rect, count, time, target, now: stage.now, playing: stage.playing, board: stage.board, call: stage.call, reduced: stage.reduced, pointer });
     } else {
       // Rest: the fins drop below the fold and shrink, keeping their order.
       for (let i = 0; i < count; i++) {
