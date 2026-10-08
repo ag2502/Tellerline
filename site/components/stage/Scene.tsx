@@ -33,7 +33,7 @@ export default function Scene({ data }: { data: Formation["data"] }) {
       camera={{ fov: FOV, position: [0, 0, DISTANCE], near: 0.1, far: 100 }}
     >
       <Fins data={data} />
-      <ambientLight intensity={0.5} />
+      <ambientLight intensity={0.38} />
       <directionalLight
         position={[-3, 5, 16]}
         intensity={1.7}
@@ -95,11 +95,9 @@ function Fins({ data }: { data: Formation["data"] }) {
     () =>
       new THREE.MeshPhysicalMaterial({
         // Anodised aluminium: metal under a tint, brushed along the fin.
-        roughness: 0.42,
-        metalness: 0.18,
-        anisotropy: 0.85,
-        clearcoat: 0.12,
-        clearcoatRoughness: 0.5,
+        roughness: 0.5,
+        metalness: 0.22,
+        anisotropy: 0.9,
       }),
     [],
   );

@@ -41,11 +41,11 @@ const hex = (value: string): [number, number, number] => [
 ];
 
 export const COLOURS = {
-  amber: hex("#f2c14e"),
+  amber: hex("#d99a12"), // lit, reads as #f2c14e
   amberPale: hex("#b3aa92"), // uninked: bare aluminium, warm side
-  blue: hex("#2f6fd6"),
+  blue: hex("#1b4fb8"), // lit, reads as #2f6fd6
   bluePale: hex("#949fae"), // uninked: bare aluminium, cool side
-  blueLight: hex("#a9c3ef"),
+  blueLight: hex("#86a6dc"),
   blueInk: hex("#1f57b5"),
   ink: hex("#16191d"),
   ink3: hex("#5b646e"),
