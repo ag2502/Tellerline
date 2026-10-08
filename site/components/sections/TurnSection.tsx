@@ -26,17 +26,7 @@ export function TurnSection({ number }: { number: number }) {
   const latency = gate?.latency_s;
 
   return (
-    <Section id="turn" number={number} stage={{
-        name: "turn",
-        caption: "one turn: hearing the caller in amber, deciding and answering in blue, then the rest of the wait until the caller hears the reply",
-        overlay: latency ? (
-          <>
-            <Flag at={latency.p50} label={`half heard it by ${seconds(latency.p50)}`} />
-            <Flag at={latency.p90} label={`nine in ten by ${seconds(latency.p90)}`} row={1} />
-          </>
-        ) : null,
-        below: <Ruler className="mt-2" />,
-      }} title="One turn, from the caller's last word to the reply" command="python -m tellerline.agent.traces --last 1">
+    <Section id="turn" number={number} title="One turn, from the caller's last word to the reply" command="python -m tellerline.agent.traces --last 1">
       <div className="grid gap-x-14 gap-y-16 xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
         <div>
           <p className="prose-width mb-8 text-[1.05rem] leading-relaxed text-ink-2">

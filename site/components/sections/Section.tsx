@@ -8,15 +8,12 @@ export function Section({
   number,
   title,
   command,
-  stage,
   children,
 }: {
   id: string;
   number: number;
   title: string;
   command: string;
-  // A band where the 3D scene sets this bay's data, with what it shows written under it.
-  stage?: { name: "turn" | "numbers" | "memory"; caption: string; overlay?: React.ReactNode; below?: React.ReactNode };
   children: React.ReactNode;
 }) {
   return (
@@ -36,16 +33,6 @@ export function Section({
             </p>
           </div>
         </div>
-        {stage ? (
-          <figure className="stage-band relative mt-12" aria-hidden="true">
-            <div className="relative">
-              <div data-stage-slot={stage.name} className="h-[clamp(13rem,22vw,20rem)]" />
-              {stage.overlay ? <div className="pointer-events-none absolute inset-0">{stage.overlay}</div> : null}
-            </div>
-            {stage.below}
-            <figcaption className="label mt-3">{stage.caption}</figcaption>
-          </figure>
-        ) : null}
         <div className="mt-12 sm:mt-14">{children}</div>
       </div>
     </section>

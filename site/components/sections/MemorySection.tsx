@@ -23,7 +23,7 @@ export function MemorySection({ number }: { number: number }) {
   const pressure = gate?.machine.memory;
 
   return (
-    <Section id="memory" number={number} stage={{ name: "memory", caption: `the Mac's ${TOTAL_GB} GB in tenths: Gemma in blue, Parakeet in amber, Kokoro in pale blue, the router in ink` }} title="Four models, one 16 GB laptop" command="python -m bench.memory">
+    <Section id="memory" number={number} title="Four models, one 16 GB laptop" command="python -m bench.memory">
       <div className="grid gap-x-14 gap-y-10 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <div className="flex flex-col gap-5">
           <p className="prose-width text-[1.15rem] leading-relaxed">

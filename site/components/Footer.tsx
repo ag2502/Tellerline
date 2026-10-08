@@ -13,9 +13,6 @@ const CREDITS = [
   ["MLX", "Apple", "MIT", "https://github.com/ml-explore/mlx"],
   ["RNNoise", "Xiph.Org", "BSD-3-Clause", "https://github.com/xiph/rnnoise"],
   ["Asterisk", "Sangoma", "GPL-2.0, run as a separate program", "https://www.asterisk.org/"],
-  ["three.js", "three.js authors", "MIT", "https://github.com/mrdoob/three.js"],
-  ["React Three Fiber", "Poimandres", "MIT", "https://github.com/pmndrs/react-three-fiber"],
-  ["Lenis", "darkroom.engineering", "MIT", "https://github.com/darkroomengineering/lenis"],
   ["Mona Sans", "GitHub", "SIL OFL 1.1", "/fonts/OFL-MonaSans.txt"],
   ["Martian Mono", "Evil Martians", "SIL OFL 1.1", "/fonts/OFL-MartianMono.txt"],
 ] as const;

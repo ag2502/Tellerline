@@ -2,7 +2,6 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
-import { stage } from "@/lib/stage";
 import { type Board, buildBoard } from "@/lib/timeline";
 import type { Call, CallSummary } from "@/lib/types";
 import { useReducedMotion } from "@/lib/useReducedMotion";
@@ -52,16 +51,6 @@ export function CallProvider({ calls, initial, children }: { calls: CallSummary[
   const cache = useRef(new Map<string, Call>([[initial.slug, initial]]));
   const board = useMemo(() => buildBoard(call), [call]);
 
-  useEffect(() => {
-    stage.call = call;
-    stage.board = board;
-  }, [call, board]);
-  useEffect(() => {
-    stage.reduced = reducedMotion;
-  }, [reducedMotion]);
-  useEffect(() => {
-    stage.playing = playing;
-  }, [playing]);
 
   // React redraws about sixteen times a second while the call plays; the waveform and the 3D
   // stage read the same clock every frame.
@@ -71,7 +60,6 @@ export function CallProvider({ calls, initial, children }: { calls: CallSummary[
     let last = 0;
     const tick = (time: number) => {
       if (audio.current) nowRef.current = audio.current.currentTime;
-      stage.now = nowRef.current;
       if (time - last > 60) {
         last = time;
         setNow(nowRef.current);
@@ -92,7 +80,6 @@ export function CallProvider({ calls, initial, children }: { calls: CallSummary[
     if (element.ended || element.currentTime >= call.duration_s - 0.05) {
       element.currentTime = 0;
       nowRef.current = 0;
-      stage.now = 0;
       setNow(0);
     }
     setStarted(true);
@@ -110,7 +97,6 @@ export function CallProvider({ calls, initial, children }: { calls: CallSummary[
     if (!element) return;
     element.currentTime = seconds;
     nowRef.current = seconds;
-    stage.now = seconds;
     setNow(seconds);
     setStarted(true);
   }, []);
@@ -136,7 +122,6 @@ export function CallProvider({ calls, initial, children }: { calls: CallSummary[
         setLoading(null);
       }
       nowRef.current = 0;
-      stage.now = 0;
       setNow(0);
       setStarted(false);
       setPlaying(false);
@@ -218,7 +203,6 @@ export function CallProvider({ calls, initial, children }: { calls: CallSummary[
         onEnded={() => {
           setPlaying(false);
           nowRef.current = call.duration_s;
-          stage.now = call.duration_s;
           setNow(call.duration_s);
         }}
         onWaiting={() => setBuffering(true)}

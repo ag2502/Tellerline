@@ -34,28 +34,7 @@ export function NumbersSection({ number }: { number: number }) {
   ];
 
   return (
-    <Section id="numbers" number={number} stage={{
-        name: "numbers",
-        caption: `every one of the ${gate.measured} timed replies as a block, stacked by the caller's wait; grey ones waited past the target`,
-        overlay: (
-          <div className="absolute inset-y-0 left-0 w-[93.75%]">
-            <Flag at={p50} label={`half by ${seconds(p50)}`} />
-            <Flag at={p90} label={`nine in ten by ${seconds(p90)}`} row={1} />
-            <span className="absolute inset-y-0 right-0 border-r-2 border-dashed border-ink" />
-          </div>
-        ),
-        below: (
-          <>
-            <div className="mt-2 flex">
-              <Ruler className="w-[93.75%]" />
-              <span className="print relative w-[6.25%] pt-1.5 text-[0.68rem] leading-none text-ink-3">
-                <span className="absolute right-0 hidden sm:inline">longer</span>
-              </span>
-            </div>
-            <Counts run={gate} />
-          </>
-        ),
-      }} title="Measured by phoning it, not projected" command="python -m bench.caller --turns 220">
+    <Section id="numbers" number={number} title="Measured by phoning it, not projected" command="python -m bench.caller --turns 220">
       <div className="grid items-start gap-x-14 gap-y-12 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <div className="flex flex-col gap-6">
           <p className="prose-width text-[1.15rem] leading-relaxed">
