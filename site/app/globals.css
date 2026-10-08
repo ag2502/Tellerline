@@ -70,16 +70,7 @@
     text-rendering: optimizeLegibility;
     caret-color: var(--color-red);
     scrollbar-color: var(--color-rail) var(--color-board);
-    /* Brushed aluminium: fine horizontal grain over a soft sheen. */
     background-color: var(--color-board);
-    background-image:
-      repeating-linear-gradient(
-        180deg,
-        rgb(255 255 255 / 0.22) 0 1px,
-        rgb(255 255 255 / 0) 1px 3px,
-        rgb(22 25 29 / 0.018) 3px 4px
-      ),
-      linear-gradient(180deg, #edf0f2 0%, #e4e8ec 60%, #e7eaed 100%);
   }
 
   @media (min-width: 768px) {
@@ -318,7 +309,7 @@
       inset 0 0 0 1px rgb(22 25 29 / 0.05);
   }
 
-  /* The designator plate at the head of a bay: engraved, not printed. */
+  /* The designator plate at the head of a bay: its key on the keyboard. */
   .plate {
     display: inline-flex;
     align-items: center;
@@ -333,7 +324,6 @@
     font-variation-settings: "wdth" 87.5;
     font-weight: 600;
     font-size: 0.95rem;
-    box-shadow: inset 0 -2px 0 rgb(255 255 255 / 0.08);
   }
 
   /* The ruled time scale every timing on the page sits on. */
@@ -361,22 +351,6 @@
     box-shadow: inset 0 0 0 1px var(--color-blue);
   }
 
-  /* A rubber stamp on a strip: what a controller marks, not what the printer prints. */
-  .stamp {
-    display: inline-block;
-    padding: 0.1rem 0.45rem 0.05rem;
-    border: 1.5px solid currentColor;
-    border-radius: 3px;
-    font-family: var(--font-sans);
-    font-variation-settings: "wdth" 112;
-    font-weight: 700;
-    font-size: 0.6875rem;
-    letter-spacing: 0.08em;
-    line-height: 1.45;
-    text-transform: uppercase;
-    white-space: nowrap;
-    transform: rotate(-2deg);
-  }
 
   /* ---------------------------------------------------------------- keys */
 

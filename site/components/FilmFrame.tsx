@@ -5,7 +5,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { type Board, buildBoard, clock, onScale, SCALE_S, type TurnStrip } from "@/lib/timeline";
 import type { Call } from "@/lib/types";
 
-import { Ruler } from "./Scale";
+import { Ruler, Spread } from "./Scale";
 import { StripMark } from "./StripMark";
 import { Greeting, PenCircle, Strip } from "./Strips";
 import { Waveform } from "./Waveform";
@@ -188,9 +188,12 @@ function Waits({ board, now, newest }: { board: Board; now: number; newest: Turn
         </div>
       </div>
 
-      <div className="holder-plain min-h-0 flex-1">
-        <div className="strip flex h-full flex-col px-5 pb-3 pt-4">
+      <div className="holder-plain">
+        <div className="strip flex flex-col px-5 pb-3 pt-4">
           <p className="label">every wait in this call, on one scale</p>
+          {timed.length ? null : (
+            <p className="mt-3 text-[0.95rem] text-ink-2">Each wait joins the scale as Tellerline answers.</p>
+          )}
           <ol className="mt-4 flex flex-col gap-2.5">
             {timed.map((strip) => {
               const span = strip.wait!;
@@ -209,7 +212,7 @@ function Waits({ board, now, newest }: { board: Board; now: number; newest: Turn
               );
             })}
           </ol>
-          <div className="mt-auto grid grid-cols-[3.25rem_minmax(0,1fr)_3.5rem] gap-3 pt-2">
+          <div className="mt-1 grid grid-cols-[3.25rem_minmax(0,1fr)_3.5rem] gap-3 pt-2">
             <span />
             <Ruler />
             <span />
@@ -227,15 +230,19 @@ function penProgress(strip: TurnStrip, now: number): number | undefined {
 
 function TitleCard({ call }: { call: Call }) {
   return (
-    <div className="flex h-full flex-col justify-center px-24">
-      <div className="holder-turn max-w-[64rem]">
-        <div className="strip px-12 pb-12 pt-10">
+    <div className="flex h-full items-center justify-center px-16">
+      <div className="holder-turn w-fit max-w-[56rem]">
+        <div className="strip px-14 pb-12 pt-10">
           <p className="flex items-center gap-3">
             <StripMark className="h-[22px] w-[42px]" />
             <span className="callsign text-[1.6rem]">Tellerline</span>
           </p>
-          <h1 className="callsign mt-8 max-w-[16ch] text-[4.4rem]">Bank calls, answered on one MacBook Air.</h1>
-          <p className="mt-8 max-w-[54ch] text-[1.25rem] leading-snug text-ink-2">
+          <h1 className="callsign mt-8 text-[4.6rem]">
+            Bank calls, answered
+            <br />
+            on one MacBook Air.
+          </h1>
+          <p className="mt-8 max-w-[46ch] text-[1.25rem] leading-snug text-ink-2">
             A real call. {call.summary} The caller is a synthetic voice; everything Tellerline says
             is generated live on the Mac.
           </p>
@@ -247,17 +254,23 @@ function TitleCard({ call }: { call: Call }) {
 
 function EndCard({ numbers }: { numbers: Props["numbers"] }) {
   return (
-    <div className="flex h-full flex-col justify-center px-24">
-      <div className="holder-agent max-w-[64rem]">
-        <div className="strip px-12 pb-12 pt-10">
+    <div className="flex h-full items-center justify-center px-16">
+      <div className="holder-agent w-[52rem]">
+        <div className="strip px-14 pb-12 pt-10">
           <p className="callsign text-[4rem]">Tellerline</p>
           {numbers ? (
-            <p className="mt-6 max-w-[48ch] text-[1.45rem] leading-snug">
-              Over {numbers.turns} measured replies, half arrived within {numbers.p50.toFixed(2)} s and
-              nine in ten within {numbers.p90.toFixed(2)} s, on the {SCALE_S} s target.
-            </p>
+            <>
+              <p className="mt-6 max-w-[44ch] text-[1.45rem] leading-snug">
+                Over {numbers.turns} measured replies, half arrived within {numbers.p50.toFixed(2)} s and
+                nine in ten within {numbers.p90.toFixed(2)} s, on the {SCALE_S} s target.
+              </p>
+              <div className="mt-8">
+                <Spread p50={numbers.p50} p90={numbers.p90} />
+                <Ruler />
+              </div>
+            </>
           ) : null}
-          <p className="key mt-10 w-fit text-[1.35rem]" data-primary="">
+          <p className="key mt-8 w-fit text-[1.35rem]" data-primary="">
             github.com/ag2502/Tellerline
           </p>
         </div>

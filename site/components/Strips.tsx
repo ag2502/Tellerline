@@ -2,7 +2,7 @@
 
 import { clock, onScale, SCALE_S, spokenShare, type Board, type TurnStrip } from "@/lib/timeline";
 
-import { ArrowIcon } from "./icons";
+import { ArrowIcon, Tick } from "./icons";
 
 // The strips the board is made of, shared by the replay and the film: a turn's strip with its
 // boxes, the wait circled in pen, and the trace a pulled strip shows.
@@ -92,7 +92,8 @@ export function Strip({ strip, now, live, instant, pulled, preview = false, onPu
             <span className="label block text-amber-ink">caller said</span>
             <p className="min-h-[1.55em] text-[0.98rem] leading-snug">{callerText}</p>
             {strip.carriedOn && byKey.has("carried") ? (
-              <span className="absolute right-3 top-2 -rotate-2 rounded-[3px] border-[1.5px] border-current px-1.5 text-[0.68rem] font-bold uppercase tracking-[0.08em] text-ink-2">
+              <span className="label absolute right-3 top-2 flex items-center gap-1 text-ink">
+                <Tick className="h-3.5 w-3.5" />
                 one turn
               </span>
             ) : null}
@@ -258,7 +259,7 @@ export function PenCircle({
 }) {
   return (
     <svg
-      className="pointer-events-none absolute -inset-x-2.5 -inset-y-2 h-[calc(100%+1rem)] w-[calc(100%+1.25rem)] overflow-visible"
+      className="pointer-events-none absolute -left-[0.95rem] -top-2 h-[calc(100%+1rem)] w-[calc(100%+1.75rem)] overflow-visible"
       viewBox="0 0 100 40"
       preserveAspectRatio="none"
       aria-hidden="true"

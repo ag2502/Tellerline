@@ -1,5 +1,7 @@
 import { data } from "@/lib/data";
 
+import { Cross, Handoff, Tick } from "../icons";
+
 import { FactStrip, Section, Source } from "./Section";
 
 // What a caller can reach is decided by code and by the bank's API, not by the prompt.
@@ -113,10 +115,16 @@ export function PolicySection({ number }: { number: number }) {
   );
 }
 
-// A controller's stamp: what this request gets, before and after the caller is verified.
+// A controller's pen mark: what this request gets, before and after the caller is verified.
 function Stamp({ reach }: { reach: Reach }) {
-  const tone = reach === "yes" ? "text-blue-ink" : reach === "no" ? "text-ink-3" : "text-ink";
-  return <span className={`stamp ${tone}`}>{reach === "a colleague" ? "to a colleague" : reach}</span>;
+  const Mark = reach === "yes" || reach === "done" ? Tick : reach === "a colleague" ? Handoff : Cross;
+  const tone = reach === "no" ? "text-ink-3" : "text-ink";
+  return (
+    <span className={`flex items-center gap-1.5 text-[0.9rem] ${reach === "yes" ? "font-semibold" : ""} ${tone}`}>
+      <Mark className="h-5 w-5 shrink-0" />
+      {reach === "a colleague" ? "to a colleague" : reach}
+    </span>
+  );
 }
 
 function Pair({ said, before, why, now }: { said: string; before: string; why: string; now: React.ReactNode }) {

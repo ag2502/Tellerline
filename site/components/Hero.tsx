@@ -70,7 +70,7 @@ function Proof() {
             <span className="box label">{line.what}</span>
             <span className="box">
               <span className="block text-[0.98rem] font-semibold">{line.result}</span>
-              <code className="block truncate text-[0.72rem] text-ink-3">python -m {line.command}</code>
+              <code className="block text-[0.72rem] text-ink-3 [overflow-wrap:anywhere]">python -m {line.command}</code>
             </span>
           </div>
         </li>

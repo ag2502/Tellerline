@@ -81,3 +81,31 @@ export function GitHubIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+// A controller's pen marks on a strip: a tick for done or allowed, a cross for not, a hook for
+// passed on. Drawn a little loose, like a pen, in ink.
+const pen = { ...stroke, strokeWidth: 2.1 };
+
+export function Tick({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <path {...pen} d="M3.8 10.6c1.3 1 2.4 2.3 3.3 3.9C9.4 9.6 12.4 6 16.4 3.6" />
+    </svg>
+  );
+}
+
+export function Cross({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <path {...pen} d="M5 4.8c3.6 3.2 6.6 6.6 10.2 10.6M15.4 4.6C11.6 8 8.5 11.4 4.8 15.6" />
+    </svg>
+  );
+}
+
+export function Handoff({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 20 20" className={className} aria-hidden="true">
+      <path {...pen} d="M3.6 6.2c3.4-.4 8.2-.3 11.6.4M12.4 3.4c1.2 1 2.2 2 3 3.2-1 1.1-2.1 2-3.2 2.8M15.2 6.6c.2 3.6-.6 7-2.4 10" />
+    </svg>
+  );
+}

@@ -74,9 +74,8 @@ export function BoardHeader({ bays }: { bays: Bay[] }) {
                       current ? "bg-ink text-strip" : "text-ink-2 hover:bg-well hover:text-ink"
                     }`}
                   >
-                    <span className={`print text-[0.72rem] ${current ? "text-amber" : "text-ink-3"}`}>{number}</span>
-                    {/* On a phone only the bay in view is named. */}
-                    <span className={current ? undefined : "hidden md:inline"}>{item.name}</span>
+                    <span className={`print hidden text-[0.72rem] md:inline ${current ? "text-amber" : "text-ink-3"}`}>{number}</span>
+                    <span>{item.name}</span>
                   </a>
                 </li>
               );

@@ -342,7 +342,7 @@ export function CallBoard({ calls, initial }: Props) {
         onScroll={(event) => {
           stuck.current = event.currentTarget.scrollTop < 24;
         }}
-        className="well relative flex h-[27rem] flex-col gap-2.5 overflow-y-auto p-2.5 [scrollbar-width:thin] sm:h-[29rem] sm:p-3"
+        className="well relative flex flex-col gap-2.5 p-2.5 [scrollbar-width:thin] sm:max-h-[31rem] sm:overflow-y-auto sm:p-3"
         aria-label="The call as strips, newest at the top: what the caller said, what the agent heard, routed, decided and did, and how long the caller waited"
       >
         {!started ? <Waiting board={board} onPlay={() => void toggle()} /> : null}
@@ -368,7 +368,7 @@ export function CallBoard({ calls, initial }: Props) {
           </li>
         ))}
         {board.greeting && (started ? now >= board.greeting.at : true) ? (
-          <li className="mt-auto">
+          <li>
             <Greeting greeting={board.greeting} now={started ? now : Number.POSITIVE_INFINITY} instant={reducedMotion} />
           </li>
         ) : null}

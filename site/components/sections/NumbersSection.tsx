@@ -2,6 +2,7 @@ import { data, percent, seconds } from "@/lib/data";
 import { SCALE_S } from "@/lib/timeline";
 import type { Accuracy, CallerRun } from "@/lib/types";
 
+import { Cross, Tick } from "../icons";
 import { Ruler, Spread, SpreadKey } from "../Scale";
 import { Histogram } from "./Histogram";
 import { Section, Source } from "./Section";
@@ -43,7 +44,10 @@ export function NumbersSection({ number }: { number: number }) {
             within <strong>{seconds(p90)}</strong>.
           </p>
           <p className="flex flex-wrap items-center gap-x-3 gap-y-2 text-[0.95rem] text-ink-2">
-            <span className={`stamp ${within ? "text-blue-ink" : "text-ink"}`}>{within ? "within target" : "over target"}</span>
+            <span className="flex items-center gap-1.5 font-semibold text-ink">
+              {within ? <Tick className="h-5 w-5" /> : <Cross className="h-5 w-5" />}
+              {within ? "within target" : "over target"}
+            </span>
             The target is nine in ten within {SCALE_S} s
             {within ? "" : `; this run missed it by ${Math.round((p90 - SCALE_S) * 1000)} ms`}.
           </p>
