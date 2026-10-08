@@ -21,7 +21,7 @@ export function MiniPlayer() {
     return () => observer.disconnect();
   }, []);
 
-  const show = away || playing;
+  const show = away;
   const label = playing ? "Pause the call" : finished ? "Play the call again" : started ? "Resume the call" : "Play the call";
   return (
     <div
