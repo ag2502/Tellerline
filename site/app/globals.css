@@ -1,87 +1,62 @@
 @import "tailwindcss";
 
 /*
- * Tellerline: an air traffic control strip board. A real call replays as flight progress strips
- * on brushed aluminium: white strips in coloured holders (amber for the caller, blue for
- * Tellerline), printed in ink, with a red pen only on the turn that is live.
+ * Tellerline: an editorial product page. Warm paper, near-black type set large and tight, one
+ * vermilion accent for what is live and what to press, and white cards with hairline edges for
+ * everything measured. The call is the only picture.
  */
 
 @theme {
-  --color-board: #080b10; /* the room at night: the page */
-  --color-well: #0f141b; /* a bay's recess */
-  --color-rail: #222b37; /* rails and rules on the board */
-  --color-strip: #ffffff; /* strip paper */
-  --color-rule: #1c2530; /* rules between boxes */
-  --color-ink: #eef1f4; /* light print on the dark board */
-  --color-ink-2: #aab4bf; /* secondary text (9:1 on the board) */
-  --color-ink-3: #8f9aa6; /* labels and timings (6:1 in a well, the lowest) */
-  --color-amber: #f2c14e; /* the caller's holder */
-  --color-amber-ink: #f5cd6a; /* amber-coded text */
-  --color-blue: #3a7be8; /* Tellerline's holder */
-  --color-blue-ink: #8db3f2; /* blue-coded text */
-  --color-red: #ff5a48; /* the pen: strokes on the live turn */
-  --color-red-ink: #ff8272; /* the pen's written figures */
+  --color-board: #f6f5f1; /* the page: warm paper */
+  --color-well: #eeece6; /* a recessed panel */
+  --color-rail: #dedcd4; /* hairlines on the page */
+  --color-strip: #ffffff; /* a card */
+  --color-rule: #e7e5de; /* rules inside a card */
+  --color-ink: #0c0c0d; /* type */
+  --color-ink-2: #4b4b50; /* secondary text (8.6:1 on the page) */
+  --color-ink-3: #66666c; /* labels and timings (5.3:1 in a well, the lowest) */
+  --color-amber: #d9d4c4; /* the caller: warm stone */
+  --color-amber-ink: #6a6350; /* caller-coded text */
+  --color-blue: #ff4f1f; /* Tellerline: the accent */
+  --color-blue-ink: #c8340a; /* accent-coded text (5.1:1 on white) */
+  --color-red: #ff4f1f; /* the live turn */
+  --color-red-ink: #c8340a; /* the live turn's figures */
 
-  --font-sans: var(--font-mona), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-martian), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-sans: var(--font-sans-face), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-serif-face), ui-serif, Georgia, serif;
+  --font-mono: var(--font-mono-face), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 :root {
-  color-scheme: dark;
-  --header-h: 3.5rem;
-  --gutter: 1rem;
-  /* Strips snap one step and settle: a short overshoot, never a glide. */
-  --snap: cubic-bezier(0.3, 1.45, 0.55, 1);
-  --settle: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --lift: 0 1px 0 rgb(0 0 0 / 0.4), 0 6px 16px -4px rgb(0 0 0 / 0.55);
-  --lift-high: 0 2px 0 rgb(0 0 0 / 0.4), 0 24px 48px -14px rgb(0 0 0 / 0.7);
+  color-scheme: light;
+  --header-h: 4rem;
+  --gutter: 1.25rem;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --snap: cubic-bezier(0.3, 1.25, 0.55, 1);
+  --settle: var(--ease);
+  --lift: 0 0 0 1px rgb(12 12 13 / 0.07), 0 1px 2px rgb(12 12 13 / 0.04), 0 8px 24px -12px rgb(12 12 13 / 0.12);
+  --lift-high: 0 0 0 1px rgb(12 12 13 / 0.08), 0 24px 60px -24px rgb(12 12 13 / 0.3);
 }
 
 @media (min-width: 768px) {
   :root {
-    --gutter: 2rem;
-    --header-h: 3.75rem;
+    --gutter: 2.5rem;
+    --header-h: 4.5rem;
   }
 }
 
-/* Element defaults sit in the base layer, so Tailwind's utilities can override them. */
 @layer base {
   html {
     background: var(--color-board);
-    background-image:
-      radial-gradient(60rem 38rem at 12% -8%, rgb(242 193 78 / 0.1), transparent 70%),
-      radial-gradient(56rem 40rem at 96% 4%, rgb(58 123 232 / 0.14), transparent 70%);
-    background-repeat: no-repeat;
     scroll-padding-top: calc(var(--header-h) + 1rem);
+    scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
   }
 
-  /* The room's own light: a faint ruled scale across the whole page, fading toward the edges. */
-  body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    background-image:
-      linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
-    background-size: 64px 64px;
-    mask-image: radial-gradient(ellipse 80% 70% at 50% 35%, #000 20%, transparent 80%);
-  }
-
-  /* Lenis drives the scroll; the browser's own smoothing would fight it. */
-  html.lenis,
-  html.lenis body {
-    height: auto;
-  }
-
-  .lenis.lenis-smooth {
-    scroll-behavior: auto !important;
-  }
-
-  .lenis.lenis-stopped {
-    overflow: hidden;
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
   }
 
   body {
@@ -91,11 +66,10 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     font-size: 1.0625rem;
-    line-height: 1.55;
-    font-variation-settings: "wdth" 100;
+    line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    caret-color: var(--color-red);
+    caret-color: var(--color-blue);
     scrollbar-color: var(--color-rail) var(--color-board);
     background-color: var(--color-board);
   }
@@ -110,19 +84,18 @@
   kbd,
   samp {
     font-family: var(--font-mono);
-    font-size: 0.9em;
-    font-variation-settings: "wdth" 87.5;
+    font-size: 0.88em;
   }
 
   ::selection {
-    background: var(--color-amber);
-    color: var(--color-ink);
+    background: var(--color-blue);
+    color: #fff;
   }
 
   :focus-visible {
     outline: 2px solid var(--color-blue);
     outline-offset: 3px;
-    border-radius: 2px;
+    border-radius: 4px;
   }
 
   a {
@@ -131,7 +104,7 @@
     text-decoration-thickness: 1px;
     text-underline-offset: 0.22em;
     text-decoration-color: var(--color-rail);
-    transition: text-decoration-color 140ms var(--settle);
+    transition: text-decoration-color 140ms var(--ease);
   }
 
   a:hover {
@@ -157,43 +130,46 @@
 @layer components {
   /* ---------------------------------------------------------------- type */
 
-  /* The display face: Mona Sans pulled condensed and heavy, like a strip's printed callsign. */
+  /* The display face: Geist, heavy and tightly set, the page's loudest voice. */
   .callsign {
     font-family: var(--font-sans);
-    font-variation-settings: "wdth" 75;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    line-height: 0.95;
-    text-transform: uppercase;
+    font-weight: 620;
+    letter-spacing: -0.045em;
+    line-height: 0.94;
   }
 
-  /* A bay's title: the same condensed print, in sentence case so a long title still reads. */
+  /* A section's title. */
   .headline {
     font-family: var(--font-sans);
-    font-variation-settings: "wdth" 78;
-    font-weight: 760;
-    letter-spacing: -0.012em;
+    font-weight: 600;
+    letter-spacing: -0.035em;
     line-height: 1.02;
   }
 
-  /* Printed field labels: tiny, wide, spaced, as on a ruled strip. */
+  /* The italic a headline leans on once. */
+  .serif {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+
+  /* Small labels: mono, spaced, quiet. */
   .label {
-    font-family: var(--font-sans);
-    font-variation-settings: "wdth" 125;
-    font-weight: 600;
+    font-family: var(--font-mono);
+    font-weight: 500;
     font-size: 0.6875rem;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.06em;
     line-height: 1.2;
     text-transform: uppercase;
     color: var(--color-ink-3);
   }
 
-  /* What the strip printer prints: measured values, codes and times. */
+  /* Measured values, codes and times. */
   .print {
     font-family: var(--font-mono);
-    font-variation-settings: "wdth" 87.5;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
   }
 
   .tabular {
@@ -204,73 +180,38 @@
     max-width: 62ch;
   }
 
-  /* ---------------------------------------------------------------- strips and holders */
+  /* ---------------------------------------------------------------- cards */
 
-  /* Paper keeps the light print: a strip, a key or a field redeclares the tokens, so everything
-     printed on it reads as ink on white even though the room is dark. */
-  .strip,
-  .paper,
-  .key:not([data-primary]) {
-    --color-board: #e7eaed;
-    --color-well: #dde2e7;
-    --color-rail: #c3cad2;
-    --color-rule: #cdd3da;
-    --color-ink: #16191d;
-    --color-ink-2: #46505a;
-    --color-ink-3: #5b646e;
-    --color-amber-ink: #7a5a00;
-    --color-blue: #2f6fd6;
-    --color-blue-ink: #1f57b5;
-    --color-red: #d93a2b;
-    --color-red-ink: #c2301f;
-    color: var(--color-ink);
-  }
-
-  /* A strip of paper in its plastic holder: the holder shows round the strip, thicker at the
-     coloured end. */
+  /* A card: white, hairline-edged. */
   .strip {
     position: relative;
     background: var(--color-strip);
     box-shadow: var(--lift);
-    border-radius: 3px;
+    border-radius: 16px;
+    overflow: hidden;
   }
 
+  /* The holders only colour a card's edge now: the caller's stone, Tellerline's accent. */
   .holder-caller,
   .holder-agent,
-  .holder-plain {
-    position: relative;
-    border-radius: 5px;
-    padding: 3px 3px 3px 10px;
-  }
-
-  .holder-caller {
-    background: var(--color-amber);
-    box-shadow: inset 0 0 0 1px rgb(122 90 0 / 0.28);
-  }
-
-  .holder-agent {
-    background: var(--color-blue);
-    box-shadow: inset 0 0 0 1px rgb(14 46 102 / 0.35);
-  }
-
-  .holder-plain {
-    background: var(--color-rail);
-    box-shadow: inset 0 0 0 1px rgb(22 25 29 / 0.12);
-  }
-
-  /* A turn's holder: the caller's end amber, Tellerline's end blue. */
+  .holder-plain,
   .holder-turn {
     position: relative;
-    border-radius: 5px;
-    padding: 3px 10px;
-    background: linear-gradient(90deg, var(--color-amber) 0 50%, var(--color-blue) 50% 100%);
-    box-shadow: inset 0 0 0 1px rgb(22 25 29 / 0.18);
+    border-radius: 16px;
   }
 
-  /* A box ruled on the strip: label above, value below. */
+  .holder-caller > .strip {
+    box-shadow: inset 3px 0 0 var(--color-amber), var(--lift);
+  }
+
+  .holder-agent > .strip {
+    box-shadow: inset 3px 0 0 var(--color-blue), var(--lift);
+  }
+
+  /* A box ruled inside a card: label above, value below. */
   .box {
     border-left: 1px solid var(--color-rule);
-    padding: 0.4rem 0.7rem 0.45rem;
+    padding: 0.55rem 0.9rem 0.6rem;
     min-width: 0;
   }
 
@@ -278,36 +219,22 @@
     border-left: 0;
   }
 
-  /* A bay's 3D band shows only once the scene is running; without WebGL the bay's own figures
-     carry it. */
+  /* Without the 3D stage the bays' own figures always show. */
   .stage-band {
     display: none;
   }
 
-  html[data-stage] .stage-band {
-    display: block;
-  }
-
-  html[data-stage] .stage-dup {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  /* The headline's letters rise once into place, a beat apart. */
+  /* The headline's words rise once into place, a beat apart. */
   @media (prefers-reduced-motion: no-preference) {
     .rise {
-      animation: rise 1000ms cubic-bezier(0.16, 1, 0.3, 1) both;
-      animation-delay: calc(var(--i) * 24ms + 150ms);
+      animation: rise 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: calc(var(--i) * 70ms + 100ms);
     }
 
     /* A bay's title and lead rise in as the bay arrives. */
     [data-reveal] {
-      opacity: 0.5;
-      transform: translateY(1.75rem);
+      opacity: 0;
+      transform: translateY(1.5rem);
       transition:
         opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
         transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -321,17 +248,17 @@
 
   @keyframes rise {
     from {
-      transform: translateY(108%);
+      transform: translateY(105%);
     }
     to {
       transform: translateY(0);
     }
   }
 
-  /* A strip entering the bay: down one step out of the printer, a little past, then home. */
+  /* A turn entering the transcript: up into place. */
   @media (prefers-reduced-motion: no-preference) {
     .feed {
-      animation: feed 420ms var(--snap) both;
+      animation: feed 480ms var(--snap) both;
     }
 
     .print-in {
@@ -341,11 +268,8 @@
 
   @keyframes feed {
     from {
-      transform: translateY(-110%);
+      transform: translateY(14px);
       opacity: 0;
-    }
-    40% {
-      opacity: 1;
     }
     to {
       transform: translateY(0);
@@ -362,14 +286,14 @@
     }
   }
 
-  /* The pen: strokes drawn on, then left in place. */
+  /* The live ring around a wait: drawn on, then settled to ink. */
   .pen {
     fill: none;
-    stroke: var(--color-red);
+    stroke: var(--color-blue);
     stroke-width: 2.25;
     stroke-linecap: round;
     stroke-linejoin: round;
-    transition: stroke 380ms var(--settle);
+    transition: stroke 380ms var(--ease);
   }
 
   .pen[data-settled] {
@@ -380,7 +304,7 @@
     .pen[data-draw] {
       stroke-dasharray: var(--length, 400);
       stroke-dashoffset: var(--length, 400);
-      animation: draw 480ms var(--settle) forwards;
+      animation: draw 480ms var(--ease) forwards;
     }
   }
 
@@ -390,47 +314,40 @@
     }
   }
 
-  /* ---------------------------------------------------------------- the board and its bays */
+  /* ---------------------------------------------------------------- sections */
 
   .bay {
-    padding-block: clamp(4.5rem, 3rem + 6vw, 8.5rem);
+    padding-block: clamp(4.5rem, 3rem + 7vw, 9rem);
     padding-inline: var(--gutter);
   }
 
-  /* A recessed well on the board, where strips sit. */
+  /* A recessed panel. */
   .well {
     background: var(--color-well);
-    border-radius: 10px;
-    box-shadow:
-      inset 0 1px 2px rgb(0 0 0 / 0.5),
-      inset 0 0 0 1px rgb(255 255 255 / 0.05);
+    border-radius: 20px;
+    box-shadow: inset 0 0 0 1px rgb(12 12 13 / 0.04);
   }
 
-  /* The designator plate at the head of a bay: its key on the keyboard. */
+  /* A section's number: a small outlined pill. */
   .plate {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 2.25rem;
-    height: 2.25rem;
-    padding: 0 0.55rem;
-    border-radius: 4px;
-    background: var(--color-amber);
-    color: #16191d;
+    height: 1.75rem;
+    padding: 0 0.7rem;
+    border-radius: 9999px;
+    border: 1px solid var(--color-rail);
+    background: var(--color-strip);
+    color: var(--color-ink);
     font-family: var(--font-mono);
-    font-variation-settings: "wdth" 87.5;
-    font-weight: 600;
-    font-size: 0.95rem;
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.04em;
   }
 
   /* The ruled time scale every timing on the page sits on. */
   .scale-ticks {
-    background-image:
-      repeating-linear-gradient(
-        90deg,
-        var(--color-rail) 0 1px,
-        transparent 1px calc(100% / 6)
-      );
+    background-image: repeating-linear-gradient(90deg, var(--color-rail) 0 1px, transparent 1px calc(100% / 6));
   }
 
   /* The memory scale: a tick every 4 GB of the Mac's 16. */
@@ -438,16 +355,25 @@
     background-image: repeating-linear-gradient(90deg, var(--color-rail) 0 1px, transparent 1px 25%);
   }
 
-  /* The tail of a spread, from the median to nine in ten: hatched in Tellerline's blue. */
+  /* The tail of a spread, from the median to nine in ten: hatched in the accent. */
   .hatch {
-    background-image: repeating-linear-gradient(
-      135deg,
-      var(--color-blue) 0 1.5px,
-      transparent 1.5px 4.5px
-    );
+    background-image: repeating-linear-gradient(135deg, var(--color-blue) 0 1.5px, transparent 1.5px 4.5px);
     box-shadow: inset 0 0 0 1px var(--color-blue);
   }
 
+  /* The closing band: the page turned over to night. */
+  .night {
+    --color-board: #0c0c0d;
+    --color-well: #161618;
+    --color-rail: #2a2a2e;
+    --color-rule: #232326;
+    --color-ink: #f6f5f1;
+    --color-ink-2: #b4b3ae;
+    --color-ink-3: #9a9994;
+    --color-blue-ink: #ff7a55;
+    background: var(--color-board);
+    color: var(--color-ink);
+  }
 
   /* ---------------------------------------------------------------- keys */
 
@@ -457,46 +383,44 @@
     justify-content: center;
     gap: 0.6rem;
     min-height: 2.75rem;
-    padding: 0.6rem 1.15rem;
-    border-radius: 6px;
-    border: 1px solid #16191d;
+    padding: 0.6rem 1.25rem;
+    border-radius: 9999px;
+    border: 1px solid var(--color-rail);
     background: var(--color-strip);
     color: var(--color-ink);
     font: inherit;
-    font-weight: 600;
+    font-weight: 560;
     font-size: 0.95rem;
     line-height: 1;
     text-decoration: none;
     white-space: nowrap;
     cursor: pointer;
-    box-shadow: 0 1px 0 #16191d;
     transition:
-      transform 120ms var(--settle),
-      translate 260ms var(--settle),
-      box-shadow 120ms var(--settle),
-      background-color 160ms var(--settle);
+      transform 160ms var(--ease),
+      background-color 160ms var(--ease),
+      border-color 160ms var(--ease),
+      color 160ms var(--ease);
   }
 
   .key:hover {
-    background: #f6f7f8;
+    border-color: var(--color-ink);
     transform: translateY(-1px);
-    box-shadow: 0 2px 0 #16191d;
   }
 
   .key:active {
-    transform: translateY(1px);
-    box-shadow: 0 0 0 #16191d;
+    transform: translateY(0);
   }
 
   .key[data-primary] {
-    background: var(--color-amber);
-    border-color: var(--color-amber);
-    color: #16191d;
-    box-shadow: 0 2px 0 #a67a12, 0 10px 26px -8px rgb(242 193 78 / 0.5);
+    background: var(--color-ink);
+    border-color: var(--color-ink);
+    color: var(--color-board);
   }
 
   .key[data-primary]:hover {
-    background: #f7cf72;
+    background: var(--color-blue);
+    border-color: var(--color-blue);
+    color: #fff;
   }
 
   .key:disabled {

@@ -13,18 +13,18 @@ const CREDITS = [
   ["MLX", "Apple", "MIT", "https://github.com/ml-explore/mlx"],
   ["RNNoise", "Xiph.Org", "BSD-3-Clause", "https://github.com/xiph/rnnoise"],
   ["Asterisk", "Sangoma", "GPL-2.0, run as a separate program", "https://www.asterisk.org/"],
-  ["Mona Sans", "GitHub", "SIL OFL 1.1", "/fonts/OFL-MonaSans.txt"],
-  ["Martian Mono", "Evil Martians", "SIL OFL 1.1", "/fonts/OFL-MartianMono.txt"],
+  ["Geist and Geist Mono", "Vercel", "SIL OFL 1.1", "https://github.com/vercel/geist-font"],
+  ["Instrument Serif", "Instrument", "SIL OFL 1.1", "https://github.com/Instrument/instrument-serif"],
 ] as const;
 
 export function Footer() {
   return (
-    <footer className="border-t border-rail bg-well px-[var(--gutter)] pb-14 pt-16 sm:pt-20">
+    <footer className="night px-[var(--gutter)] pb-14 pt-20 sm:pt-28">
       <div className="mx-auto grid max-w-[90rem] gap-x-14 gap-y-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <div className="flex flex-col gap-5">
           <p className="flex items-center gap-3">
-            <StripMark className="h-[22px] w-[42px]" />
-            <span className="callsign text-[2rem]">Tellerline</span>
+            <StripMark className="h-[26px] w-[50px] text-ink" />
+            <span className="callsign text-[2.6rem]">Tellerline</span>
           </p>
           <p className="max-w-[46ch] leading-relaxed">
             An on-device voice banking agent, built and measured on one MacBook Air by{" "}

@@ -11,13 +11,13 @@ import type { Span } from "@/lib/timeline";
 const BAR = 2;
 const PITCH = 3;
 const COLOURS = {
-  idle: "#2a3441",
-  caller: "#f2c14e",
-  agent: "#4b8bf0",
-  axis: "#3c4856",
-  head: "#eef1f4",
-  gap: "#eef1f4",
-  band: "rgba(242, 193, 78, 0.22)",
+  idle: "#dedcd4",
+  caller: "#0c0c0d",
+  agent: "#ff4f1f",
+  axis: "#c9c6bb",
+  head: "#0c0c0d",
+  gap: "#0c0c0d",
+  band: "rgba(255, 79, 31, 0.12)",
 };
 
 type Props = {
@@ -31,9 +31,10 @@ type Props = {
   highlight: Span | null;
   onSeek: (seconds: number) => void;
   label: string;
+  className?: string;
 };
 
-export function Waveform({ caller, agent, hz, duration, gaps, now, playing, highlight, onSeek, label }: Props) {
+export function Waveform({ caller, agent, hz, duration, gaps, now, playing, highlight, onSeek, label, className }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -157,7 +158,7 @@ export function Waveform({ caller, agent, hz, duration, gaps, now, playing, high
       aria-valuetext={`${Math.round(now.current ?? 0)} of ${Math.round(duration)} seconds`}
       onPointerDown={seek}
       onKeyDown={step}
-      className="block h-[4.25rem] w-full cursor-pointer touch-none rounded-[2px]"
+      className={`block w-full cursor-pointer touch-none rounded-[2px] ${className ?? "h-[4.25rem]"}`}
     />
   );
 }

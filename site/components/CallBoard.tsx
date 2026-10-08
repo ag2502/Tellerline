@@ -135,15 +135,15 @@ export function CallBoard() {
               aria-selected={selected}
               aria-controls="call-bay"
               onClick={() => void choose(item.slug)}
-              className={`flex cursor-pointer items-center gap-2 rounded-[5px] py-1.5 pl-1.5 pr-3 text-[0.82rem] font-semibold uppercase tracking-[0.06em] transition-colors duration-150 ${
+              className={`flex cursor-pointer items-center gap-2 rounded-full py-1.5 pl-1.5 pr-4 text-[0.88rem] font-medium transition-colors duration-150 ${
                 selected
-                  ? "bg-amber text-[#16191d] shadow-[0_2px_0_#a67a12]"
-                  : "paper bg-strip text-ink shadow-[var(--lift)] hover:bg-[#f5f6f7]"
+                  ? "bg-ink text-board"
+                  : "bg-strip text-ink shadow-[var(--lift)] hover:bg-well"
               }`}
             >
               <span
-                className={`print grid h-6 w-6 place-items-center rounded-[3px] text-[0.78rem] ${
-                  selected ? "bg-[#16191d] text-amber" : "bg-well text-ink-2"
+                className={`print grid h-6 w-6 place-items-center rounded-full text-[0.78rem] ${
+                  selected ? "bg-board/20 text-board" : "bg-well text-ink-2"
                 }`}
               >
                 {number + 1}
@@ -272,7 +272,7 @@ function Legend() {
   return (
     <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[0.8rem] text-ink-2" aria-hidden="true">
       <span className="flex items-center gap-1.5">
-        <i className="inline-block h-3 w-1.5 rounded-[1px] bg-[#d9a21f]" /> caller
+        <i className="inline-block h-3 w-1.5 rounded-[1px] bg-ink" /> caller
       </span>
       <span className="flex items-center gap-1.5">
         <i className="inline-block h-3 w-1.5 rounded-[1px] bg-blue" /> Tellerline
@@ -335,7 +335,7 @@ function CommandLine({ execute }: { execute: (input: string) => Promise<string> 
       <label htmlFor="replay-prompt" className="label mb-1 block">
         Type a command
       </label>
-      <div className="paper flex items-center gap-2 rounded-[6px] bg-strip px-3 shadow-[var(--lift)] focus-within:shadow-[0_0_0_2px_var(--color-blue)]">
+      <div className="flex items-center gap-2 rounded-full bg-strip px-3 shadow-[var(--lift)] focus-within:shadow-[0_0_0_2px_var(--color-blue)]">
         <span className="print text-ink-3" aria-hidden="true">
           ›
         </span>

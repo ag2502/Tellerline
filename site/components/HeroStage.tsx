@@ -1,91 +1,80 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-
 import { clock, spokenShare, type Board } from "@/lib/timeline";
 
 import { useCall } from "./CallContext";
 import { PauseIcon, PlayIcon, ReplayIcon } from "./icons";
 import { PenCircle } from "./Strips";
+import { Waveform } from "./Waveform";
 
-const LINES = ["Bank calls, answered", "on one MacBook Air."];
+const LINES = [["Bank", "calls,", "answered"], ["on", "one", "MacBook", "Air."]];
 
-// The first viewport: the claim in type that fills the screen, the recorded call between its two
-// lines as the 3D stage, and a deck that plays it, says who is speaking, and times each wait.
+// The first viewport: the claim in type that fills the width, and under it the recorded call
+// as a player that says who is speaking and times each wait.
 export function HeroStage() {
   return (
-    <section id="top" aria-label="Tellerline, and a recorded call you can play" className="relative flex min-h-[calc(100svh-var(--header-h))] flex-col overflow-x-clip px-[var(--gutter)] pb-5 pt-[clamp(1.25rem,3vw,2.5rem)]">
-      <Title />
-      <Sculpture />
-      <Deck />
+    <section id="top" aria-label="Tellerline, and a recorded call you can play" className="relative px-[var(--gutter)] pb-10 pt-[clamp(2rem,4vw,3.5rem)]">
+      <div className="mx-auto max-w-[90rem]">
+        <p className="label inline-flex items-center gap-2 rounded-full border border-rail bg-strip px-3 py-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-blue" aria-hidden="true" />
+          Every word on one MacBook Air M5, nothing sent to a cloud
+        </p>
+        <Title />
+        <Player />
+      </div>
     </section>
   );
 }
 
-// Each letter rises into place once; then, as the page scrolls, the two lines drift apart.
+// Each word rises into place once, a beat apart; the last two take the italic and the accent.
 function Title() {
-  const lines = useRef<(HTMLSpanElement | null)[]>([]);
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    let frame = 0;
-    const update = () => {
-      const y = Math.min(window.scrollY, window.innerHeight * 1.2);
-      lines.current.forEach((line, index) => {
-        if (line) line.style.transform = `translate3d(${(index ? 1 : -1) * y * 0.22}px, 0, 0)`;
-      });
-      frame = 0;
-    };
-    const onScroll = () => {
-      if (!frame) frame = requestAnimationFrame(update);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(frame);
-    };
-  }, []);
   let index = 0;
   return (
-    <h1 className="callsign relative z-10 text-[clamp(2.4rem,9.4vw,11.5rem)] leading-[0.86]">
-      {LINES.map((line, number) => (
-        <span
-          key={line}
-          ref={(element) => {
-            lines.current[number] = element;
-          }}
-          className={`block whitespace-nowrap will-change-transform ${number ? "text-right" : ""}`}
-        >
-          <span className="sr-only">{line}</span>
-          <span aria-hidden="true" className="inline-block overflow-hidden pb-[0.04em] align-bottom">
-            {[...line].map((letter) => (
-              <span key={index} className="rise inline-block" style={{ "--i": index++ } as React.CSSProperties}>
-                {letter === " " ? " " : letter}
-              </span>
-            ))}
+    <h1 className="callsign mt-6 text-[clamp(2.9rem,8.6vw,9rem)]">
+      <span className="sr-only">Bank calls, answered on one MacBook Air.</span>
+      <span aria-hidden="true" className="block">
+        {LINES.map((line, row) => (
+          <span key={row} className="block">
+            {line.map((word) => {
+              const accent = row === 1 && (word === "MacBook" || word === "Air.");
+              return (
+                <span key={word + index} className="mr-[0.22em] inline-block overflow-hidden pb-[0.08em] align-bottom last:mr-0">
+                  <span
+                    className={`rise inline-block ${accent ? "serif pr-[0.06em] text-blue-ink" : ""}`}
+                    style={{ "--i": index++ } as React.CSSProperties}
+                  >
+                    {word}
+                  </span>
+                </span>
+              );
+            })}
           </span>
-        </span>
-      ))}
+        ))}
+      </span>
     </h1>
   );
 }
 
-// The stage's slot: the scene draws the call here; a click plays it from that moment. The strip
-// board's waveform below is the keyboard way to do the same.
-function Sculpture() {
-  const { call, seek, toggle, playing } = useCall();
+// The recorded call as a card: its trace to click or step through, then the deck beneath.
+function Player() {
+  const { call, board, seek, nowRef, playing } = useCall();
   return (
-    <div
-      data-stage-slot="hero"
-      title="Play from here"
-      className="relative -mt-[16vw] min-h-[36svh] flex-1 cursor-pointer sm:-mt-[11vw] sm:min-h-[44svh]"
-      onClick={(event) => {
-        const box = event.currentTarget.getBoundingClientRect();
-        const span = box.width * 0.96;
-        const share = (event.clientX - (box.left + (box.width - span) / 2)) / span;
-        seek(Math.min(1, Math.max(0, share)) * call.duration_s);
-        if (!playing) void toggle();
-      }}
-    />
+    <div className="mt-8 rounded-[28px] bg-strip p-4 shadow-[var(--lift-high)] sm:p-7">
+      <Waveform
+        caller={call.envelope.caller}
+        agent={call.envelope.agent}
+        hz={call.envelope_hz}
+        duration={call.duration_s}
+        gaps={board.gaps}
+        now={nowRef}
+        playing={playing}
+        highlight={null}
+        onSeek={seek}
+        className="h-36 sm:h-52"
+        label={`Position in the call, ${call.title}. Left and right arrows move five seconds.`}
+      />
+      <Deck />
+    </div>
   );
 }
 
@@ -93,12 +82,12 @@ function Deck() {
   const { calls, call, board, now, playing, started, finished, loading, toggle, choose } = useCall();
   const label = playing ? "Pause" : finished ? "Play it again" : started ? "Resume" : "Play the call";
   return (
-    <div className="relative z-10 grid items-end gap-x-8 gap-y-5 border-t-2 border-ink pt-4 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
+    <div className="mt-6 grid items-end gap-x-8 gap-y-5 border-t border-rule pt-6 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" data-primary="" className="key min-h-[3.4rem] w-[15.5rem] justify-start px-6 text-[1.05rem]" onClick={() => void toggle()} aria-keyshortcuts="Space">
+        <button type="button" data-primary="" className="key min-h-[3.4rem] w-[15rem] justify-start px-7 text-[1.05rem]" onClick={() => void toggle()} aria-keyshortcuts="Space">
           {playing ? <PauseIcon /> : finished ? <ReplayIcon /> : <PlayIcon />}
           {label}
-          {!started ? <span className="text-[0.78rem] font-medium text-rail">with sound</span> : null}
+          {!started ? <span className="text-[0.78rem] font-normal opacity-60">with sound</span> : null}
         </button>
         <div role="group" aria-label="Recorded calls" className="flex gap-1.5">
           {calls.map((item, number) => {
@@ -111,8 +100,8 @@ function Deck() {
                 aria-label={`Call ${number + 1}: ${item.title}`}
                 title={item.title}
                 onClick={() => void choose(item.slug)}
-                className={`print grid h-[3.4rem] w-11 cursor-pointer place-items-center rounded-[6px] text-[1rem] font-semibold transition-colors duration-150 ${
-                  selected ? "bg-amber text-[#16191d]" : "paper bg-strip text-ink-2 shadow-[var(--lift)] hover:bg-well"
+                className={`print grid h-[3.4rem] w-[3.4rem] cursor-pointer place-items-center rounded-full text-[1rem] font-medium transition-colors duration-150 ${
+                  selected ? "bg-ink text-board" : "bg-board text-ink-2 hover:bg-well"
                 } ${loading === item.slug ? "animate-pulse" : ""}`}
               >
                 {number + 1}
@@ -157,8 +146,8 @@ function Caption({ board, now, started, summary, title }: { board: Board; now: n
     <div className="min-h-[5.2rem] min-w-0" aria-hidden={started ? "true" : undefined}>
       {who ? (
         <>
-          <span className={`label block ${who === "caller" ? "text-amber-ink" : "text-blue-ink"}`}>{who === "caller" ? "the caller" : "Tellerline"}</span>
-          <p className="mt-1 line-clamp-2 text-[clamp(1.05rem,0.9rem+0.6vw,1.45rem)] font-medium leading-snug">{text}</p>
+          <span className={`label block ${who === "caller" ? "text-ink-2" : "text-blue-ink"}`}>{who === "caller" ? "the caller" : "Tellerline"}</span>
+          <p className="mt-1 line-clamp-2 text-[clamp(1.05rem,0.9rem+0.6vw,1.45rem)] font-medium leading-snug tracking-[-0.01em]">{text}</p>
         </>
       ) : (
         <>

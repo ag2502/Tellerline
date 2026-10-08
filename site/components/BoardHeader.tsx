@@ -57,8 +57,8 @@ export function BoardHeader({ bays }: { bays: Bay[] }) {
     <header className="sticky top-0 z-40 border-b border-rail bg-board">
       <div className="mx-auto flex h-[var(--header-h)] max-w-[90rem] items-center gap-3 px-[var(--gutter)] sm:gap-6">
         <a href="#top" className="flex shrink-0 items-center gap-2.5 no-underline" aria-label="Tellerline, to the top">
-          <StripMark className="h-[18px] w-[34px]" />
-          <span className="callsign text-[1.35rem] tracking-[0.01em]">Tellerline</span>
+          <StripMark className="h-[18px] w-[34px] text-ink" />
+          <span className="text-[1.2rem] font-semibold tracking-[-0.04em]">Tellerline</span>
         </a>
         <nav aria-label="Bays" className="min-w-0 flex-1 overflow-x-auto [mask-image:linear-gradient(90deg,#000_80%,transparent)] [scrollbar-width:none] md:[mask-image:none]">
           <ol className="flex w-max items-center gap-1">
@@ -70,11 +70,11 @@ export function BoardHeader({ bays }: { bays: Bay[] }) {
                     href={`#${item.id}`}
                     aria-current={current ? "location" : undefined}
                     aria-keyshortcuts={String(number)}
-                    className={`flex items-center gap-1.5 rounded-[5px] px-2 py-1.5 text-[0.8rem] font-semibold uppercase tracking-[0.07em] no-underline transition-colors duration-150 ${
-                      current ? "bg-amber text-[#16191d]" : "text-ink-2 hover:bg-well hover:text-ink"
+                    className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.88rem] font-medium no-underline transition-colors duration-150 ${
+                      current ? "bg-ink text-board" : "text-ink-2 hover:bg-well hover:text-ink"
                     }`}
                   >
-                    <span className={`print hidden text-[0.72rem] md:inline ${current ? "text-[#16191d]/70" : "text-ink-3"}`}>{number}</span>
+                    <span className={`print hidden text-[0.7rem] md:inline ${current ? "text-board/60" : "text-ink-3"}`}>{number}</span>
                     <span>{item.name}</span>
                   </a>
                 </li>

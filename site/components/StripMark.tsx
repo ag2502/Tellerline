@@ -1,14 +1,11 @@
-// Tellerline's mark: one flight strip in its holder, the caller's end amber, Tellerline's blue.
+// Tellerline's mark: a call as three bars, the caller's two in ink, Tellerline's reply in the accent.
 export function StripMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 34 18" className={className} aria-hidden="true">
-      <rect x="0" y="0" width="17" height="18" rx="3" fill="#f2c14e" />
-      <rect x="17" y="0" width="17" height="18" rx="3" fill="#2f6fd6" />
-      <rect x="11" y="0" width="12" height="18" fill="#2f6fd6" />
-      <rect x="11" y="0" width="6" height="18" fill="#f2c14e" />
-      <rect x="5" y="3" width="24" height="12" rx="1.5" fill="#ffffff" />
-      <rect x="8" y="6.5" width="9" height="2" rx="1" fill="#16191d" />
-      <rect x="8" y="10" width="14" height="1.5" rx="0.75" fill="#9aa3ad" />
+      <rect x="1" y="5" width="6" height="8" rx="3" fill="currentColor" />
+      <rect x="10" y="1" width="6" height="16" rx="3" fill="currentColor" />
+      <rect x="19" y="3" width="6" height="12" rx="3" fill="#ff4f1f" />
+      <rect x="28" y="6.5" width="5" height="5" rx="2.5" fill="#ff4f1f" />
     </svg>
   );
 }

@@ -19,12 +19,12 @@ export function Section({
   return (
     <section id={id} aria-labelledby={`${id}-title`} className="bay relative z-10 border-t border-rail">
       <div className="mx-auto max-w-[90rem]">
-        <div className="flex items-start gap-4 sm:gap-5" data-reveal-target="">
-          <span className="plate mt-1 shrink-0 sm:mt-2" aria-hidden="true">
-            {number}
+        <div data-reveal-target="">
+          <span className="plate" aria-hidden="true">
+            {String(number).padStart(2, "0")}
           </span>
-          <div className="min-w-0">
-            <h2 id={`${id}-title`} className="headline text-[clamp(2.2rem,1.1rem+3.6vw,4.75rem)]">
+          <div className="mt-5 min-w-0">
+            <h2 id={`${id}-title`} className="headline max-w-[22ch] text-[clamp(2.4rem,1.2rem+4.2vw,5.5rem)]">
               {title}
             </h2>
             <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[0.85rem]">
