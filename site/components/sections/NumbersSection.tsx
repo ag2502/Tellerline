@@ -3,8 +3,8 @@ import { SCALE_S } from "@/lib/timeline";
 import type { Accuracy, CallerRun } from "@/lib/types";
 
 import { Cross, Tick } from "../icons";
-import { Ruler, Spread, SpreadKey } from "../Scale";
-import { Histogram } from "./Histogram";
+import { Flag, Ruler, Spread, SpreadKey } from "../Scale";
+import { Counts, Histogram } from "./Histogram";
 import { Section, Source } from "./Section";
 
 type Row = { key: string; label: string; note: string; run: CallerRun; muted?: boolean };
@@ -34,7 +34,28 @@ export function NumbersSection({ number }: { number: number }) {
   ];
 
   return (
-    <Section id="numbers" number={number} stage={{ name: "numbers", caption: `every one of the ${gate.measured} timed replies as a block, stacked by the caller's wait from 0 to 1.5 s; grey ones waited longer` }} title="Measured by phoning it, not projected" command="python -m bench.caller --turns 220">
+    <Section id="numbers" number={number} stage={{
+        name: "numbers",
+        caption: `every one of the ${gate.measured} timed replies as a block, stacked by the caller's wait; grey ones waited past the target`,
+        overlay: (
+          <div className="absolute inset-y-0 left-0 w-[93.75%]">
+            <Flag at={p50} label={`half by ${seconds(p50)}`} />
+            <Flag at={p90} label={`nine in ten by ${seconds(p90)}`} row={1} />
+            <span className="absolute inset-y-0 right-0 border-r-2 border-dashed border-ink" />
+          </div>
+        ),
+        below: (
+          <>
+            <div className="mt-2 flex">
+              <Ruler className="w-[93.75%]" />
+              <span className="print relative w-[6.25%] pt-1.5 text-[0.68rem] leading-none text-ink-3">
+                <span className="absolute right-0 hidden sm:inline">longer</span>
+              </span>
+            </div>
+            <Counts run={gate} />
+          </>
+        ),
+      }} title="Measured by phoning it, not projected" command="python -m bench.caller --turns 220">
       <div className="grid items-start gap-x-14 gap-y-12 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <div className="flex flex-col gap-6">
           <p className="prose-width text-[1.15rem] leading-relaxed">
@@ -62,7 +83,9 @@ export function NumbersSection({ number }: { number: number }) {
           <Source file={`results/${gate.file}`}>Every turn of this run, with the agent&apos;s own trace</Source>
         </div>
 
-        <Histogram run={gate} />
+        <div className="stage-dup">
+          <Histogram run={gate} />
+        </div>
       </div>
 
       <div className="mt-20 grid gap-x-14 gap-y-8 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">

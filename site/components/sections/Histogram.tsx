@@ -71,36 +71,7 @@ export function Histogram({ run }: { run: CallerRun }) {
           </span>
         </div>
 
-        <details className="mt-3 text-[0.85rem]">
-          <summary className="w-fit font-medium text-ink-2 underline decoration-rail underline-offset-4 hover:text-ink">
-            The counts
-          </summary>
-          <table className="print mt-2 w-full max-w-[22rem] border-collapse text-[0.8rem]">
-            <caption className="sr-only">Replies by the caller&apos;s wait, in tenths of a second</caption>
-            <thead>
-              <tr className="text-left text-ink-3">
-                <th scope="col" className="pb-1 font-normal">wait</th>
-                <th scope="col" className="pb-1 text-right font-normal">replies</th>
-              </tr>
-            </thead>
-            <tbody>
-              {columns.map((column) => (
-                <tr key={column.key} className="border-t border-rule">
-                  <th scope="row" className="py-0.5 text-left font-normal">
-                    {column.label}
-                  </th>
-                  <td className="text-right">{column.count}</td>
-                </tr>
-              ))}
-              <tr className="border-t border-rule">
-                <th scope="row" className="py-0.5 text-left font-normal">
-                  past {SCALE_S} s
-                </th>
-                <td className="text-right">{over}</td>
-              </tr>
-            </tbody>
-          </table>
-        </details>
+        <Counts run={run} />
       </div>
     </figure>
   );
@@ -135,5 +106,45 @@ function Marks({
         />
       ))}
     </span>
+  );
+}
+
+// The gate's replies by wait, tenth by tenth, behind a disclosure.
+export function Counts({ run }: { run: CallerRun }) {
+  const columns = run.histogram
+    .filter((bin) => bin.from < SCALE_S - 1e-9 && bin.count)
+    .map((bin) => ({ key: bin.from.toFixed(1), count: bin.count, label: `${bin.from.toFixed(1)} to ${(bin.from + BIN_S).toFixed(1)} s` }));
+  const over = run.histogram.filter((bin) => bin.from >= SCALE_S - 1e-9).reduce((sum, bin) => sum + bin.count, 0);
+  return (
+    <details className="mt-3 text-[0.85rem]">
+      <summary className="w-fit font-medium text-ink-2 underline decoration-rail underline-offset-4 hover:text-ink">
+        The counts
+      </summary>
+      <table className="print mt-2 w-full max-w-[22rem] border-collapse text-[0.8rem]">
+        <caption className="sr-only">Replies by the caller&apos;s wait, in tenths of a second</caption>
+        <thead>
+          <tr className="text-left text-ink-3">
+            <th scope="col" className="pb-1 font-normal">wait</th>
+            <th scope="col" className="pb-1 text-right font-normal">replies</th>
+          </tr>
+        </thead>
+        <tbody>
+          {columns.map((column) => (
+            <tr key={column.key} className="border-t border-rule">
+              <th scope="row" className="py-0.5 text-left font-normal">
+                {column.label}
+              </th>
+              <td className="text-right">{column.count}</td>
+            </tr>
+          ))}
+          <tr className="border-t border-rule">
+            <th scope="row" className="py-0.5 text-left font-normal">
+              past {SCALE_S} s
+            </th>
+            <td className="text-right">{over}</td>
+          </tr>
+        </tbody>
+      </table>
+    </details>
   );
 }

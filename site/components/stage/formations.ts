@@ -41,9 +41,10 @@ const hex = (value: string): [number, number, number] => [
 
 export const COLOURS = {
   amber: hex("#f2c14e"),
-  amberPale: hex("#eadfc0"),
+  amberPale: hex("#c9c1aa"), // uninked: bare aluminium, warm side
   blue: hex("#2f6fd6"),
-  bluePale: hex("#cbd7ec"),
+  bluePale: hex("#aeb8c6"), // uninked: bare aluminium, cool side
+  blueLight: hex("#8fb0e8"),
   blueInk: hex("#1f57b5"),
   ink: hex("#16191d"),
   ink3: hex("#5b646e"),
@@ -181,7 +182,7 @@ function memory({ data, rect, count, time, target, reduced }: Input) {
   const rows = 8;
   const cell = Math.min(rect.width / columns, rect.height / rows);
   const tiles: [number, number, number][] = [];
-  const tone = { decide: COLOURS.blue, hear: COLOURS.amber, speak: COLOURS.blueInk, route: COLOURS.ink };
+  const tone = { decide: COLOURS.blue, hear: COLOURS.amber, speak: COLOURS.blueLight, route: COLOURS.ink };
   for (const model of data.memory) for (let n = 0; n < Math.round(model.gb * 10); n++) tiles.push(tone[model.tone]);
   const total = (GB * 10) / 1;
   let i = 0;

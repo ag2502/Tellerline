@@ -100,13 +100,13 @@ function DecisionStrip({ item }: { item: Decision }) {
           <ArrowIcon className="h-3.5 w-3.5 rotate-90 transition-transform duration-200 group-open:-rotate-90" />
         </span>
       </summary>
-      <div className="strip mt-[3px] grid gap-0 py-1 print-in">
+      <div className="strip mt-[3px] grid min-w-0 gap-0 py-1 print-in">
         <p className="box text-[0.8rem] text-ink-3 sm:hidden">{item.date}</p>
         {parts.map(([label, text]) =>
           text ? (
-            <div key={label} className="grid gap-x-4 border-t border-rule px-[0.7rem] py-2.5 first:border-t-0 sm:grid-cols-[6.5rem_minmax(0,1fr)]">
+            <div key={label} className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-x-4 border-t border-rule px-[0.7rem] py-2.5 first:border-t-0 sm:grid-cols-[6.5rem_minmax(0,1fr)]">
               <span className="label pt-1">{label}</span>
-              <p className={`prose-width text-[0.94rem] leading-relaxed ${label === "considered" ? "text-ink-2" : ""}`}>
+              <p className={`prose-width min-w-0 text-[0.94rem] leading-relaxed [overflow-wrap:anywhere] ${label === "considered" ? "text-ink-2" : ""}`}>
                 <Inline text={text} />
               </p>
             </div>

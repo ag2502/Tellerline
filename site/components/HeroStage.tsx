@@ -77,7 +77,7 @@ function Sculpture() {
     <div
       data-stage-slot="hero"
       title="Play from here"
-      className="relative -mt-[2vw] min-h-[28svh] flex-1 cursor-pointer sm:min-h-[34svh]"
+      className="relative -mt-[7vw] min-h-[32svh] flex-1 cursor-pointer sm:-mt-[5.5vw] sm:min-h-[38svh]"
       onClick={(event) => {
         const box = event.currentTarget.getBoundingClientRect();
         const span = box.width * 0.96;
@@ -95,7 +95,7 @@ function Deck() {
   return (
     <div className="relative z-10 grid items-end gap-x-8 gap-y-5 border-t-2 border-ink pt-4 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" data-primary="" className="key min-h-[3.4rem] min-w-[12.5rem] px-6 text-[1.05rem]" onClick={() => void toggle()} aria-keyshortcuts="Space">
+        <button type="button" data-primary="" className="key min-h-[3.4rem] w-[15.5rem] justify-start px-6 text-[1.05rem]" onClick={() => void toggle()} aria-keyshortcuts="Space">
           {playing ? <PauseIcon /> : finished ? <ReplayIcon /> : <PlayIcon />}
           {label}
           {!started ? <span className="text-[0.78rem] font-medium text-[#c3cad2]">with sound</span> : null}
@@ -124,7 +124,7 @@ function Deck() {
       <Caption board={board} now={now} started={started} summary={call.summary} title={call.title} />
       <div className="flex items-end justify-between gap-6 lg:flex-col lg:items-end lg:gap-2">
         <Wait board={board} now={now} playing={playing} />
-        <span className="print text-[0.9rem] font-medium" aria-hidden="true">
+        <span className="print whitespace-nowrap text-[0.9rem] font-medium" aria-hidden="true">
           {clock(now)}
           <span className="text-ink-3"> / {clock(call.duration_s)}</span>
         </span>
@@ -175,17 +175,21 @@ function Caption({ board, now, started, summary, title }: { board: Board; now: n
 // The wait the project measures: counting while the caller waits, circled in red as the reply
 // starts, in ink once the next turn begins.
 function Wait({ board, now, playing }: { board: Board; now: number; playing: boolean }) {
-  const strip = [...board.strips].reverse().find((item) => item.wait && now >= item.wait.from);
+  const reached = [...board.strips].reverse().find((item) => item.wait && now >= item.wait.from);
+  const first = board.strips.find((item) => item.wait);
+  // At rest, the first reply's wait, measured, in grey until the call is played.
+  const resting = !reached;
+  const strip = reached ?? first;
   const wait = strip?.wait ?? null;
-  const answered = wait ? now >= wait.until : false;
+  const answered = wait ? resting || now >= wait.until : false;
   const next = strip ? board.strips.find((item) => item.turn === strip.turn + 1) : undefined;
-  const live = playing && answered && (!next || now < next.feedAt);
-  const value = wait ? Math.min(now, wait.until) - wait.from : null;
+  const live = !resting && playing && answered && (!next || now < next.feedAt);
+  const value = wait ? (resting ? wait.until - wait.from : Math.min(now, wait.until) - wait.from) : null;
   return (
-    <div className="flex min-w-[10.5rem] flex-col items-start lg:items-end">
-      <span className="label">{strip ? `turn ${strip.turn}: the caller waited` : "the wait"}</span>
-      <span className={`print relative mr-5 mt-1 text-[2.6rem] font-semibold leading-none ${live ? "text-red-ink" : ""}`}>
-        {value === null ? "0.00" : value.toFixed(2)}
+    <div className="flex min-w-[10.5rem] flex-col items-start pl-4 lg:items-end lg:pl-0">
+      <span className="label whitespace-nowrap">{strip ? `turn ${strip.turn} waited` : "the wait"}</span>
+      <span className={`print relative mr-5 mt-1 text-[2.2rem] font-semibold leading-none sm:text-[2.6rem] ${live ? "text-red-ink" : resting ? "text-ink-3" : ""}`}>
+        {value === null ? "" : value.toFixed(2)}
         <span className="text-[0.45em] font-normal">&nbsp;s</span>
         {answered ? <PenCircle settled={!live} instant={false} key={strip?.turn} /> : null}
       </span>

@@ -18,6 +18,7 @@ import { type Formation, formations, type SlotRect } from "./formations";
 const FOV = 30;
 const DISTANCE = 20;
 const SLOTS = ["hero", "turn", "numbers", "memory"] as const;
+const LEAN = 0.34; // radians the hero sculpture leans back
 
 export type SlotName = (typeof SLOTS)[number];
 
@@ -27,13 +28,32 @@ export default function Scene({ data }: { data: Formation["data"] }) {
       className="!fixed inset-0 !h-[100lvh] !w-full"
       style={{ pointerEvents: "none" }}
       dpr={[1, 1.75]}
+      shadows="soft"
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
       camera={{ fov: FOV, position: [0, 0, DISTANCE], near: 0.1, far: 100 }}
     >
       <Fins data={data} />
-      <ambientLight intensity={0.45} />
-      <directionalLight position={[-6, 9, 8]} intensity={1.6} />
-      <directionalLight position={[8, -4, 6]} intensity={0.35} />
+      <ambientLight intensity={0.5} />
+      <directionalLight
+        position={[-3, 5, 16]}
+        intensity={1.7}
+        castShadow
+        shadow-mapSize={[2048, 2048]}
+        shadow-bias={-0.0006}
+        shadow-radius={6}
+        shadow-camera-left={-16}
+        shadow-camera-right={16}
+        shadow-camera-top={10}
+        shadow-camera-bottom={-10}
+        shadow-camera-near={1}
+        shadow-camera-far={40}
+      />
+      <directionalLight position={[8, -4, 6]} intensity={0.3} />
+      {/* The wall behind the fins: invisible but for the shadows they cast on it. */}
+      <mesh position={[0, 0, -1.6]} receiveShadow>
+        <planeGeometry args={[80, 50]} />
+        <shadowMaterial transparent opacity={0.07} />
+      </mesh>
       <Room />
     </Canvas>
   );
@@ -46,7 +66,7 @@ function Room() {
     const generator = new THREE.PMREMGenerator(gl);
     const texture = generator.fromScene(new RoomEnvironment(), 0.04).texture;
     scene.environment = texture;
-    scene.environmentIntensity = 0.28;
+    scene.environmentIntensity = 0.5;
     return () => {
       scene.environment = null;
       texture.dispose();
@@ -64,11 +84,12 @@ function Fins({ data }: { data: Formation["data"] }) {
   const material = useMemo(
     () =>
       new THREE.MeshPhysicalMaterial({
-        roughness: 0.32,
-        metalness: 0,
-        clearcoat: 0.8,
-        clearcoatRoughness: 0.25,
-        sheen: 0.2,
+        // Anodised aluminium: metal under a tint, brushed along the fin.
+        roughness: 0.34,
+        metalness: 0.4,
+        anisotropy: 0.6,
+        clearcoat: 0.5,
+        clearcoatRoughness: 0.3,
       }),
     [],
   );
@@ -95,6 +116,7 @@ function Fins({ data }: { data: Formation["data"] }) {
   const vector = useMemo(() => new THREE.Vector3(), []);
   const scaleVector = useMemo(() => new THREE.Vector3(), []);
   const colour = useMemo(() => new THREE.Color(), []);
+  const lean = useRef(0);
 
   useEffect(() => {
     const find = () => {
@@ -155,6 +177,14 @@ function Fins({ data }: { data: Formation["data"] }) {
         inside: Math.abs(px * perPixel - rect.x) < rect.width / 2 && Math.abs(-py * perPixel - rect.y) < rect.height / 2,
       };
       formations[best]({ data, rect, count, time, target, now: stage.now, playing: stage.playing, board: stage.board, call: stage.call, reduced: stage.reduced, pointer });
+      // The call leans back from the viewer, so it stands as a sculpture rather than a chart.
+      if (best === "hero") {
+        for (let i = 0; i < count; i++) {
+          const dy = target.position[i * 3 + 1] - rect.y;
+          target.position[i * 3 + 1] = rect.y + dy * Math.cos(LEAN);
+          target.position[i * 3 + 2] -= dy * Math.sin(LEAN);
+        }
+      }
     } else {
       // Rest: the fins drop below the fold and shrink, keeping their order.
       for (let i = 0; i < count; i++) {
@@ -176,6 +206,8 @@ function Fins({ data }: { data: Formation["data"] }) {
       state.started = true;
     }
 
+    lean.current += ((best === "hero" ? LEAN : 0) - lean.current) * (stage.reduced ? 1 : 1 - Math.exp(-delta * 4));
+
     // Ease toward the targets: fast enough to follow a scroll, slow enough to read as flight.
     const ease = stage.reduced ? 1 : 1 - Math.exp(-delta * 5.5);
     const easeColour = stage.reduced ? 1 : 1 - Math.exp(-delta * 8);
@@ -192,7 +224,7 @@ function Fins({ data }: { data: Formation["data"] }) {
       }
       vector.set(state.position[i * 3], state.position[i * 3 + 1], state.position[i * 3 + 2]);
       scaleVector.set(Math.max(0.0001, state.scale[i * 3]), Math.max(0.0001, state.scale[i * 3 + 1]), Math.max(0.0001, state.scale[i * 3 + 2]));
-      euler.set(tiltX, tiltY + (best === "hero" ? (vector.x / Math.max(1, viewport.width)) * -0.5 : 0), 0);
+      euler.set(tiltX - lean.current, tiltY + (best === "hero" ? (vector.x / Math.max(1, viewport.width)) * -0.5 : 0), 0);
       quaternion.setFromEuler(euler);
       matrix.compose(vector, quaternion, scaleVector);
       element.setMatrixAt(i, matrix);
@@ -203,6 +235,6 @@ function Fins({ data }: { data: Formation["data"] }) {
     element.instanceColor.needsUpdate = true;
   });
 
-  return <instancedMesh ref={mesh} args={[geometry, material, count]} frustumCulled={false} />;
+  return <instancedMesh ref={mesh} args={[geometry, material, count]} frustumCulled={false} castShadow />;
 }
 

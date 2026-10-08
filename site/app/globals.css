@@ -250,6 +250,15 @@
     display: block;
   }
 
+  html[data-stage] .stage-dup {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
   /* The headline's letters rise once into place, a beat apart. */
   @media (prefers-reduced-motion: no-preference) {
     .rise {
@@ -259,15 +268,15 @@
 
     /* A bay's title and lead rise in as the bay arrives. */
     [data-reveal] {
-      clip-path: inset(0 0 100% 0);
-      transform: translateY(1.2rem);
+      opacity: 0.5;
+      transform: translateY(1.75rem);
       transition:
-        clip-path 900ms cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
         transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     [data-reveal][data-in] {
-      clip-path: inset(0 0 -10% 0);
+      opacity: 1;
       transform: none;
     }
   }

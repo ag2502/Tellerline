@@ -5,10 +5,10 @@ import { Section, Source } from "./Section";
 const TOTAL_GB = 16;
 
 const MODELS = [
-  { key: "llm-e2b", name: "Gemma 4 E2B", role: "decides", where: "GPU", licence: "Apache-2.0" },
-  { key: "stt", name: "Parakeet TDT 0.6B v3", role: "hears", where: "GPU", licence: "CC-BY-4.0" },
-  { key: "tts", name: "Kokoro-82M", role: "speaks", where: "GPU", licence: "Apache-2.0" },
-  { key: "router", name: "bge-small-en-v1.5", role: "routes", where: "CPU", licence: "MIT" },
+  { key: "llm-e2b", name: "Gemma 4 E2B", role: "decides", where: "GPU", licence: "Apache-2.0", chip: "#2f6fd6" },
+  { key: "stt", name: "Parakeet TDT 0.6B v3", role: "hears", where: "GPU", licence: "CC-BY-4.0", chip: "#f2c14e" },
+  { key: "tts", name: "Kokoro-82M", role: "speaks", where: "GPU", licence: "Apache-2.0", chip: "#8fb0e8" },
+  { key: "router", name: "bge-small-en-v1.5", role: "routes", where: "CPU", licence: "MIT", chip: "#16191d" },
 ] as const;
 
 export function MemorySection({ number }: { number: number }) {
@@ -23,7 +23,7 @@ export function MemorySection({ number }: { number: number }) {
   const pressure = gate?.machine.memory;
 
   return (
-    <Section id="memory" number={number} stage={{ name: "memory", caption: `the Mac's ${TOTAL_GB} GB in tenths: Gemma in blue, Parakeet in amber, Kokoro and the router in deep blue and ink` }} title="Four models, one 16 GB laptop" command="python -m bench.memory">
+    <Section id="memory" number={number} stage={{ name: "memory", caption: `the Mac's ${TOTAL_GB} GB in tenths: Gemma in blue, Parakeet in amber, Kokoro in pale blue, the router in ink` }} title="Four models, one 16 GB laptop" command="python -m bench.memory">
       <div className="grid gap-x-14 gap-y-10 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <div className="flex flex-col gap-5">
           <p className="prose-width text-[1.15rem] leading-relaxed">
@@ -44,7 +44,7 @@ export function MemorySection({ number }: { number: number }) {
 
         <div className="flex flex-col gap-2">
           {/* The whole 16 GB as one strip, the four models laid end to end in it. */}
-          <figure className="holder-agent mb-4" aria-label={`The four models hold ${total.toFixed(1)} of ${TOTAL_GB} GB`}>
+          <figure className="stage-dup holder-agent mb-4" aria-label={`The four models hold ${total.toFixed(1)} of ${TOTAL_GB} GB`}>
             <div className="strip px-4 pb-3 pt-3">
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                 <span className="label">the Mac&apos;s {TOTAL_GB} GB</span>
@@ -78,7 +78,10 @@ export function MemorySection({ number }: { number: number }) {
                   <dl className="strip grid grid-cols-3 sm:grid-cols-[minmax(0,1.5fr)_5.5rem_6rem_6rem_minmax(0,1.2fr)]">
                     <div className="box col-span-3 border-b border-rule sm:col-span-1 sm:border-b-0">
                       <dt className="sr-only">model</dt>
-                      <dd className="m-0 font-semibold leading-tight">{model.name}</dd>
+                      <dd className="m-0 flex items-center gap-2 font-semibold leading-tight">
+                        <i className="inline-block h-3 w-3 shrink-0 rounded-[2px]" style={{ background: model.chip }} aria-hidden="true" />
+                        {model.name}
+                      </dd>
                       <dd className="m-0 text-[0.74rem] text-ink-3">{model.licence}</dd>
                     </div>
                     <Cell label="job" first>

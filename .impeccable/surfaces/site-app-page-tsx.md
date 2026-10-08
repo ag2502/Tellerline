@@ -61,6 +61,31 @@ FORM: Air traffic control flight progress strips, candidate 3 of my ordered seve
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
 
+## Amendment, 8 October 2026: the 3D stage
+
+The owner judged the flat strip board short of the bar and named references (bruno-simon.com,
+henryheffernan.com, jesse-zhou.com, dennissnellenberg.com, alche.studio, cappen.com,
+phantom.land, des.obys.agency, wearestokt.com and others from Awwwards and Muzli). Answers: a
+3D centrepiece (not an explorable world, not 2D kinetic editorial), and keep it light.
+
+THESIS (added): the call is a sculpture. One live WebGL scene of fins sits behind the whole
+page: in the hero the fins are the recorded call (caller amber above the line, Tellerline blue
+below, waits as beads, the live wait red), inked by the audio's clock; on scroll they fly into
+each bay's stage band and become that bay's data (the turn on the 0-1.5 s scale, the 204 timed
+replies as stacked blocks, the 16 GB as a chip of tenths), and sink out of view where a bay
+has no stage.
+
+FIRST VIEWPORT (replaces the strip-board hero): screen-filling condensed headline on two lines
+that rise letter by letter and drift apart on scroll; the call sculpture between them; a deck
+under a heavy rule with the Play key (with sound), call designators 1-4, a live caption of who
+is speaking, and the wait figure circled in pen. The strip board moves to its own bay under a
+proof band and a marquee of measured claims.
+
+MOTION (added): inertial scroll; fins ease between formations with a ripple down the line;
+the pointer lifts the fins it passes and a click plays the call from that moment; a trailing
+ring opens over anything pressable and keys lean toward it; bay titles rise in as they arrive.
+Reduced motion: no inertia, no drift, fins hold still, everything printed whole.
+
 ## Memorable moment
 
 Pressing Play: a strip snaps down out of the printer, "Hi, I think my bank card has been
