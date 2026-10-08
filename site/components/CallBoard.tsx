@@ -373,7 +373,7 @@ export function CallBoard({ calls, initial }: Props) {
           </li>
         ) : null}
         {failed ? (
-          <li role="alert" className="strip px-4 py-3 text-red-ink">
+          <li role="alert" className="strip px-4 py-3 font-semibold text-ink">
             That call didn&apos;t load.{" "}
             <button type="button" className="font-semibold underline" onClick={() => void choose(failed)}>
               Try again
