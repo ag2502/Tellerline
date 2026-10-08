@@ -194,6 +194,30 @@
     box-shadow: var(--lift);
     border-radius: 18px;
     overflow: hidden;
+    isolation: isolate;
+  }
+
+  /* The light under the pointer, written by the Glow listener. */
+  .strip::before,
+  .well::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(22rem circle at var(--mx, 50%) var(--my, 50%), rgb(157 140 255 / 0.16), transparent 60%);
+    transition: opacity 240ms var(--ease);
+  }
+
+  .strip:hover::before,
+  .well:hover::before {
+    opacity: 1;
+  }
+
+  .well {
+    position: relative;
+    isolation: isolate;
   }
 
   /* The holders only colour a card's edge now: the caller's stone, Tellerline's accent. */
@@ -211,6 +235,53 @@
 
   .holder-agent > .strip {
     box-shadow: inset 3px 0 0 var(--color-blue), var(--lift);
+  }
+
+  /* Slow light behind the hero, on the compositor only. */
+  @media (prefers-reduced-motion: no-preference) {
+    .drift-a {
+      animation: drift-a 22s ease-in-out infinite alternate;
+    }
+
+    .drift-b {
+      animation: drift-b 28s ease-in-out infinite alternate;
+    }
+  }
+
+  @keyframes drift-a {
+    to {
+      transform: translate3d(14vw, 6vh, 0) scale(1.15);
+    }
+  }
+
+  @keyframes drift-b {
+    to {
+      transform: translate3d(-12vw, -5vh, 0) scale(0.9);
+    }
+  }
+
+  /* A stage of the slow-motion turn fills as the work passes through it, then settles to a tint. */
+  .lab-fill {
+    opacity: 0;
+    transform: scaleX(0);
+    animation-name: lab-fill;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+  }
+
+  @keyframes lab-fill {
+    0% {
+      opacity: 0.5;
+      transform: scaleX(0);
+    }
+    99% {
+      opacity: 0.5;
+      transform: scaleX(1);
+    }
+    100% {
+      opacity: 0.14;
+      transform: scaleX(1);
+    }
   }
 
   /* A box ruled inside a card: label above, value below. */

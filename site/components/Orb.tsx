@@ -24,6 +24,7 @@ export function Orb({ className }: { className?: string }) {
   const { call, nowRef, playing, reducedMotion } = useCall();
   const canvas = useRef<HTMLCanvasElement>(null);
   const live = useRef({ call, playing });
+  const pointer = useRef({ x: 0, y: 0, on: false, power: 0 });
   live.current = { call, playing };
 
   useEffect(() => {
@@ -52,15 +53,21 @@ export function Orb({ className }: { className?: string }) {
       const hz = current.envelope_hz;
       const wantCaller = on ? peak(current.envelope.caller, hz, now - 0.1, now + 0.1) : 0.06 + 0.04 * Math.sin(seconds * 1.1);
       const wantAgent = on ? peak(current.envelope.agent, hz, now - 0.1, now + 0.1) : 0.06 + 0.04 * Math.sin(seconds * 0.9 + 2);
+      const point = pointer.current;
+      point.power += ((point.on ? 1 : 0) - point.power) * 0.12;
       caller += (wantCaller - caller) * 0.25;
       agent += (wantAgent - agent) * 0.25;
 
       const c = size / 2;
       context.clearRect(0, 0, size, size);
       // The core: two lights that swell with their voice.
+      const pull = point.power * 0.05;
+      const shiftX = (point.x / (size / 2)) * pull * size;
+      const shiftY = (point.y / (size / 2)) * pull * size;
       for (const [level, rgb, dx] of [[caller, TEAL, -0.07], [agent, CORAL, 0.07]] as const) {
         const radius = size * (0.2 + level * 0.2);
-        const gradient = context.createRadialGradient(c + size * dx, c, 0, c + size * dx, c, radius);
+        const gx = c + size * dx + shiftX;
+        const gradient = context.createRadialGradient(gx, c + shiftY, 0, gx, c + shiftY, radius);
         gradient.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${0.55 + level * 0.4})`);
         gradient.addColorStop(1, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`);
         context.fillStyle = gradient;
@@ -68,6 +75,8 @@ export function Orb({ className }: { className?: string }) {
       }
       // The ring of bars.
       const inner = size * 0.27;
+      const aim = Math.atan2(point.y, point.x);
+      const near = Math.min(1, Math.hypot(point.x, point.y) / (size / 2) * 1.3);
       context.lineCap = "round";
       context.lineWidth = Math.max(2, size * 0.0085);
       for (let i = 0; i < BARS; i++) {
@@ -87,7 +96,11 @@ export function Orb({ className }: { className?: string }) {
         }
         const level = Math.max(a, b);
         const rgb = a >= b ? TEAL : CORAL;
-        const length = size * (0.012 + level * 0.15);
+        // The bars lean out toward the pointer.
+        let apart = Math.abs(angle - aim) % (Math.PI * 2);
+        if (apart > Math.PI) apart = Math.PI * 2 - apart;
+        const bulge = point.power * Math.exp(-(apart * apart) / 0.16) * size * 0.07 * (0.3 + 0.7 * near);
+        const length = size * (0.012 + level * 0.15) + bulge;
         context.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${0.4 + level * 0.6})`;
         context.beginPath();
         context.moveTo(c + Math.cos(angle) * inner, c + Math.sin(angle) * inner);
@@ -116,6 +129,28 @@ export function Orb({ className }: { className?: string }) {
       if (!frame) frame = requestAnimationFrame(loop);
     };
 
+    const onMove = (event: PointerEvent) => {
+      const box = element.getBoundingClientRect();
+      const x = event.clientX - (box.left + box.width / 2);
+      const y = event.clientY - (box.top + box.height / 2);
+      pointer.current.x = x;
+      pointer.current.y = y;
+      pointer.current.on = true;
+      // The whole orb turns a few degrees toward you.
+      const tiltX = Math.max(-1, Math.min(1, y / box.height)) * -10;
+      const tiltY = Math.max(-1, Math.min(1, x / box.width)) * 10;
+      element.style.transform = `perspective(900px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+      start();
+    };
+    const onLeave = () => {
+      pointer.current.on = false;
+      element.style.transform = "";
+    };
+    if (window.matchMedia("(pointer: fine)").matches) {
+      element.addEventListener("pointermove", onMove);
+      element.addEventListener("pointerleave", onLeave);
+    }
+
     fit();
     draw(0);
     start();
@@ -131,10 +166,12 @@ export function Orb({ className }: { className?: string }) {
     resize.observe(element);
     return () => {
       cancelAnimationFrame(frame);
+      element.removeEventListener("pointermove", onMove);
+      element.removeEventListener("pointerleave", onLeave);
       observer.disconnect();
       resize.disconnect();
     };
   }, [nowRef, reducedMotion, playing]);
 
-  return <canvas ref={canvas} aria-hidden="true" className={className ?? "block aspect-square w-full"} />;
+  return <canvas ref={canvas} aria-hidden="true" className={className ?? "block aspect-square w-full cursor-pointer transition-transform duration-200 ease-out"} />;
 }

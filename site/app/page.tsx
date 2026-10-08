@@ -1,11 +1,15 @@
 import { type Bay, BoardHeader } from "@/components/BoardHeader";
 import { CallBoard } from "@/components/CallBoard";
 import { CallProvider } from "@/components/CallContext";
+import { Glow } from "@/components/Glow";
+import { ScrollProgress } from "@/components/ScrollProgress";
+import { MiniPlayer } from "@/components/MiniPlayer";
 import { Footer } from "@/components/Footer";
 import { ProofBand } from "@/components/Hero";
 import { HeroStage } from "@/components/HeroStage";
 import { Reveals } from "@/components/Reveals";
 import { FilmSection } from "@/components/sections/FilmSection";
+import { LabSection } from "@/components/sections/LabSection";
 import { LogSection } from "@/components/sections/LogSection";
 import { MemorySection } from "@/components/sections/MemorySection";
 import { NumbersSection } from "@/components/sections/NumbersSection";
@@ -24,6 +28,7 @@ export default async function Page() {
   // The board's bays, in order: each one's number is the key that jumps to it.
   const bays: Bay[] = [
     { id: "call", name: "call" },
+    { id: "lab", name: "lab" },
     { id: "turn", name: "turn" },
     { id: "numbers", name: "numbers" },
     { id: "policy", name: "policy" },
@@ -43,6 +48,8 @@ export default async function Page() {
         Skip to the call
       </a>
       <Reveals />
+      <ScrollProgress />
+      <Glow />
       <BoardHeader bays={bays} />
       <CallProvider calls={data.calls} initial={first}>
         <main>
@@ -53,6 +60,7 @@ export default async function Page() {
               <CallBoard />
             </div>
           </Section>
+          <LabSection number={number("lab")} />
           <TurnSection number={number("turn")} />
           <NumbersSection number={number("numbers")} />
           <PolicySection number={number("policy")} />
@@ -61,6 +69,7 @@ export default async function Page() {
           {film ? <FilmSection number={number("film")} /> : null}
           <RunSection number={number("run")} />
         </main>
+        <MiniPlayer />
       </CallProvider>
       <div className="relative z-10">
         <Footer />

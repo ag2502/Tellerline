@@ -1,5 +1,7 @@
 import { data, percent, seconds } from "@/lib/data";
 
+import { CountUp } from "./CountUp";
+
 import { FilmIcon, GitHubIcon } from "./icons";
 import { REPO } from "./links";
 
@@ -51,7 +53,7 @@ function Proof() {
     <ul className="grid gap-3 md:grid-cols-3" aria-label="Measured on the MacBook Air M5" data-reveal-target="">
       {lines.map((line) => (
         <li key={line.command} className="strip flex flex-col justify-between gap-8 p-6">
-          <span className="callsign text-[clamp(2.6rem,2rem+2.4vw,4.2rem)]">{line.value}</span>
+          <CountUp value={line.value} className="callsign voice-text text-[clamp(2.8rem,2rem+3vw,4.8rem)]" />
           <span>
             <span className="block text-[1rem] font-medium leading-snug">{line.what}</span>
             <code className="mt-1 block text-[0.72rem] text-ink-3 [overflow-wrap:anywhere]">{`python -m ${line.command}`}</code>

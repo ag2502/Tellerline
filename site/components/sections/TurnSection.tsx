@@ -39,7 +39,7 @@ export function TurnSection({ number }: { number: number }) {
           <figure className="stage-dup" aria-label={`The stages of one turn add up to about ${seconds(total)}`}>
             <div className="holder-turn">
               <div className="strip px-3 pb-2 pt-[3.75rem] sm:px-4">
-                <div className="scale-ticks relative h-14 rounded-[2px] bg-[#f3f5f7]">
+                <div className="scale-ticks relative h-14 rounded-[2px] bg-well">
                   <div className="absolute inset-y-2 left-0 flex" style={{ width: `${onScale(total) * 100}%` }}>
                     {timed.map((item) => (
                       <div

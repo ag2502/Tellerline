@@ -14,20 +14,37 @@ const LINES = [["Bank", "calls,", "answered"], ["on", "one", "MacBook", "Air."]]
 export function HeroStage() {
   return (
     <section id="top" aria-label="Tellerline, and a recorded call you can play" className="relative overflow-x-clip px-[var(--gutter)] pb-12 pt-[clamp(1.25rem,2.4vw,2.25rem)]">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+        <div className="drift-a absolute -left-[10vw] top-[8%] h-[38rem] w-[38rem] rounded-full bg-[radial-gradient(closest-side,rgb(79_227_200/0.16),transparent)]" />
+        <div className="drift-b absolute -right-[8vw] top-[28%] h-[40rem] w-[40rem] rounded-full bg-[radial-gradient(closest-side,rgb(255_107_139/0.16),transparent)]" />
+      </div>
       <div className="mx-auto flex max-w-[90rem] flex-col items-center text-center">
         <p className="label inline-flex items-center gap-2 rounded-full border border-rail bg-white/5 px-3.5 py-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-amber shadow-[0_0_10px_var(--color-amber)]" aria-hidden="true" />
           Incoming call · answered on one MacBook Air M5
         </p>
         <Title />
-        <div className="relative mt-1 w-[clamp(14rem,min(40svh,80vw),28rem)]">
-          <Orb />
-        </div>
+        <Stage />
         <div className="-mt-[clamp(0.5rem,2vw,1.5rem)] w-full">
           <Deck />
         </div>
       </div>
     </section>
+  );
+}
+
+// The orb is a button too, for anyone with a pointer: press it to play or pause the call.
+function Stage() {
+  const { toggle, playing, started } = useCall();
+  return (
+    <div className="relative mt-1 w-[clamp(14rem,min(40svh,80vw),28rem)]" onClick={() => void toggle()} title={playing ? "Pause" : "Play the call"}>
+      <Orb />
+      {!started ? (
+        <span className="label pointer-events-none absolute inset-x-0 -top-5 text-center opacity-80" aria-hidden="true">
+          press the orb, or space
+        </span>
+      ) : null}
+    </div>
   );
 }
 
