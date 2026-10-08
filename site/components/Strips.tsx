@@ -251,15 +251,17 @@ export function PenCircle({
   instant,
   progress,
   weight = 2.25,
+  className = "-left-[0.95rem] -top-2 h-[calc(100%+1rem)] w-[calc(100%+1.75rem)]",
 }: {
   settled: boolean;
   instant: boolean;
   progress?: number;
   weight?: number;
+  className?: string;
 }) {
   return (
     <svg
-      className="pointer-events-none absolute -left-[0.95rem] -top-2 h-[calc(100%+1rem)] w-[calc(100%+1.75rem)] overflow-visible"
+      className={`pointer-events-none absolute overflow-visible ${className}`}
       viewBox="0 0 100 40"
       preserveAspectRatio="none"
       aria-hidden="true"

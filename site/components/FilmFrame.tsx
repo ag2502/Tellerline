@@ -106,7 +106,7 @@ function FilmBoard({ call, board, now }: { call: Call; board: Board; now: number
               </li>
             ))}
             {board.greeting && now >= board.greeting.at ? (
-              <li className="mt-auto">
+              <li>
                 <Greeting greeting={board.greeting} now={now} instant={false} />
               </li>
             ) : null}
@@ -175,7 +175,13 @@ function Waits({ board, now, newest }: { board: Board; now: number; newest: Turn
                 {value.toFixed(2)}
                 <span className="text-[0.42em] font-normal"> s</span>
                 {answered && current ? (
-                  <PenCircle settled={current !== newest} instant progress={(now - wait!.until) / PEN_S} weight={1.4} />
+                  <PenCircle
+                    settled={current !== newest}
+                    instant
+                    progress={(now - wait!.until) / PEN_S}
+                    weight={1.4}
+                    className="-left-[2.6rem] -top-4 h-[calc(100%+2rem)] w-[calc(100%+4.4rem)]"
+                  />
                 ) : null}
               </span>
             ) : (
