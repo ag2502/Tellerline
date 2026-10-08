@@ -7,7 +7,7 @@ const TOTAL_GB = 16;
 const MODELS = [
   { key: "llm-e2b", name: "Gemma 4 E2B", role: "decides", where: "GPU", licence: "Apache-2.0", chip: "#2f6fd6" },
   { key: "stt", name: "Parakeet TDT 0.6B v3", role: "hears", where: "GPU", licence: "CC-BY-4.0", chip: "#f2c14e" },
-  { key: "tts", name: "Kokoro-82M", role: "speaks", where: "GPU", licence: "Apache-2.0", chip: "#8fb0e8" },
+  { key: "tts", name: "Kokoro-82M", role: "speaks", where: "GPU", licence: "Apache-2.0", chip: "#a9c3ef" },
   { key: "router", name: "bge-small-en-v1.5", role: "routes", where: "CPU", licence: "MIT", chip: "#16191d" },
 ] as const;
 

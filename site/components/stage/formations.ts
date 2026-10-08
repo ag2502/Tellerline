@@ -28,6 +28,7 @@ type Input = {
   call: Call | null;
   reduced: boolean;
   pointer: { x: number; y: number; inside: boolean }; // world units, over the stage
+  pixels: number; // the stage's width in CSS pixels
 };
 
 const SCALE_S = 1.5;
@@ -41,10 +42,10 @@ const hex = (value: string): [number, number, number] => [
 
 export const COLOURS = {
   amber: hex("#f2c14e"),
-  amberPale: hex("#c9c1aa"), // uninked: bare aluminium, warm side
+  amberPale: hex("#b3aa92"), // uninked: bare aluminium, warm side
   blue: hex("#2f6fd6"),
-  bluePale: hex("#aeb8c6"), // uninked: bare aluminium, cool side
-  blueLight: hex("#8fb0e8"),
+  bluePale: hex("#949fae"), // uninked: bare aluminium, cool side
+  blueLight: hex("#a9c3ef"),
   blueInk: hex("#1f57b5"),
   ink: hex("#16191d"),
   ink3: hex("#5b646e"),
@@ -79,8 +80,9 @@ function level(values: number[], hz: number, from: number, to: number): number {
 
 // The hero: the recorded call left to right, the caller above the line in amber and Tellerline
 // below in blue, inked in as it plays. Each wait is a bead on the line; the live one is red.
-function hero({ rect, count, time, target, now, playing, board, call, reduced, pointer }: Input) {
-  const columns = Math.floor(count / 2);
+function hero({ rect, count, time, target, now, playing, board, call, reduced, pointer, pixels }: Input) {
+  // About one column per 6 px, so a phone's fins stay solid rather than hairlines.
+  const columns = Math.min(Math.floor(count / 2), Math.max(40, Math.floor(pixels / 6)));
   if (!call || !board) return hide(target, 0, count, rect);
   const duration = call.duration_s;
   const span = rect.width * 0.96;

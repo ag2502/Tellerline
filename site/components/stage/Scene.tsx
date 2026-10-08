@@ -50,12 +50,22 @@ export default function Scene({ data }: { data: Formation["data"] }) {
       />
       <directionalLight position={[8, -4, 6]} intensity={0.3} />
       {/* The wall behind the fins: invisible but for the shadows they cast on it. */}
-      <mesh position={[0, 0, -1.6]} receiveShadow>
-        <planeGeometry args={[80, 50]} />
-        <shadowMaterial transparent opacity={0.07} />
-      </mesh>
+      <Wall />
       <Room />
     </Canvas>
+  );
+}
+
+// The wall behind the fins: invisible but for the shadows they cast on it. On a phone's narrow
+// stage the shadows smear the thin fins, so it stays bare.
+function Wall() {
+  const { size } = useThree();
+  if (size.width < 700) return null;
+  return (
+    <mesh position={[0, 0, -1.6]} receiveShadow>
+      <planeGeometry args={[80, 50]} />
+      <shadowMaterial transparent opacity={0.07} />
+    </mesh>
   );
 }
 
@@ -66,7 +76,7 @@ function Room() {
     const generator = new THREE.PMREMGenerator(gl);
     const texture = generator.fromScene(new RoomEnvironment(), 0.04).texture;
     scene.environment = texture;
-    scene.environmentIntensity = 0.5;
+    scene.environmentIntensity = 0.42;
     return () => {
       scene.environment = null;
       texture.dispose();
@@ -85,11 +95,11 @@ function Fins({ data }: { data: Formation["data"] }) {
     () =>
       new THREE.MeshPhysicalMaterial({
         // Anodised aluminium: metal under a tint, brushed along the fin.
-        roughness: 0.34,
-        metalness: 0.4,
-        anisotropy: 0.6,
-        clearcoat: 0.5,
-        clearcoatRoughness: 0.3,
+        roughness: 0.42,
+        metalness: 0.18,
+        anisotropy: 0.85,
+        clearcoat: 0.12,
+        clearcoatRoughness: 0.5,
       }),
     [],
   );
@@ -176,7 +186,7 @@ function Fins({ data }: { data: Formation["data"] }) {
         y: -py * perPixel,
         inside: Math.abs(px * perPixel - rect.x) < rect.width / 2 && Math.abs(-py * perPixel - rect.y) < rect.height / 2,
       };
-      formations[best]({ data, rect, count, time, target, now: stage.now, playing: stage.playing, board: stage.board, call: stage.call, reduced: stage.reduced, pointer });
+      formations[best]({ data, rect, count, time, target, now: stage.now, playing: stage.playing, board: stage.board, call: stage.call, reduced: stage.reduced, pointer, pixels: rect.width / perPixel });
       // The call leans back from the viewer, so it stands as a sculpture rather than a chart.
       if (best === "hero") {
         for (let i = 0; i < count; i++) {

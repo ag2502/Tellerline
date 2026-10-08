@@ -77,7 +77,7 @@ function Sculpture() {
     <div
       data-stage-slot="hero"
       title="Play from here"
-      className="relative -mt-[7vw] min-h-[32svh] flex-1 cursor-pointer sm:-mt-[5.5vw] sm:min-h-[38svh]"
+      className="relative -mt-[16vw] min-h-[36svh] flex-1 cursor-pointer sm:-mt-[11vw] sm:min-h-[44svh]"
       onClick={(event) => {
         const box = event.currentTarget.getBoundingClientRect();
         const span = box.width * 0.96;
@@ -122,7 +122,7 @@ function Deck() {
         </div>
       </div>
       <Caption board={board} now={now} started={started} summary={call.summary} title={call.title} />
-      <div className="flex items-end justify-between gap-6 lg:flex-col lg:items-end lg:gap-2">
+      <div className="flex flex-row-reverse items-end justify-between gap-6 lg:flex-col lg:items-end lg:gap-2">
         <Wait board={board} now={now} playing={playing} />
         <span className="print whitespace-nowrap text-[0.9rem] font-medium" aria-hidden="true">
           {clock(now)}
@@ -186,7 +186,7 @@ function Wait({ board, now, playing }: { board: Board; now: number; playing: boo
   const live = !resting && playing && answered && (!next || now < next.feedAt);
   const value = wait ? (resting ? wait.until - wait.from : Math.min(now, wait.until) - wait.from) : null;
   return (
-    <div className="flex min-w-[10.5rem] flex-col items-start pl-4 lg:items-end lg:pl-0">
+    <div className="flex min-w-[10.5rem] flex-col items-end">
       <span className="label whitespace-nowrap">{strip ? `turn ${strip.turn} waited` : "the wait"}</span>
       <span className={`print relative mr-5 mt-1 text-[2.2rem] font-semibold leading-none sm:text-[2.6rem] ${live ? "text-red-ink" : resting ? "text-ink-3" : ""}`}>
         {value === null ? "" : value.toFixed(2)}
