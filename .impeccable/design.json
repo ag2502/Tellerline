@@ -1,192 +1,361 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-06T15:55:23+00:00",
+  "generatedAt": "2026-10-08T13:32:05+00:00",
   "title": "Design System: Tellerline",
   "extensions": {
     "colorMeta": {
-      "tube-ground": {
+      "board": {
         "role": "neutral",
-        "displayName": "Tube Ground",
-        "canonical": "#020805",
+        "displayName": "Brushed Aluminium",
+        "canonical": "oklch(93.6% 0.005 247.9)",
         "tonalRamp": [
-          "#050d09",
-          "#1c2722",
-          "#38433d",
-          "#55615b",
-          "#74817b",
-          "#95a29c",
-          "#bac8c1",
-          "#e5f2ec"
+          "#0b0b0c",
+          "#242526",
+          "#414243",
+          "#606162",
+          "#818284",
+          "#a3a5a7",
+          "#c7c9cc",
+          "#eceff2"
         ]
       },
-      "deep-glass": {
+      "well": {
         "role": "neutral",
-        "displayName": "Deep Glass",
-        "canonical": "#07210f",
+        "displayName": "Bay Well",
+        "canonical": "oklch(91.0% 0.009 247.9)",
         "tonalRamp": [
-          "#001002",
-          "#112a18",
-          "#2d4733",
-          "#4a6550",
-          "#69866f",
-          "#8aa790",
-          "#afcdb5",
-          "#d9f8df"
+          "#0a0b0c",
+          "#242526",
+          "#414244",
+          "#5f6164",
+          "#808385",
+          "#a2a5a9",
+          "#c5cace",
+          "#eaeff4"
         ]
       },
-      "scanline-dim": {
+      "rail": {
         "role": "neutral",
-        "displayName": "Scanline Dim",
-        "canonical": "#0b331e",
+        "displayName": "Rail",
+        "canonical": "oklch(83.6% 0.014 251.6)",
         "tonalRamp": [
-          "#001202",
-          "#032c18",
-          "#234933",
-          "#416850",
-          "#60886f",
-          "#81aa8f",
-          "#a6d0b5",
-          "#d0fbde"
+          "#0a0b0d",
+          "#242527",
+          "#404245",
+          "#5e6266",
+          "#7e8388",
+          "#a0a6ac",
+          "#c3cad2",
+          "#e9eff6"
         ]
       },
-      "afterimage": {
+      "strip": {
         "role": "neutral",
-        "displayName": "Afterimage",
-        "canonical": "#176e3a",
+        "displayName": "Strip Paper",
+        "canonical": "oklch(100.0% 0.000 89.9)",
         "tonalRamp": [
-          "#001500",
-          "#003200",
-          "#00501d",
-          "#196f3b",
-          "#40905a",
-          "#63b37a",
-          "#89da9f",
-          "#b3ffc8"
+          "#0b0b0b",
+          "#252525",
+          "#424242",
+          "#616161",
+          "#828282",
+          "#a5a5a5",
+          "#c9c9c9",
+          "#eeeeee"
         ]
       },
-      "faint-phosphor": {
+      "scale-track": {
         "role": "neutral",
-        "displayName": "Faint Phosphor",
-        "canonical": "#1d8c4a",
+        "displayName": "Scale Track",
+        "canonical": "oklch(96.9% 0.003 247.9)",
         "tonalRamp": [
-          "#001600",
-          "#003400",
-          "#005212",
-          "#007232",
-          "#299451",
-          "#51b772",
-          "#79de96",
-          "#a4ffc0"
+          "#0b0b0b",
+          "#252525",
+          "#414242",
+          "#606162",
+          "#818283",
+          "#a4a5a6",
+          "#c8c9cb",
+          "#edeff1"
         ]
       },
-      "dim-phosphor": {
+      "rule": {
         "role": "neutral",
-        "displayName": "Dim Phosphor",
-        "canonical": "#23a14b",
+        "displayName": "Strip Rule",
+        "canonical": "oklch(86.4% 0.012 252.1)",
         "tonalRamp": [
-          "#001600",
-          "#003500",
-          "#005400",
-          "#00751e",
-          "#0d9641",
-          "#43b962",
-          "#6ee187",
-          "#9bffb1"
+          "#0a0b0c",
+          "#242527",
+          "#404245",
+          "#5f6165",
+          "#7f8387",
+          "#a1a6ab",
+          "#c4cad0",
+          "#eaeff5"
         ]
       },
-      "p1-phosphor": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Print Ink",
+        "canonical": "oklch(21.2% 0.009 255.6)",
+        "tonalRamp": [
+          "#090b0f",
+          "#222529",
+          "#3f4246",
+          "#5f6165",
+          "#808285",
+          "#a3a5a7",
+          "#c8c9cb",
+          "#edeef0"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "canonical": "oklch(42.6% 0.021 248.3)",
+        "tonalRamp": [
+          "#070c11",
+          "#1f262d",
+          "#3a434c",
+          "#59626c",
+          "#7b838c",
+          "#9fa6ad",
+          "#c4cad0",
+          "#ebeff4"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink 3",
+        "canonical": "oklch(49.9% 0.019 251.0)",
+        "tonalRamp": [
+          "#080c10",
+          "#20262c",
+          "#3c434b",
+          "#59626c",
+          "#7b838c",
+          "#9fa6ae",
+          "#c4cad1",
+          "#eaeff4"
+        ]
+      },
+      "axis-grey": {
+        "role": "neutral",
+        "displayName": "Axis Grey",
+        "canonical": "oklch(71.1% 0.018 250.9)",
+        "tonalRamp": [
+          "#090b0e",
+          "#222529",
+          "#3e4248",
+          "#5c6269",
+          "#7c838c",
+          "#9da6b0",
+          "#c2cad3",
+          "#e8eff7"
+        ]
+      },
+      "amber": {
+        "role": "secondary",
+        "displayName": "Strip Amber",
+        "canonical": "oklch(83.4% 0.141 85.4)",
+        "tonalRamp": [
+          "#120a00",
+          "#2f2308",
+          "#513f14",
+          "#775d22",
+          "#9e7d30",
+          "#c89f3f",
+          "#f2c24f",
+          "#ffe98c"
+        ]
+      },
+      "amber-trace": {
+        "role": "secondary",
+        "displayName": "Trace Amber",
+        "canonical": "oklch(74.5% 0.146 82.7)",
+        "tonalRamp": [
+          "#140900",
+          "#342100",
+          "#573d00",
+          "#7d5b00",
+          "#a67a0c",
+          "#d09b1c",
+          "#f3c15d",
+          "#ffe897"
+        ]
+      },
+      "amber-ink": {
+        "role": "secondary",
+        "displayName": "Amber Ink",
+        "canonical": "oklch(48.8% 0.100 84.4)",
+        "tonalRamp": [
+          "#160700",
+          "#352100",
+          "#573d00",
+          "#7b5c05",
+          "#9a7e42",
+          "#baa270",
+          "#dbc79e",
+          "#fdedcd"
+        ]
+      },
+      "blue": {
         "role": "primary",
-        "displayName": "P1 Phosphor",
-        "canonical": "#33ff66",
+        "displayName": "Controller Blue",
+        "canonical": "oklch(55.7% 0.172 259.7)",
         "tonalRamp": [
-          "#001600",
-          "#003400",
-          "#005600",
-          "#007a00",
-          "#009f00",
-          "#00c138",
-          "#5de573",
-          "#a1ffac"
+          "#00052f",
+          "#002059",
+          "#0d3d88",
+          "#235db9",
+          "#437fe1",
+          "#70a5fb",
+          "#9dcaff",
+          "#cbf0ff"
         ]
       },
-      "bloom": {
+      "blue-ink": {
         "role": "primary",
-        "displayName": "Bloom",
-        "canonical": "#b6ffb6",
+        "displayName": "Controller Blue Ink",
+        "canonical": "oklch(47.7% 0.160 260.3)",
         "tonalRamp": [
-          "#001500",
-          "#003100",
-          "#004f0a",
-          "#286f2d",
-          "#4a904d",
-          "#6cb26d",
-          "#91d992",
-          "#bbffbb"
+          "#000333",
+          "#001e5d",
+          "#0b3c8b",
+          "#265cb9",
+          "#5181d3",
+          "#7ba5ec",
+          "#a7caff",
+          "#d4f0ff"
+        ]
+      },
+      "red": {
+        "role": "tertiary",
+        "displayName": "Red Pen",
+        "canonical": "oklch(58.7% 0.198 29.6)",
+        "tonalRamp": [
+          "#270000",
+          "#510000",
+          "#7f0a04",
+          "#af251a",
+          "#de4434",
+          "#fc7765",
+          "#ffa593",
+          "#ffd2c2"
+        ]
+      },
+      "red-ink": {
+        "role": "tertiary",
+        "displayName": "Red Pen Figure",
+        "canonical": "oklch(53.7% 0.185 30.5)",
+        "tonalRamp": [
+          "#280000",
+          "#520000",
+          "#7f0800",
+          "#af2616",
+          "#d5513f",
+          "#f27f6d",
+          "#ffab9a",
+          "#ffd8c9"
         ]
       }
     },
     "typographyMeta": {
       "display": {
-        "displayName": "Display",
-        "purpose": "The hero headline and the footer's name only: IBM 3270 Regular, uppercase, Bloom with a strong glow."
+        "displayName": "Callsign",
+        "purpose": "Hero claim, wordmark and a call's title: Mona Sans condensed (wdth 75), 800, uppercase."
       },
       "headline": {
-        "displayName": "Headline",
-        "purpose": "Each window's title, written as a shell comment."
+        "displayName": "Bay Headline",
+        "purpose": "A bay's title beside its plate, sentence case, wdth 78."
+      },
+      "title": {
+        "displayName": "Bay Title",
+        "purpose": "Sub-heads inside a bay."
       },
       "body": {
-        "displayName": "Body",
-        "purpose": "Prose, transcripts and tables: IBM 3270 Semi-Condensed, 1.125rem (1.0625rem on phones)."
+        "displayName": "Prose",
+        "purpose": "Normal-width Mona Sans; 1.0625rem on phones, 1.125rem from 768px; capped near 62ch."
       },
       "label": {
-        "displayName": "Label",
-        "purpose": "Keys and the status bar: uppercase with 0.06em tracking."
+        "displayName": "Strip Label",
+        "purpose": "Tiny wide uppercase field labels above values on ruled strips."
+      },
+      "print": {
+        "displayName": "Printer",
+        "purpose": "Martian Mono for every measured value, time, code and command; tabular figures."
       }
     },
     "shadows": [
       {
-        "name": "glow",
-        "value": "text-shadow: 0 0 1px rgb(51 255 102 / 0.55), 0 0 7px rgb(51 255 102 / 0.22)",
-        "purpose": "Default text: the phosphor's own glow."
+        "name": "lift",
+        "value": "0 1px 0 rgb(22 25 29 / 0.05), 0 2px 6px -1px rgb(22 25 29 / 0.12)",
+        "purpose": "Every strip at rest, the command line, unselected call designators."
       },
       {
-        "name": "glow-strong",
-        "value": "text-shadow: 0 0 2px rgb(182 255 182 / 0.85), 0 0 14px rgb(51 255 102 / 0.5), 0 0 40px rgb(51 255 102 / 0.22)",
-        "purpose": "Display type, Bloom text, the cursor."
+        "name": "lift-high",
+        "value": "0 2px 0 rgb(22 25 29 / 0.05), 0 14px 28px -10px rgb(22 25 29 / 0.32)",
+        "purpose": "A strip pulled out (trace open, log entry open), with a 2px rise."
       },
       {
-        "name": "key-halo",
-        "value": "box-shadow: 0 0 1.25rem rgb(51 255 102 / 0.32)",
-        "purpose": "The primary key at rest; 0 0 1.75rem rgb(182 255 182 / 0.45) on hover."
+        "name": "well",
+        "value": "inset 0 1px 2px rgb(22 25 29 / 0.12), inset 0 0 0 1px rgb(22 25 29 / 0.05)",
+        "purpose": "Recessed bays where strips sit."
       },
       {
-        "name": "crt-vignette",
-        "value": "box-shadow: inset 0 0 6rem rgb(0 0 0 / 0.55)",
-        "purpose": "The curved glass's edge, fixed over the page with scanlines and grain."
+        "name": "holder-edge-caller",
+        "value": "inset 0 0 0 1px rgb(122 90 0 / 0.28)",
+        "purpose": "Moulded edge of an amber holder."
+      },
+      {
+        "name": "holder-edge-agent",
+        "value": "inset 0 0 0 1px rgb(14 46 102 / 0.35)",
+        "purpose": "Moulded edge of a blue holder."
+      },
+      {
+        "name": "holder-edge-plain",
+        "value": "inset 0 0 0 1px rgb(22 25 29 / 0.12)",
+        "purpose": "Moulded edge of a grey holder."
+      },
+      {
+        "name": "key-lip",
+        "value": "0 1px 0 #16191d",
+        "purpose": "A secondary key at rest; 2px on hover, 0 when pressed."
+      },
+      {
+        "name": "key-lip-primary",
+        "value": "0 2px 0 #000, 0 8px 18px -8px rgb(22 25 29 / 0.6)",
+        "purpose": "The primary ink key, and (lip only) the selected call designator."
+      },
+      {
+        "name": "focus-ring",
+        "value": "outline: 2px solid #2f6fd6; outline-offset: 3px",
+        "purpose": "Global keyboard focus; the command line uses 0 0 0 2px blue instead of its lift."
       }
     ],
     "motion": [
       {
-        "name": "key-transition",
-        "value": "120ms ease-out (colour), 160ms ease-out (halo)",
-        "purpose": "Keys under the pointer."
+        "name": "snap",
+        "value": "cubic-bezier(0.3, 1.45, 0.55, 1)",
+        "purpose": "Only for strips: a strip feeding into a well (420ms, from translateY(-110%)) and the strips below stepping down one place."
       },
       {
-        "name": "cursor-blink",
-        "value": "1.06s steps(1, end) infinite",
-        "purpose": "The cursor and live line; off under prefers-reduced-motion."
+        "name": "settle",
+        "value": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+        "purpose": "Every other transition: key press 120ms, link underline 140ms, pen draw 480ms, pen settling to ink 380ms."
       },
       {
-        "name": "replay-reveal",
-        "value": "in step with the recorded voice",
-        "purpose": "Transcript lines type out as they're spoken; under reduced motion each prints whole when it starts."
+        "name": "print-in",
+        "value": "260ms steps(6, end)",
+        "purpose": "A stage value printing into its box, revealed left to right by clip-path."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "No feed, no print-in, no pen draw, no smooth scroll: everything prints instantly."
       }
     ],
     "breakpoints": [
-      {
-        "name": "phone",
-        "value": "390px"
-      },
       {
         "name": "sm",
         "value": "640px"
@@ -198,10 +367,6 @@
       {
         "name": "lg",
         "value": "1024px"
-      },
-      {
-        "name": "xl",
-        "value": "1280px"
       }
     ]
   },
@@ -210,100 +375,139 @@
       "name": "Primary Key",
       "kind": "button",
       "refersTo": "key-primary",
-      "description": "The one primary action in view, in inverse video with a phosphor halo.",
-      "html": "<a class=\"ds-key ds-key-primary\" href=\"#\">View the code</a>",
-      "css": ".ds-key { display: inline-flex; align-items: center; gap: 1ch; padding: 0.55em 1.2ch; border: 1px solid #33ff66; background: transparent; color: #33ff66; font: 18px/1 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; text-transform: uppercase; letter-spacing: 0.06em; text-decoration: none; white-space: nowrap; cursor: pointer; transition: background-color 120ms ease-out, color 120ms ease-out, box-shadow 160ms ease-out; } .ds-key::before { content: '['; } .ds-key::after { content: ']'; } .ds-key:active { transform: translateY(1px); } .ds-key:focus-visible { outline: 2px solid #b6ffb6; outline-offset: 3px; } .ds-key-primary { background: #33ff66; color: #020805; box-shadow: 0 0 1.25rem rgb(51 255 102 / 0.32); } .ds-key-primary:hover { background: #b6ffb6; box-shadow: 0 0 1.75rem rgb(182 255 182 / 0.45); }"
+      "description": "Ink console key for the page's main actions: play the call, view the code.",
+      "html": "<button class=\"ds-key ds-key-primary\"><svg viewBox=\"0 0 20 20\" width=\"18\" height=\"18\" aria-hidden=\"true\"><path d=\"M6 4.2v11.6c0 .6.7 1 1.2.7l9-5.8c.5-.3.5-1 0-1.3l-9-5.8C6.7 3.3 6 3.6 6 4.2Z\" fill=\"currentColor\"/></svg>Play the call</button>",
+      "css": ".ds-key { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 2.75rem; padding: 0.6rem 1.15rem; border-radius: 6px; border: 1px solid var(--color-ink, #16191d); background: var(--color-strip, #ffffff); color: var(--color-ink, #16191d); font-family: var(--font-mona, 'Mona Sans'), ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 0.95rem; line-height: 1; cursor: pointer; box-shadow: 0 1px 0 var(--color-ink, #16191d); transition: transform 120ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 120ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-key:hover { background: #f6f7f8; transform: translateY(-1px); box-shadow: 0 2px 0 var(--color-ink, #16191d); } .ds-key:active { transform: translateY(1px); box-shadow: 0 0 0 var(--color-ink, #16191d); } .ds-key:focus-visible { outline: 2px solid var(--color-blue, #2f6fd6); outline-offset: 3px; } .ds-key-primary { background: var(--color-ink, #16191d); color: var(--color-strip, #ffffff); box-shadow: 0 2px 0 #000, 0 8px 18px -8px rgb(22 25 29 / 0.6); } .ds-key-primary:hover { background: #262b31; }"
     },
     {
-      "name": "Key",
+      "name": "Secondary Key",
       "kind": "button",
       "refersTo": "key",
-      "description": "A secondary command: the phosphor outline, deep glass under the pointer.",
-      "html": "<button class=\"ds-key-outline\">Watch the film</button>",
-      "css": ".ds-key-outline { display: inline-flex; align-items: center; gap: 1ch; padding: 0.55em 1.2ch; border: 1px solid #33ff66; background: transparent; color: #33ff66; text-shadow: 0 0 1px rgb(51 255 102 / 0.55), 0 0 7px rgb(51 255 102 / 0.22); font: 18px/1 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; transition: background-color 120ms ease-out; } .ds-key-outline::before { content: '['; } .ds-key-outline::after { content: ']'; } .ds-key-outline:hover { background: #07210f; } .ds-key-outline:active { transform: translateY(1px); } .ds-key-outline:focus-visible { outline: 2px solid #b6ffb6; outline-offset: 3px; }"
+      "description": "Paper console key for secondary actions such as watching the film.",
+      "html": "<button class=\"ds-key\"><svg viewBox=\"0 0 20 20\" width=\"18\" height=\"18\" aria-hidden=\"true\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"5\" width=\"10.5\" height=\"10\" rx=\"1.5\"/><path d=\"m13.5 8.5 3.5-2v7l-3.5-2\"/></svg>Watch the film</button>",
+      "css": ".ds-key { display: inline-flex; align-items: center; gap: 0.6rem; min-height: 2.75rem; padding: 0.6rem 1.15rem; border-radius: 6px; border: 1px solid var(--color-ink, #16191d); background: var(--color-strip, #ffffff); color: var(--color-ink, #16191d); font-family: var(--font-mona, 'Mona Sans'), ui-sans-serif, system-ui, sans-serif; font-weight: 600; font-size: 0.95rem; line-height: 1; cursor: pointer; box-shadow: 0 1px 0 var(--color-ink, #16191d); transition: transform 120ms cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 120ms cubic-bezier(0.2, 0.8, 0.2, 1), background-color 160ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-key:hover { background: #f6f7f8; transform: translateY(-1px); box-shadow: 0 2px 0 var(--color-ink, #16191d); } .ds-key:active { transform: translateY(1px); box-shadow: 0 0 0 var(--color-ink, #16191d); } .ds-key:focus-visible { outline: 2px solid var(--color-blue, #2f6fd6); outline-offset: 3px; }"
     },
     {
-      "name": "Prompt",
-      "kind": "input",
-      "refersTo": "prompt-input",
-      "description": "The replay's command line: a dim prompt and a bloom input that takes real commands.",
-      "html": "<form class=\"ds-prompt\"><span class=\"ds-prompt-ps1\">tellerline:~$</span><input class=\"ds-prompt-input\" placeholder=\"help\" aria-label=\"Type a command\"></form>",
-      "css": ".ds-prompt { display: flex; align-items: baseline; gap: 1ch; font: 18px/1.5 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; background: #020805; padding: 0.5em; } .ds-prompt-ps1 { color: #23a14b; } .ds-prompt-input { flex: 1; min-width: 0; border: 0; background: transparent; color: #b6ffb6; caret-color: #b6ffb6; font: inherit; text-shadow: 0 0 2px rgb(182 255 182 / 0.85), 0 0 14px rgb(51 255 102 / 0.5), 0 0 40px rgb(51 255 102 / 0.22); } .ds-prompt-input::placeholder { color: #23a14b; text-shadow: none; } .ds-prompt-input:focus { background: #07210f; } .ds-prompt-input:focus-visible { outline: 2px solid #b6ffb6; outline-offset: 3px; }"
+      "name": "Fact Strips in Holders",
+      "kind": "card",
+      "refersTo": "holder-plain",
+      "description": "The page's one way of laying out a fact: a ruled strip in a holder coloured by side (amber caller, blue Tellerline, grey plain).",
+      "html": "<div class=\"ds-stack\"><div class=\"ds-holder ds-holder-caller\"><div class=\"ds-strip\"><span class=\"ds-box ds-label\">caller said</span><span class=\"ds-box\">“I found the card I lost, can you switch it back on?”</span></div></div><div class=\"ds-holder ds-holder-plain\"><div class=\"ds-strip\"><span class=\"ds-box ds-label\">the bank returned</span><span class=\"ds-box\" style=\"font-family: ui-monospace, monospace\">{\"frozen\": true}</span></div></div><div class=\"ds-holder ds-holder-agent\"><div class=\"ds-strip\"><span class=\"ds-box ds-label\">Gemma wrote</span><span class=\"ds-box ds-print\">ACTION unfreeze card=7890</span></div></div></div>",
+      "css": ".ds-holder { border-radius: 5px; padding: 3px 3px 3px 10px; } .ds-holder-caller { background: var(--color-amber, #f2c14e); box-shadow: inset 0 0 0 1px rgb(122 90 0 / 0.28); } .ds-holder-agent { background: var(--color-blue, #2f6fd6); box-shadow: inset 0 0 0 1px rgb(14 46 102 / 0.35); } .ds-holder-plain { background: var(--color-rail, #c3cad2); box-shadow: inset 0 0 0 1px rgb(22 25 29 / 0.12); } .ds-strip { display: grid; grid-template-columns: 8.5rem 1fr; background: var(--color-strip, #ffffff); border-radius: 3px; box-shadow: 0 1px 0 rgb(22 25 29 / 0.05), 0 2px 6px -1px rgb(22 25 29 / 0.12); color: var(--color-ink, #16191d); font-family: var(--font-mona, 'Mona Sans'), ui-sans-serif, system-ui, sans-serif; } .ds-box { padding: 0.4rem 0.7rem 0.45rem; border-left: 1px solid var(--color-rule, #cdd3da); display: flex; align-items: center; min-width: 0; } .ds-box:first-child { border-left: 0; } .ds-label { font-family: var(--font-mona, 'Mona Sans'), ui-sans-serif, system-ui, sans-serif; font-variation-settings: 'wdth' 125; font-weight: 600; font-size: 0.6875rem; letter-spacing: 0.1em; line-height: 1.2; text-transform: uppercase; color: var(--color-ink-3, #5b646e); } .ds-print { font-family: var(--font-martian, 'Martian Mono'), ui-monospace, 'SF Mono', Menlo, monospace; font-variation-settings: 'wdth' 87.5; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; color: var(--color-blue-ink, #1f57b5); font-weight: 600; } .ds-stack { display: flex; flex-direction: column; gap: 10px; max-width: 34rem; }"
     },
     {
-      "name": "Status Bar",
+      "name": "Live Wait Box with Pen Circle",
+      "kind": "custom",
+      "refersTo": "strip",
+      "description": "The live turn's wait, circled in red pen and written in Red Pen Figure; settles to ink once the turn passes.",
+      "html": "<div class=\"ds-wait\"><span class=\"ds-wait-label\">wait</span><span class=\"ds-wait-fig\"><span class=\"ds-wait-num\">0.50<small> s</small></span><svg class=\"ds-pen\" viewBox=\"0 0 100 40\" preserveAspectRatio=\"none\" aria-hidden=\"true\"><path pathLength=\"100\" d=\"M64 4C40 1 10 5 5 17c-4 10 13 19 41 19 27 0 49-6 50-17C97 8 78 3 56 4c-6 0-11 1-15 2\"/></svg></span><span class=\"ds-mini\"><span style=\"width:33%\"></span></span></div>",
+      "css": ".ds-wait { display: inline-flex; flex-direction: column; gap: 6px; padding: 10px 14px; background: var(--color-strip, #ffffff); border-radius: 3px; box-shadow: 0 1px 0 rgb(22 25 29 / 0.05), 0 2px 6px -1px rgb(22 25 29 / 0.12); width: 9.75rem; } .ds-wait-label { font-family: var(--font-mona, 'Mona Sans'), ui-sans-serif, system-ui, sans-serif; font-variation-settings: 'wdth' 125; font-weight: 600; font-size: 0.6875rem; letter-spacing: 0.1em; line-height: 1.2; text-transform: uppercase; color: var(--color-ink-3, #5b646e); } .ds-wait-fig { position: relative; width: fit-content; } .ds-wait-num { font-family: var(--font-martian, 'Martian Mono'), ui-monospace, 'SF Mono', Menlo, monospace; font-variation-settings: 'wdth' 87.5; font-variant-numeric: tabular-nums; font-size: 1.5rem; font-weight: 600; line-height: 1; color: var(--color-red-ink, #c2301f); } .ds-wait-num small { font-size: 0.7em; font-weight: 400; } .ds-pen { position: absolute; left: -0.95rem; top: -0.5rem; width: calc(100% + 1.75rem); height: calc(100% + 1rem); overflow: visible; pointer-events: none; } .ds-pen path { fill: none; stroke: var(--color-red, #d93a2b); stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 100; stroke-dashoffset: 100; animation: ds-draw 480ms cubic-bezier(0.2, 0.8, 0.2, 1) 200ms forwards; } .ds-wait:hover .ds-pen path { stroke: var(--color-ink, #16191d); transition: stroke 380ms cubic-bezier(0.2, 0.8, 0.2, 1); } @keyframes ds-draw { to { stroke-dashoffset: 0; } } @media (prefers-reduced-motion: reduce) { .ds-pen path { animation: none; stroke-dashoffset: 0; } } .ds-mini { position: relative; display: block; height: 8px; border-radius: 1px; background: var(--color-well, #dde2e7); } .ds-mini span { position: absolute; inset: 0 auto 0 0; border-radius: 1px; background: var(--color-blue, #2f6fd6); }"
+    },
+    {
+      "name": "Bay Tabs",
       "kind": "nav",
-      "refersTo": "status-bar",
-      "description": "The fixed inverse bar listing the page's windows; the current one reversed back.",
-      "html": "<nav class=\"ds-status\" aria-label=\"Sections\"><span class=\"ds-status-name\">[tellerline]</span><a class=\"ds-status-item ds-status-current\" href=\"#\">0:call*</a><a class=\"ds-status-item\" href=\"#\">1:turn</a><a class=\"ds-status-item\" href=\"#\">2:numbers</a></nav>",
-      "css": ".ds-status { display: flex; align-items: center; gap: 1rem; height: 2.25rem; padding: 0 1rem; background: #33ff66; color: #020805; font: 14.4px/1 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; white-space: nowrap; } .ds-status-name { font-family: 'IBM 3270', ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: 0.025em; } .ds-status-item { padding: 0.25rem 0.7ch; color: inherit; text-decoration: none; } .ds-status-item:hover { background: #07210f; color: #33ff66; } .ds-status-current { background: #020805; color: #33ff66; } .ds-status-item:focus-visible { outline: 2px solid #020805; outline-offset: 2px; }"
+      "refersTo": "bay-tab",
+      "description": "Board header navigation: numbered bay tabs, the current one inked with an amber number.",
+      "html": "<nav class=\"ds-tabs\" aria-label=\"Bays\"><a href=\"#\" class=\"ds-tab\" aria-current=\"location\"><span class=\"ds-tab-n\">0</span>Call</a><a href=\"#\" class=\"ds-tab\"><span class=\"ds-tab-n\">1</span>Turn</a><a href=\"#\" class=\"ds-tab\"><span class=\"ds-tab-n\">2</span>Numbers</a><a href=\"#\" class=\"ds-tab\"><span class=\"ds-tab-n\">3</span>Policy</a></nav>",
+      "css": ".ds-tabs { display: flex; gap: 4px; padding: 10px; background: var(--color-board, #e7eaed); border-bottom: 1px solid var(--color-rail, #c3cad2); } .ds-tab { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 5px; font-family: var(--font-mona, 'Mona Sans'), ui-sans-serif, system-ui, sans-serif; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--color-ink-2, #46505a); text-decoration: none; transition: background-color 150ms, color 150ms; } .ds-tab:hover { background: var(--color-well, #dde2e7); color: var(--color-ink, #16191d); } .ds-tab:focus-visible { outline: 2px solid var(--color-blue, #2f6fd6); outline-offset: 3px; } .ds-tab-n { font-family: var(--font-martian, 'Martian Mono'), ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.72rem; color: var(--color-ink-3, #5b646e); } .ds-tab[aria-current] { background: var(--color-ink, #16191d); color: var(--color-strip, #ffffff); } .ds-tab[aria-current] .ds-tab-n { color: var(--color-amber, #f2c14e); }"
     },
     {
-      "name": "Window Heading",
-      "kind": "custom",
-      "description": "Each window's title written as a shell comment, over the real command that produced it.",
-      "html": "<header class=\"ds-window\"><h2 class=\"ds-cmd\"><span class=\"ds-cmd-hash\">#</span> Measured by phoning it, not projected</h2><p class=\"ds-cmd-line\"><span class=\"ds-dim\">$</span> python -m bench.caller --turns 220</p></header>",
-      "css": ".ds-window { background: #020805; padding: 2rem; border-top: 1px solid #0b331e; font-family: 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; } .ds-cmd { margin: 0; font-size: clamp(1.25rem, 1rem + 1vw, 1.75rem); line-height: 1.25; font-weight: 400; color: #b6ffb6; text-shadow: 0 0 2px rgb(182 255 182 / 0.85), 0 0 14px rgb(51 255 102 / 0.5), 0 0 40px rgb(51 255 102 / 0.22); } .ds-cmd-hash { color: #23a14b; text-shadow: 0 0 1px rgb(51 255 102 / 0.55), 0 0 7px rgb(51 255 102 / 0.22); } .ds-cmd-line { margin: 0.75rem 0 0; color: #33ff66; text-shadow: 0 0 1px rgb(51 255 102 / 0.55), 0 0 7px rgb(51 255 102 / 0.22); font-size: 17px; } .ds-dim { color: #23a14b; text-shadow: none; }"
+      "name": "Command Line",
+      "kind": "input",
+      "refersTo": "command-line",
+      "description": "The scratchpad entry under the board: a paper strip taking typed commands in the printer face.",
+      "html": "<form class=\"ds-cmd\"><label class=\"ds-cmd-label\" for=\"ds-cmd-in\">Type a command</label><div class=\"ds-cmd-field\"><span aria-hidden=\"true\">›</span><input id=\"ds-cmd-in\" placeholder=\"help · run 3 · goto numbers\" autocomplete=\"off\" spellcheck=\"false\"></div></form>",
+      "css": ".ds-cmd { max-width: 26rem; } .ds-cmd-label { display: block; margin-bottom: 4px; font-family: var(--font-mona, 'Mona Sans'), ui-sans-serif, system-ui, sans-serif; font-variation-settings: 'wdth' 125; font-weight: 600; font-size: 0.6875rem; letter-spacing: 0.1em; line-height: 1.2; text-transform: uppercase; color: var(--color-ink-3, #5b646e); } .ds-cmd-field { display: flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 6px; background: var(--color-strip, #ffffff); box-shadow: 0 1px 0 rgb(22 25 29 / 0.05), 0 2px 6px -1px rgb(22 25 29 / 0.12); font-family: var(--font-martian, 'Martian Mono'), ui-monospace, 'SF Mono', Menlo, monospace; color: var(--color-ink-3, #5b646e); transition: box-shadow 140ms cubic-bezier(0.2, 0.8, 0.2, 1); } .ds-cmd-field:focus-within { box-shadow: 0 0 0 2px var(--color-blue, #2f6fd6); } .ds-cmd-field input { flex: 1; min-width: 0; min-height: 2.5rem; border: 0; background: transparent; font-family: var(--font-martian, 'Martian Mono'), ui-monospace, 'SF Mono', Menlo, monospace; font-variation-settings: 'wdth' 87.5; font-size: 0.86rem; color: var(--color-ink, #16191d); caret-color: var(--color-red, #d93a2b); outline: none; } .ds-cmd-field input::placeholder { color: var(--color-ink-3, #5b646e); }"
     },
     {
-      "name": "Transcript Turn",
+      "name": "Bay Head with Plate",
       "kind": "custom",
-      "description": "The signature replay: a timestamped caller line, its stages with milliseconds, the measured wait, and the reply printing in bloom.",
-      "html": "<ol class=\"ds-turn\"><li class=\"ds-line\"><span class=\"ds-t\">00:32.3</span><span class=\"ds-who\">CALLER</span><span class=\"ds-said\">My card ending 4217 was taken out of my bag on the bus.</span></li><li class=\"ds-gap\">replied after 0.50 s <span class=\"ds-dim\">· 0.91 s for the caller</span></li><li class=\"ds-stage\"><span class=\"ds-dim\">decided</span><span class=\"ds-act\">ACTION freeze card=4217 reason=stolen</span><span class=\"ds-ms\">357 ms</span></li><li class=\"ds-line\"><span class=\"ds-t\">00:37.0</span><span class=\"ds-who ds-agent\">TELLERLINE</span><span class=\"ds-live\">I've frozen that card for you.<i class=\"ds-cursor\"></i></span></li></ol>",
-      "css": ".ds-turn { list-style: none; margin: 0; padding: 1rem; background: #020805; color: #33ff66; font: 16px/1.6 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; text-shadow: 0 0 1px rgb(51 255 102 / 0.55), 0 0 7px rgb(51 255 102 / 0.22); display: grid; gap: 0.4rem; } .ds-line { display: grid; grid-template-columns: 8ch 11ch 1fr; } .ds-t, .ds-ms { color: #1d8c4a; text-shadow: none; font-variant-numeric: tabular-nums; } .ds-who { color: #23a14b; text-shadow: none; } .ds-agent { color: #33ff66; } .ds-said { color: #23a14b; text-shadow: none; } .ds-gap { padding-left: 19ch; color: #b6ffb6; text-shadow: 0 0 2px rgb(182 255 182 / 0.85), 0 0 14px rgb(51 255 102 / 0.5), 0 0 40px rgb(51 255 102 / 0.22); } .ds-dim { color: #23a14b; text-shadow: none; } .ds-stage { display: grid; grid-template-columns: 19ch 10ch 1fr auto; font-size: 0.9em; } .ds-stage .ds-dim { grid-column: 2; } .ds-act, .ds-live { color: #b6ffb6; text-shadow: 0 0 2px rgb(182 255 182 / 0.85), 0 0 14px rgb(51 255 102 / 0.5), 0 0 40px rgb(51 255 102 / 0.22); } .ds-cursor { display: inline-block; width: 0.62em; height: 1.05em; margin-left: 0.1em; vertical-align: -0.15em; background: #b6ffb6; box-shadow: 0 0 2px rgb(182 255 182 / 0.85), 0 0 14px rgb(51 255 102 / 0.5), 0 0 40px rgb(51 255 102 / 0.22); animation: ds-blink 1.06s steps(1, end) infinite; } @keyframes ds-blink { 50% { opacity: 0; } } @media (prefers-reduced-motion: reduce) { .ds-cursor { animation: none; } }"
+      "refersTo": "plate",
+      "description": "A bay opens with its numbered plate (its keyboard shortcut), the condensed headline, and the command that produced it.",
+      "html": "<div class=\"ds-bayhead\"><span class=\"ds-plate\">3</span><div><h2 class=\"ds-headline\">The model decides; code owns the facts</h2><p class=\"ds-from\"><span class=\"ds-from-l\">from</span><code>less src/tellerline/brain.py</code></p></div></div>",
+      "css": ".ds-bayhead { display: flex; align-items: flex-start; gap: 20px; color: var(--color-ink, #16191d); } .ds-plate { display: inline-flex; align-items: center; justify-content: center; flex: none; min-width: 2.25rem; height: 2.25rem; margin-top: 8px; padding: 0 0.55rem; border-radius: 4px; background: var(--color-ink, #16191d); color: var(--color-strip, #ffffff); font-family: var(--font-martian, 'Martian Mono'), ui-monospace, 'SF Mono', Menlo, monospace; font-variation-settings: 'wdth' 87.5; font-weight: 600; font-size: 0.95rem; } .ds-headline { margin: 0; font-family: var(--font-mona, 'Mona Sans'), ui-sans-serif, system-ui, sans-serif; font-variation-settings: 'wdth' 78; font-weight: 760; font-size: clamp(2rem, 1.25rem + 2.6vw, 3.5rem); line-height: 1.02; letter-spacing: -0.012em; text-wrap: balance; } .ds-from { margin: 12px 0 0; display: flex; gap: 8px; align-items: baseline; font-size: 0.85rem; } .ds-from-l { font-family: var(--font-mona, 'Mona Sans'), ui-sans-serif, system-ui, sans-serif; font-variation-settings: 'wdth' 125; font-weight: 600; font-size: 0.6875rem; letter-spacing: 0.1em; line-height: 1.2; text-transform: uppercase; color: var(--color-ink-3, #5b646e); } .ds-from code { font-family: var(--font-martian, 'Martian Mono'), ui-monospace, 'SF Mono', Menlo, monospace; font-variation-settings: 'wdth' 87.5; color: var(--color-ink-2, #46505a); }"
     },
     {
-      "name": "Data Table",
+      "name": "Reply-Time Scale",
       "kind": "custom",
-      "description": "Measured results as plain rows: dim lower-case headings, scanline rules, tabular numbers.",
-      "html": "<table class=\"ds-table\"><thead><tr><th>calls</th><th>median</th><th>9 in 10</th><th>replies</th></tr></thead><tbody><tr><td>1</td><td>0.97 s</td><td>1.23 s</td><td>204</td></tr><tr><td>4</td><td>0.95 s</td><td>1.21 s</td><td>50</td></tr></tbody></table>",
-      "css": ".ds-table { border-collapse: collapse; background: #020805; color: #33ff66; text-shadow: 0 0 1px rgb(51 255 102 / 0.55), 0 0 7px rgb(51 255 102 / 0.22); font: 16px/1.5 'IBM 3270 Semi-Condensed', ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; } .ds-table th { color: #23a14b; text-shadow: none; font-weight: 400; text-align: left; padding: 0.5rem 2ch 0.5rem 0; } .ds-table td { border-top: 1px solid #0b331e; padding: 0.5rem 2ch 0.5rem 0; }"
+      "refersTo": "well",
+      "description": "A run on the one 0 to 1.5 s ruled scale: solid blue to the median, hatched blue on to nine in ten.",
+      "html": "<div class=\"ds-scale-wrap\"><span class=\"ds-scale\"><span class=\"ds-solid\" style=\"width:38%\"></span><span class=\"ds-hatch\" style=\"left:38%;width:44%\"></span></span><span class=\"ds-scale-ends\"><span>0</span><span>1.5 s</span></span></div>",
+      "css": ".ds-scale-wrap { max-width: 30rem; padding: 12px; border-radius: 10px; background: var(--color-well, #dde2e7); box-shadow: inset 0 1px 2px rgb(22 25 29 / 0.12), inset 0 0 0 1px rgb(22 25 29 / 0.05); } .ds-scale { position: relative; display: block; height: 1.5rem; border-radius: 2px; background-color: var(--color-scale-track, #f3f5f7); background-image: repeating-linear-gradient(90deg, var(--color-rail, #c3cad2) 0 1px, transparent 1px calc(100% / 6)); } .ds-solid { position: absolute; top: 6px; bottom: 6px; left: 0; background: var(--color-blue, #2f6fd6); } .ds-hatch { position: absolute; top: 6px; bottom: 6px; background-image: repeating-linear-gradient(135deg, var(--color-blue, #2f6fd6) 0 1.5px, transparent 1.5px 4.5px); box-shadow: inset 0 0 0 1px var(--color-blue, #2f6fd6); } .ds-scale-ends { display: flex; justify-content: space-between; margin-top: 2px; font-family: var(--font-martian, 'Martian Mono'), ui-monospace, 'SF Mono', Menlo, monospace; font-size: 0.62rem; color: var(--color-ink-3, #5b646e); }"
     }
   ],
   "narrative": {
-    "northStar": "The call prints itself.",
-    "overview": "The page is an operator's terminal in a midnight machine room. A real recorded call replays as a tmux-style session: every line the caller said, every route, ACTION line and millisecond prints as it happened while both voices play. Everything else on the page continues the same session: a heading is a shell comment, under it the real command that produced what follows, then that command's output. The page is read and played, never decorated; it refuses the voice-AI defaults of a glowing orb, gradient glass, an icon feature grid and invented metrics.\n\nThe world is one phosphor at several intensities on a black-green tube, behind curved CRT glass with scanlines, a fine grain and an edge fade. One dot-matrix monospace face (IBM 3270) carries everything, from the display headline to the per-stage timings; hierarchy comes from size steps, case, indentation, a timestamp gutter and dashed rules. What is active is in inverse video. States print themselves (`playing dispute`, `command not found`, `replied after 0.50 s`). Density is a working terminal's: generous between windows, tight inside them.",
+    "northStar": "The Strip Board",
+    "overview": "**Creative North Star: \"The Strip Board\"**\n\nTellerline's world is an air traffic control strip board. The page is a flat, brushed-aluminium board; every fact on it is a white paper strip seated in a coloured plastic holder, ruled into boxes with tiny printed field labels above their values. A real call replays as strips feeding into a recessed well, one per turn, printing box by box as the voices play. Colour is coding, not decoration: amber holders belong to the caller, blue holders to Tellerline, grey holders to plain fact. One red pen marks the turn that is live, then settles to ink.\n\nThe density is that of a working board: compact strips, small labels, many measured values, but laid out in generous bays with wide gutters so the board never reads as crowded. Type does two jobs. Mona Sans pulled condensed and heavy is the printed callsign; the same family at normal width carries prose; Martian Mono is what the strip printer prints, every measured time, code and command. Motion is mechanical: strips snap one step and settle, text prints in steps, pen strokes draw on once. Nothing glides.\n\nThe world refuses the voice-AI orb, gradient glass, icon grids and the dark terminal it replaced. Depth is physical and shallow: strips lift a millimetre off the board, wells sink into it, keys have a lip.",
     "keyCharacteristics": [
-      "One colour, P1 phosphor, at six text and surface intensities; nothing else exists.",
-      "One face, IBM 3270, in two widths: Regular for display, Semi-Condensed for everything else.",
-      "Square everything: no radius, no cards, no drop shadows; frames are 1 px lines.",
-      "Commands are bracketed keys; the active one is inverse.",
-      "Every number shown is read from exported run data, and its source command is printed above it."
+      "Flat aluminium board (no grain, no gradient) with recessed wells and rails as the only structure.",
+      "Every fact sits in a white strip inside a coloured holder; the holder's thick end carries the colour code.",
+      "Ruled boxes: a tiny wide uppercase label above a value, separated by hairline rules.",
+      "One red pen, only on the live turn, settling to ink once the turn passes.",
+      "Condensed heavy Mona Sans for print, normal-width Mona Sans for prose, Martian Mono for every measured value.",
+      "Every timing sits on one ruled 0 to 1.5 s scale.",
+      "Strips snap with a short overshoot; nothing glides."
     ],
     "rules": [
       {
-        "name": "The One Phosphor Rule",
-        "body": "No colour outside this scale appears anywhere, not even for errors or status. Meaning comes from intensity, inverse video and words.",
+        "name": "The Holder Code Rule",
+        "body": "Amber holder = the caller, blue holder = Tellerline, grey holder = plain fact. A strip that carries both sides sits in a split holder, amber left and blue right. Never use amber or blue as decoration where it does not mean a side.",
         "section": "colors"
       },
       {
-        "name": "The Text Floor Rule",
-        "body": "Text is never drawn in Afterimage. The dimmest text is Faint Phosphor (4.7:1); Afterimage is for lines, bars and glyphs that carry no reading.",
+        "name": "The One Hot Ink Rule",
+        "body": "Red appears only on the turn that is live: the pen circle and its figure. When the turn is no longer live, the pen settles to Print Ink. Done/not-done marks are drawn in ink, never red.",
         "section": "colors"
       },
       {
-        "name": "The Tabular Numbers Rule",
-        "body": "Every timing, count and timestamp is set with tabular numerals, so columns of milliseconds line up as a terminal's would.",
+        "name": "The Ink Twin Rule",
+        "body": "Coding colours never set body text at their holder value; text uses the ink twin (Amber Ink, Controller Blue Ink, Red Pen Figure).",
+        "section": "colors"
+      },
+      {
+        "name": "The Printer Rule",
+        "body": "Every measured value, time, code or command is set in Martian Mono with tabular figures. Prose numbers that are not measurements stay in Mona Sans.",
         "section": "typography"
       },
       {
-        "name": "The Light-Not-Lift Rule",
-        "body": "Emphasis is brightness. A surface never rises off the page; a line glows harder.",
+        "name": "The Width Axis Rule",
+        "body": "Hierarchy is made with Mona Sans's width axis as much as weight: condensed (75 to 78) for print and titles, 100 for prose, 125 for labels. Do not substitute a second display family.",
+        "section": "typography"
+      },
+      {
+        "name": "The One Scale Rule",
+        "body": "Every reply timing on the page sits on the same ruled 0 to 1.5 s scale (six ticks), so a wait in a strip, a turn's anatomy and a run's spread can be compared by eye.",
+        "section": "layout"
+      },
+      {
+        "name": "The Pull Rule",
+        "body": "A strip rises only when it is pulled (its trace opened); nothing lifts on mere hover.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Lip Is Vertical Rule",
+        "body": "A key's lip is 1 to 2px straight down. Never a diagonal offset, never a block shadow.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "**Do** print the command that produced a number above it, and link its result file.",
-      "**Do** keep every colour on the phosphor scale above; express state with intensity, inverse video and words.",
-      "**Do** keep text at Faint Phosphor (4.7:1) or brighter, and set timings in tabular numerals.",
-      "**Do** wrap commands only between words, and keep all eight windows reachable from the status bar and the 0-7 keys.",
-      "**Do** print motion-free under `prefers-reduced-motion`: the replay, cursor and smooth scroll all have still equivalents."
+      "**Do** put every fact in a white strip inside a holder, ruled into label-over-value boxes.",
+      "**Do** code holders by side: amber for the caller, blue for Tellerline, grey for plain fact.",
+      "**Do** keep the board flat Brushed Aluminium (#e7eaed); make depth only with Lift, Well and Key Lip.",
+      "**Do** set every measured value in Martian Mono with tabular figures.",
+      "**Do** place every timing on the one 0 to 1.5 s scale.",
+      "**Do** draw marks (tick, cross, hand-off, circle) as loose SVG pen strokes in ink.",
+      "**Do** use Snap (cubic-bezier(0.3, 1.45, 0.55, 1)) only for a strip feeding into or stepping down a well; use Settle (cubic-bezier(0.2, 0.8, 0.2, 1)) for every other transition.",
+      "**Do** print instantly under reduced motion: no feed, no print-in, no pen draw."
     ],
     "donts": [
-      "**Don't** add a colour, a gradient, a rounded corner, a card or a drop shadow.",
-      "**Don't** use an orb, glass panels, an icon feature grid or an invented metric: the page's proof is a recorded call and measured runs.",
-      "**Don't** draw text in Afterimage (#176e3a); it is for lines and unplayed bars.",
-      "**Don't** type a number into the page by hand; it is read from the exported results."
+      "**Don't** use red anywhere but the live turn's pen and figure.",
+      "**Don't** add grain, noise, gradients or glass to the board.",
+      "**Don't** let anything glide: no long eases, no parallax, no fades that drift into place.",
+      "**Don't** set body text in a holder colour; use its ink twin.",
+      "**Don't** use rubber stamps or filled badges for status; mark it with the pen.",
+      "**Don't** give a key a diagonal or block offset shadow; its lip is 1 to 2px straight down.",
+      "**Don't** introduce a second display family or a system display face; hierarchy comes from Mona Sans's width axis."
     ]
   }
 }
