@@ -11,13 +11,13 @@ import type { Span } from "@/lib/timeline";
 const BAR = 2;
 const PITCH = 3;
 const COLOURS = {
-  idle: "#dedcd4",
-  caller: "#0c0c0d",
-  agent: "#ff4f1f",
-  axis: "#c9c6bb",
-  head: "#0c0c0d",
-  gap: "#0c0c0d",
-  band: "rgba(255, 79, 31, 0.12)",
+  idle: "#2a2640",
+  caller: "#4fe3c8",
+  agent: "#ff6b8b",
+  axis: "#3a3558",
+  head: "#f4f1ff",
+  gap: "#f4f1ff",
+  band: "rgba(157, 140, 255, 0.16)",
 };
 
 type Props = {

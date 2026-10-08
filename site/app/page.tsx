@@ -48,7 +48,7 @@ export default async function Page() {
         <main>
           <HeroStage />
           <ProofBand film={film} />
-          <Section id="call" number={number("call")} title="The call, strip by strip" command="python -m tellerline.agent">
+          <Section id="call" number={number("call")} title="The call, turn by turn" command="python -m tellerline.agent">
             <div className="mx-auto max-w-[72rem]">
               <CallBoard />
             </div>

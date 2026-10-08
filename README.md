@@ -233,7 +233,7 @@ tests/
 - RNNoise by Xiph.Org and Jean-Marc Valin, licensed under BSD-3-Clause.
 - Asterisk by Sangoma, licensed under GPL-2.0; it runs as a separate program in its own container,
   from the `andrius/asterisk` image.
-- The website's typefaces are Geist and Geist Mono by Vercel and Instrument Serif by Instrument,
+- The website's typefaces are Bricolage Grotesque by Mathieu Triay and Geist and Geist Mono by Vercel,
   all licensed under the SIL Open Font License 1.1.
 
 Tellerline Bank is fictional, and all customer data is synthetic.

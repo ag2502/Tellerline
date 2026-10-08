@@ -1,41 +1,41 @@
 @import "tailwindcss";
 
 /*
- * Tellerline: an editorial product page. Warm paper, near-black type set large and tight, one
- * vermilion accent for what is live and what to press, and white cards with hairline edges for
- * everything measured. The call is the only picture.
+ * Tellerline: pick up the phone. A dark room lit by the call itself: an orb that breathes with
+ * the recorded voices, glass cards for everything measured, and two voice colours that mean the
+ * same thing everywhere: teal for the caller, coral for Tellerline.
  */
 
 @theme {
-  --color-board: #f6f5f1; /* the page: warm paper */
-  --color-well: #eeece6; /* a recessed panel */
-  --color-rail: #dedcd4; /* hairlines on the page */
-  --color-strip: #ffffff; /* a card */
-  --color-rule: #e7e5de; /* rules inside a card */
-  --color-ink: #0c0c0d; /* type */
-  --color-ink-2: #4b4b50; /* secondary text (8.6:1 on the page) */
-  --color-ink-3: #66666c; /* labels and timings (5.3:1 in a well, the lowest) */
-  --color-amber: #d9d4c4; /* the caller: warm stone */
-  --color-amber-ink: #6a6350; /* caller-coded text */
-  --color-blue: #ff4f1f; /* Tellerline: the accent */
-  --color-blue-ink: #c8340a; /* accent-coded text (5.1:1 on white) */
-  --color-red: #ff4f1f; /* the live turn */
-  --color-red-ink: #c8340a; /* the live turn's figures */
+  --color-board: #07060d; /* the room */
+  --color-well: #0d0b17; /* a recess */
+  --color-rail: #27233b; /* hairlines */
+  --color-strip: #131020; /* a glass card */
+  --color-rule: #221e35; /* rules inside a card */
+  --color-ink: #f4f1ff; /* type */
+  --color-ink-2: #b9b4d0; /* secondary text (10:1 on the room) */
+  --color-ink-3: #948fb2; /* labels and timings (5.9:1 on a card, the lowest) */
+  --color-amber: #4fe3c8; /* the caller: teal */
+  --color-amber-ink: #7defd9; /* caller-coded text */
+  --color-blue: #ff6b8b; /* Tellerline: coral */
+  --color-blue-ink: #ff8fa8; /* Tellerline-coded text */
+  --color-red: #ffb454; /* the live turn: amber light */
+  --color-red-ink: #ffc47a; /* the live turn's figures */
 
   --font-sans: var(--font-sans-face), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-serif-face), ui-serif, Georgia, serif;
+  --font-display: var(--font-display-face), var(--font-sans-face), ui-sans-serif, sans-serif;
   --font-mono: var(--font-mono-face), ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   --header-h: 4rem;
   --gutter: 1.25rem;
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --snap: cubic-bezier(0.3, 1.25, 0.55, 1);
   --settle: var(--ease);
-  --lift: 0 0 0 1px rgb(12 12 13 / 0.07), 0 1px 2px rgb(12 12 13 / 0.04), 0 8px 24px -12px rgb(12 12 13 / 0.12);
-  --lift-high: 0 0 0 1px rgb(12 12 13 / 0.08), 0 24px 60px -24px rgb(12 12 13 / 0.3);
+  --lift: 0 0 0 1px rgb(255 255 255 / 0.08), 0 12px 32px -16px rgb(0 0 0 / 0.7);
+  --lift-high: 0 0 0 1px rgb(255 255 255 / 0.1), 0 40px 80px -30px rgb(0 0 0 / 0.8);
 }
 
 @media (min-width: 768px) {
@@ -47,7 +47,12 @@
 
 @layer base {
   html {
-    background: var(--color-board);
+    background-color: var(--color-board);
+    background-image:
+      radial-gradient(70rem 44rem at 50% -12%, rgb(120 82 255 / 0.28), transparent 70%),
+      radial-gradient(40rem 30rem at 8% 38%, rgb(79 227 200 / 0.07), transparent 70%),
+      radial-gradient(44rem 34rem at 95% 62%, rgb(255 107 139 / 0.09), transparent 70%);
+    background-repeat: no-repeat;
     scroll-padding-top: calc(var(--header-h) + 1rem);
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
@@ -71,7 +76,7 @@
     text-rendering: optimizeLegibility;
     caret-color: var(--color-blue);
     scrollbar-color: var(--color-rail) var(--color-board);
-    background-color: var(--color-board);
+    background-color: transparent;
   }
 
   @media (min-width: 768px) {
@@ -89,7 +94,7 @@
 
   ::selection {
     background: var(--color-blue);
-    color: #fff;
+    color: #07060d;
   }
 
   :focus-visible {
@@ -132,26 +137,26 @@
 
   /* The display face: Geist, heavy and tightly set, the page's loudest voice. */
   .callsign {
-    font-family: var(--font-sans);
-    font-weight: 620;
-    letter-spacing: -0.045em;
-    line-height: 0.94;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
   }
 
   /* A section's title. */
   .headline {
-    font-family: var(--font-sans);
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-weight: 700;
     letter-spacing: -0.035em;
     line-height: 1.02;
   }
 
-  /* The italic a headline leans on once. */
-  .serif {
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-weight: 400;
-    letter-spacing: -0.02em;
+  /* The two voices as light: teal into coral. */
+  .voice-text {
+    background: linear-gradient(95deg, var(--color-amber) 0%, #9d8cff 48%, var(--color-blue) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   /* Small labels: mono, spaced, quiet. */
@@ -182,12 +187,12 @@
 
   /* ---------------------------------------------------------------- cards */
 
-  /* A card: white, hairline-edged. */
+  /* A glass card: a faint lit edge on a deep surface. */
   .strip {
     position: relative;
-    background: var(--color-strip);
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.055), rgb(255 255 255 / 0.02)), var(--color-strip);
     box-shadow: var(--lift);
-    border-radius: 16px;
+    border-radius: 18px;
     overflow: hidden;
   }
 
@@ -197,7 +202,7 @@
   .holder-plain,
   .holder-turn {
     position: relative;
-    border-radius: 16px;
+    border-radius: 18px;
   }
 
   .holder-caller > .strip {
@@ -324,8 +329,8 @@
   /* A recessed panel. */
   .well {
     background: var(--color-well);
-    border-radius: 20px;
-    box-shadow: inset 0 0 0 1px rgb(12 12 13 / 0.04);
+    border-radius: 22px;
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.05);
   }
 
   /* A section's number: a small outlined pill. */
@@ -337,8 +342,8 @@
     padding: 0 0.7rem;
     border-radius: 9999px;
     border: 1px solid var(--color-rail);
-    background: var(--color-strip);
-    color: var(--color-ink);
+    background: rgb(255 255 255 / 0.04);
+    color: var(--color-ink-2);
     font-family: var(--font-mono);
     font-weight: 500;
     font-size: 0.75rem;
@@ -361,20 +366,6 @@
     box-shadow: inset 0 0 0 1px var(--color-blue);
   }
 
-  /* The closing band: the page turned over to night. */
-  .night {
-    --color-board: #0c0c0d;
-    --color-well: #161618;
-    --color-rail: #2a2a2e;
-    --color-rule: #232326;
-    --color-ink: #f6f5f1;
-    --color-ink-2: #b4b3ae;
-    --color-ink-3: #9a9994;
-    --color-blue-ink: #ff7a55;
-    background: var(--color-board);
-    color: var(--color-ink);
-  }
-
   /* ---------------------------------------------------------------- keys */
 
   .key {
@@ -386,7 +377,7 @@
     padding: 0.6rem 1.25rem;
     border-radius: 9999px;
     border: 1px solid var(--color-rail);
-    background: var(--color-strip);
+    background: rgb(255 255 255 / 0.05);
     color: var(--color-ink);
     font: inherit;
     font-weight: 560;
@@ -403,7 +394,8 @@
   }
 
   .key:hover {
-    border-color: var(--color-ink);
+    border-color: rgb(255 255 255 / 0.5);
+    background: rgb(255 255 255 / 0.1);
     transform: translateY(-1px);
   }
 
@@ -414,13 +406,14 @@
   .key[data-primary] {
     background: var(--color-ink);
     border-color: var(--color-ink);
-    color: var(--color-board);
+    color: #07060d;
+    box-shadow: 0 0 0 0 rgb(157 140 255 / 0.5), 0 10px 40px -10px rgb(157 140 255 / 0.55);
   }
 
   .key[data-primary]:hover {
-    background: var(--color-blue);
-    border-color: var(--color-blue);
-    color: #fff;
+    background: linear-gradient(95deg, var(--color-amber), #b3a6ff 50%, var(--color-blue));
+    border-color: transparent;
+    color: #07060d;
   }
 
   .key:disabled {

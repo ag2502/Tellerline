@@ -14,12 +14,12 @@ const CREDITS = [
   ["RNNoise", "Xiph.Org", "BSD-3-Clause", "https://github.com/xiph/rnnoise"],
   ["Asterisk", "Sangoma", "GPL-2.0, run as a separate program", "https://www.asterisk.org/"],
   ["Geist and Geist Mono", "Vercel", "SIL OFL 1.1", "https://github.com/vercel/geist-font"],
-  ["Instrument Serif", "Instrument", "SIL OFL 1.1", "https://github.com/Instrument/instrument-serif"],
+  ["Bricolage Grotesque", "Mathieu Triay", "SIL OFL 1.1", "https://github.com/ateliertriay/bricolage"],
 ] as const;
 
 export function Footer() {
   return (
-    <footer className="night px-[var(--gutter)] pb-14 pt-20 sm:pt-28">
+    <footer className="border-t border-rail bg-well px-[var(--gutter)] pb-14 pt-20 sm:pt-28">
       <div className="mx-auto grid max-w-[90rem] gap-x-14 gap-y-12 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
         <div className="flex flex-col gap-5">
           <p className="flex items-center gap-3">

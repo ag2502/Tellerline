@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 
 import { SITE_URL } from "@/lib/site";
 
 import "./globals.css";
 
-// Geist for words, Instrument Serif for the one italic phrase a headline leans on, Geist Mono
-// for measured values. All three are SIL Open Font License.
+// Bricolage Grotesque for the big type, Geist for reading, Geist Mono for measured values. All
+// three are SIL Open Font License.
+const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display-face", display: "swap" });
 const sans = Geist({ subsets: ["latin"], variable: "--font-sans-face", display: "swap" });
-const serif = Instrument_Serif({ subsets: ["latin"], weight: "400", style: ["normal", "italic"], variable: "--font-serif-face", display: "swap" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono-face", display: "swap" });
 
 const description =
@@ -44,13 +44,13 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#f6f5f1",
-  colorScheme: "light",
+  themeColor: "#07060d",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-GB" className={`${sans.variable} ${serif.variable} ${mono.variable}`}>
+    <html lang="en-GB" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
       <body>{children}</body>
     </html>
   );
