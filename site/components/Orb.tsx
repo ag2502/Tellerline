@@ -2,29 +2,19 @@
 
 import { useEffect, useRef } from "react";
 
+import { drawOrb, newOrbState } from "@/lib/orbDraw";
+
 import { useCall } from "./CallContext";
 
 // The call as light: a ring of bars reading the recorded voices a second and a half either side
 // of the playhead, teal where the caller is louder and coral where Tellerline is, around a core
 // that swells with whoever is speaking. At rest it breathes. It draws only while it is on screen.
 
-const BARS = 112;
-const TEAL = [79, 227, 200];
-const CORAL = [255, 107, 139];
-
-function peak(values: number[], hz: number, from: number, to: number): number {
-  const start = Math.max(0, Math.floor(from * hz));
-  const end = Math.min(values.length, Math.max(start + 1, Math.ceil(to * hz)));
-  let top = 0;
-  for (let i = start; i < end; i++) top = Math.max(top, values[i]);
-  return top / 255;
-}
-
 export function Orb({ className }: { className?: string }) {
   const { call, nowRef, playing, reducedMotion } = useCall();
   const canvas = useRef<HTMLCanvasElement>(null);
   const live = useRef({ call, playing });
-  const pointer = useRef({ x: 0, y: 0, on: false, power: 0 });
+  const pointer = useRef(newOrbState());
   live.current = { call, playing };
 
   useEffect(() => {
@@ -34,8 +24,6 @@ export function Orb({ className }: { className?: string }) {
     let visible = true;
     let frame = 0;
     let size = 0;
-    let caller = 0;
-    let agent = 0;
     let last = 0;
 
     const fit = () => {
@@ -48,71 +36,7 @@ export function Orb({ className }: { className?: string }) {
 
     const draw = (time: number) => {
       const { call: current, playing: on } = live.current;
-      const now = nowRef.current ?? 0;
-      const seconds = time / 1000;
-      const hz = current.envelope_hz;
-      const wantCaller = on ? peak(current.envelope.caller, hz, now - 0.1, now + 0.1) : 0.06 + 0.04 * Math.sin(seconds * 1.1);
-      const wantAgent = on ? peak(current.envelope.agent, hz, now - 0.1, now + 0.1) : 0.06 + 0.04 * Math.sin(seconds * 0.9 + 2);
-      const point = pointer.current;
-      point.power += ((point.on ? 1 : 0) - point.power) * 0.12;
-      caller += (wantCaller - caller) * 0.25;
-      agent += (wantAgent - agent) * 0.25;
-
-      const c = size / 2;
-      context.clearRect(0, 0, size, size);
-      // The core: two lights that swell with their voice.
-      const pull = point.power * 0.05;
-      const shiftX = (point.x / (size / 2)) * pull * size;
-      const shiftY = (point.y / (size / 2)) * pull * size;
-      for (const [level, rgb, dx] of [[caller, TEAL, -0.07], [agent, CORAL, 0.07]] as const) {
-        const radius = size * (0.2 + level * 0.2);
-        const gx = c + size * dx + shiftX;
-        const gradient = context.createRadialGradient(gx, c + shiftY, 0, gx, c + shiftY, radius);
-        gradient.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${0.55 + level * 0.4})`);
-        gradient.addColorStop(1, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`);
-        context.fillStyle = gradient;
-        context.fillRect(0, 0, size, size);
-      }
-      // The ring of bars.
-      const inner = size * 0.27;
-      const aim = Math.atan2(point.y, point.x);
-      const near = Math.min(1, Math.hypot(point.x, point.y) / (size / 2) * 1.3);
-      context.lineCap = "round";
-      context.lineWidth = Math.max(2, size * 0.0085);
-      for (let i = 0; i < BARS; i++) {
-        const share = i / BARS;
-        const angle = share * Math.PI * 2 - Math.PI / 2;
-        // Mirrored left and right, so the playhead sits at the top and the ring reads as a pair.
-        const offset = (Math.abs(share - 0.5) * 2 - 0.5) * 3;
-        let a: number;
-        let b: number;
-        if (on) {
-          a = peak(current.envelope.caller, hz, now + offset - 0.05, now + offset + 0.05);
-          b = peak(current.envelope.agent, hz, now + offset - 0.05, now + offset + 0.05);
-        } else {
-          const wave = 0.5 + 0.5 * Math.sin(share * Math.PI * 6 + seconds * 0.8);
-          a = 0.06 + 0.12 * wave;
-          b = 0.06 + 0.1 * (1 - wave);
-        }
-        const level = Math.max(a, b);
-        const rgb = a >= b ? TEAL : CORAL;
-        // The bars lean out toward the pointer.
-        let apart = Math.abs(angle - aim) % (Math.PI * 2);
-        if (apart > Math.PI) apart = Math.PI * 2 - apart;
-        const bulge = point.power * Math.exp(-(apart * apart) / 0.16) * size * 0.07 * (0.3 + 0.7 * near);
-        const length = size * (0.012 + level * 0.15) + bulge;
-        context.strokeStyle = `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${0.4 + level * 0.6})`;
-        context.beginPath();
-        context.moveTo(c + Math.cos(angle) * inner, c + Math.sin(angle) * inner);
-        context.lineTo(c + Math.cos(angle) * (inner + length), c + Math.sin(angle) * (inner + length));
-        context.stroke();
-      }
-      // A thin ring under the bars.
-      context.strokeStyle = "rgba(244,241,255,0.14)";
-      context.lineWidth = 1;
-      context.beginPath();
-      context.arc(c, c, inner - size * 0.02, 0, Math.PI * 2);
-      context.stroke();
+      drawOrb(context, size, current, nowRef.current ?? 0, on, time / 1000, pointer.current);
     };
 
     const loop = (time: number) => {

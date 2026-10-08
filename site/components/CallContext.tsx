@@ -130,6 +130,20 @@ export function CallProvider({ calls, initial, children }: { calls: CallSummary[
     [call.slug, failed],
   );
 
+  // Once the page is idle, fetch the other calls' recordings into the cache, so choosing one
+  // and pressing play starts the sound at once.
+  useEffect(() => {
+    const warm = () => {
+      for (const item of calls) if (item.slug !== initial.slug) void fetch(`/calls/${item.slug}.mp3`).catch(() => undefined);
+    };
+    const idle = window.requestIdleCallback ?? ((run: () => void) => window.setTimeout(run, 2500));
+    const handle = idle(warm);
+    return () => {
+      if (window.cancelIdleCallback) window.cancelIdleCallback(handle as number);
+      else window.clearTimeout(handle as number);
+    };
+  }, [calls, initial.slug]);
+
   // Playing another call starts it once it has loaded.
   const pendingPlay = useRef(false);
   useEffect(() => {
@@ -197,7 +211,7 @@ export function CallProvider({ calls, initial, children }: { calls: CallSummary[
       <audio
         ref={audio}
         src={call.audio}
-        preload="none"
+        preload="auto"
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}
         onEnded={() => {

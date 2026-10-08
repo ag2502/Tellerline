@@ -2,8 +2,10 @@
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import { type Board, buildBoard, clock, onScale, SCALE_S, type TurnStrip } from "@/lib/timeline";
+import { type Board, buildBoard, clock, SCALE_S, type TurnStrip } from "@/lib/timeline";
 import type { Call } from "@/lib/types";
+
+import { drawOrb, newOrbState } from "@/lib/orbDraw";
 
 import { Ruler, Spread } from "./Scale";
 import { StripMark } from "./StripMark";
@@ -13,7 +15,7 @@ import { Waveform } from "./Waveform";
 // One frame of the film at time t, drawn the same way every time so a headless browser can step
 // through it: scripts/render_film.py calls window.__setFilmTime(t) and takes a screenshot.
 // The film runs INTRO_S of title card, the call itself, then OUTRO_S of end card. It is the
-// page's own strip board, laid out at 1422 by 800 and drawn at 1.35 times that: 1920 by 1080.
+// page's own look, laid out at 1422 by 800 and drawn at 1.35 times that: 1920 by 1080.
 
 export const INTRO_S = 6;
 export const OUTRO_S = 6;
@@ -53,7 +55,7 @@ export function FilmFrame({ call, numbers }: Props) {
     <div className="h-[800px] w-[1422px] overflow-hidden" style={{ zoom: 1.35 }}>
       <style>{STILL}</style>
       {now < 0 ? (
-        <TitleCard call={call} />
+        <TitleCard call={call} time={time} />
       ) : now > call.duration_s ? (
         <EndCard numbers={numbers} />
       ) : (
@@ -61,6 +63,22 @@ export function FilmFrame({ call, numbers }: Props) {
       )}
     </div>
   );
+}
+
+// The page's orb, drawn for exactly this moment of the call.
+function FilmOrb({ call, now, playing, seconds, size }: { call: Call; now: number; playing: boolean; seconds: number; size: number }) {
+  const canvas = useRef<HTMLCanvasElement>(null);
+  useLayoutEffect(() => {
+    const element = canvas.current;
+    const context = element?.getContext("2d");
+    if (!element || !context) return;
+    const ratio = 2;
+    element.width = size * ratio;
+    element.height = size * ratio;
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    drawOrb(context, size, call, now, playing, seconds, newOrbState(), 1);
+  });
+  return <canvas ref={canvas} style={{ width: size, height: size }} aria-hidden="true" />;
 }
 
 function FilmBoard({ call, board, now }: { call: Call; board: Board; now: number }) {
@@ -97,7 +115,11 @@ function FilmBoard({ call, board, now }: { call: Call; board: Board; now: number
         <span className="print text-[1.45rem] font-semibold">{clock(now)}</span>
       </header>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1.75fr)_minmax(0,1fr)] gap-5">
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)] gap-6">
+        <aside className="flex min-h-0 flex-col items-center justify-between">
+          <FilmOrb call={call} now={now} playing size={330} seconds={now} />
+          <Waits board={board} now={now} newest={newest} />
+        </aside>
         <div className="well min-h-0 overflow-hidden p-3">
           <ol ref={list} className="flex min-h-full flex-col" style={{ gap: GAP_PX }}>
             {[...fed].reverse().map((strip) => (
@@ -112,7 +134,6 @@ function FilmBoard({ call, board, now }: { call: Call; board: Board; now: number
             ) : null}
           </ol>
         </div>
-        <Waits board={board} now={now} newest={newest} />
       </div>
 
       <div className="holder-agent">
@@ -126,7 +147,7 @@ function FilmBoard({ call, board, now }: { call: Call; board: Board; now: number
             </p>
             <p className="flex items-center gap-4 text-[0.8rem] text-ink-2">
               <span className="flex items-center gap-1.5">
-                <i className="inline-block h-3 w-1.5 rounded-[1px] bg-[#d9a21f]" /> caller
+                <i className="inline-block h-3 w-1.5 rounded-[1px] bg-amber" /> caller
               </span>
               <span className="flex items-center gap-1.5">
                 <i className="inline-block h-3 w-1.5 rounded-[1px] bg-blue" /> Tellerline
@@ -156,8 +177,7 @@ function FilmBoard({ call, board, now }: { call: Call; board: Board; now: number
   );
 }
 
-// The right of the board: the live wait, large, circled in pen when Tellerline answers; under it
-// every wait in the call so far on the page's one scale.
+// The live wait, large, circled when Tellerline answers.
 function Waits({ board, now, newest }: { board: Board; now: number; newest: TurnStrip | undefined }) {
   const timed = board.strips.filter((strip) => strip.wait && now >= strip.wait.from);
   const current = newest?.wait && now >= newest.wait.from ? newest : timed[timed.length - 1];
@@ -165,67 +185,31 @@ function Waits({ board, now, newest }: { board: Board; now: number; newest: Turn
   const answered = wait ? now >= wait.until : false;
   const value = wait ? Math.min(now, wait.until) - wait.from : null;
   return (
-    <aside className="flex min-h-0 flex-col gap-4">
-      <div className="holder-turn">
-        <div className="strip px-6 pb-5 pt-4">
-          <p className="label">{current ? `turn ${current.turn}: the caller waited` : "the wait"}</p>
-          <p className="mt-4 h-[4.25rem]">
-            {value !== null ? (
-              <span className={`print relative inline-block text-[4.25rem] font-semibold leading-none ${answered && current === newest ? "text-red-ink" : ""}`}>
-                {value.toFixed(2)}
-                <span className="text-[0.42em] font-normal"> s</span>
-                {answered && current ? (
-                  <PenCircle
-                    settled={current !== newest}
-                    instant
-                    progress={(now - wait!.until) / PEN_S}
-                    weight={1.4}
-                    className="-left-[2.6rem] -top-4 h-[calc(100%+2rem)] w-[calc(100%+4.4rem)]"
-                  />
-                ) : null}
-              </span>
-            ) : (
-              <span className="text-[1.05rem] text-ink-2">The wait is timed from the caller&apos;s last word.</span>
-            )}
-          </p>
-          <p className="mt-4 min-h-[1.5em] text-[0.95rem] text-ink-2">
-            {answered && wait?.callerWait != null ? `${wait.callerWait.toFixed(2)} s for the caller, WebRTC both ways` : " "}
-          </p>
-        </div>
-      </div>
-
-      <div className="holder-plain">
-        <div className="strip flex flex-col px-5 pb-3 pt-4">
-          <p className="label">every wait in this call, on one scale</p>
-          {timed.length ? null : (
-            <p className="mt-3 text-[0.95rem] text-ink-2">Each wait joins the scale as Tellerline answers.</p>
-          )}
-          <ol className="mt-4 flex flex-col gap-2.5">
-            {timed.map((strip) => {
-              const span = strip.wait!;
-              const seconds = Math.min(now, span.until) - span.from;
-              return (
-                <li key={strip.turn} className="grid grid-cols-[3.25rem_minmax(0,1fr)_3.5rem] items-center gap-3">
-                  <span className="print text-[0.8rem] text-ink-3">turn {strip.turn}</span>
-                  <span className="scale-ticks relative block h-4 rounded-[1px] bg-[#f3f5f7]">
-                    <span
-                      className={`absolute inset-y-0.5 left-0 rounded-[1px] ${strip === current ? "bg-blue" : "bg-ink"}`}
-                      style={{ width: `${onScale(seconds) * 100}%` }}
-                    />
-                  </span>
-                  <span className="print text-right text-[0.85rem] font-semibold">{seconds.toFixed(2)} s</span>
-                </li>
-              );
-            })}
-          </ol>
-          <div className="mt-1 grid grid-cols-[3.25rem_minmax(0,1fr)_3.5rem] gap-3 pt-2">
-            <span />
-            <Ruler />
-            <span />
-          </div>
-        </div>
-      </div>
-    </aside>
+    <div className="w-full text-center">
+      <p className="label">{current ? `turn ${current.turn}: the caller waited` : "the wait"}</p>
+      <p className="mt-3 h-[4.25rem]">
+        {value !== null ? (
+          <span className={`print relative inline-block text-[4.25rem] font-semibold leading-none ${answered && current === newest ? "text-red-ink" : ""}`}>
+            {value.toFixed(2)}
+            <span className="text-[0.42em] font-normal"> s</span>
+            {answered && current ? (
+              <PenCircle
+                settled={current !== newest}
+                instant
+                progress={(now - wait!.until) / PEN_S}
+                weight={1.4}
+                className="-left-[2.6rem] -top-4 h-[calc(100%+2rem)] w-[calc(100%+4.4rem)]"
+              />
+            ) : null}
+          </span>
+        ) : (
+          <span className="text-[1.05rem] text-ink-2">The wait is timed from the caller&apos;s last word.</span>
+        )}
+      </p>
+      <p className="mt-3 min-h-[1.5em] text-[0.95rem] text-ink-2">
+        {answered && wait?.callerWait != null ? `${wait.callerWait.toFixed(2)} s for the caller, WebRTC both ways` : " "}
+      </p>
+    </div>
   );
 }
 
@@ -234,26 +218,22 @@ function penProgress(strip: TurnStrip, now: number): number | undefined {
   return (now - strip.wait.until) / PEN_S;
 }
 
-function TitleCard({ call }: { call: Call }) {
+function TitleCard({ call, time }: { call: Call; time: number }) {
   return (
-    <div className="flex h-full items-center justify-center px-16">
-      <div className="holder-turn w-fit max-w-[56rem]">
-        <div className="strip px-14 pb-12 pt-10">
-          <p className="flex items-center gap-3">
-            <StripMark className="h-[22px] w-[42px]" />
-            <span className="callsign text-[1.6rem]">Tellerline</span>
-          </p>
-          <h1 className="callsign mt-8 text-[4.6rem]">
-            Bank calls, answered
-            <br />
-            on one MacBook Air.
-          </h1>
-          <p className="mt-8 max-w-[46ch] text-[1.25rem] leading-snug text-ink-2">
-            A real call. {call.summary} The caller is a synthetic voice; everything Tellerline says
-            is generated live on the Mac.
-          </p>
-        </div>
-      </div>
+    <div className="flex h-full flex-col items-center justify-center px-16 text-center">
+      <p className="flex items-center gap-3">
+        <StripMark className="h-[22px] w-[42px]" />
+        <span className="callsign text-[1.6rem]">Tellerline</span>
+      </p>
+      <h1 className="callsign mt-6 text-[4.6rem]">
+        Bank calls, answered
+        <br />
+        on one <span className="voice-text">MacBook Air.</span>
+      </h1>
+      <FilmOrb call={call} now={0} playing={false} seconds={time} size={250} />
+      <p className="max-w-[48ch] text-[1.2rem] leading-snug text-ink-2">
+        A real call. {call.summary} The caller is a synthetic voice; everything Tellerline says is generated live on the Mac.
+      </p>
     </div>
   );
 }
@@ -263,7 +243,7 @@ function EndCard({ numbers }: { numbers: Props["numbers"] }) {
     <div className="flex h-full items-center justify-center px-16">
       <div className="holder-agent w-[52rem]">
         <div className="strip px-14 pb-12 pt-10">
-          <p className="callsign text-[4rem]">Tellerline</p>
+          <p className="callsign voice-text w-fit text-[4rem]">Tellerline</p>
           {numbers ? (
             <>
               <p className="mt-6 max-w-[44ch] text-[1.45rem] leading-snug">
