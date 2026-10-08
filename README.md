@@ -94,7 +94,7 @@ about 160 ms. E4B misses the target in every configuration.
 | Language model | [Gemma 4](https://huggingface.co/google/gemma-4-E2B-it) E2B, 4-bit, on [mlx-lm](https://github.com/ml-explore/mlx-lm) server | Apache-2.0 |
 | Text to speech | [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) on MLX, espeak-ng phonemes (British voices) | Apache-2.0 |
 | Telephony | [Asterisk](https://www.asterisk.org/) 23 in a container, its WebSocket channel to the agent ([D-030](docs/DECISIONS.md)) | GPL-2.0 (run as a separate program) |
-| Website | [Next.js](https://nextjs.org/) 16 on Vercel, generated from the results and recorded calls | MIT |
+| Website | [Next.js](https://nextjs.org/) 16 on Vercel, [three.js](https://threejs.org/) via [React Three Fiber](https://github.com/pmndrs/react-three-fiber), [Lenis](https://github.com/darkroomengineering/lenis); generated from the results and recorded calls | MIT |
 | Tracing | OpenTelemetry | Apache-2.0 |
 
 Why each choice was made, with the measurements behind it: [docs/DECISIONS.md](docs/DECISIONS.md).
@@ -144,8 +144,10 @@ Then dial **2000** from a softphone on the Mac (user `caller`, password `tellerl
 
 ## Website
 
-**[tellerline.vercel.app](https://tellerline.vercel.app)**: a real recorded call replayed with its
-trace, the measured numbers, the decision log and a film of one call, built from `site/`.
+**[tellerline.vercel.app](https://tellerline.vercel.app)**: a real recorded call played on a live
+3D stage, where the two voices are a sculpture of fins inked in time with the audio, then
+replayed strip by strip with its trace; as the page scrolls the same fins become the measured
+numbers. Also the decision log and a film of one call, built from `site/`.
 Everything on it is generated from the repository, never typed in:
 `scripts/export_site_data.py` reads `results/` and `docs/DECISIONS.md`, and turns calls recorded
 with `TELLERLINE_RECORD=1` into replays; `scripts/render_film.py` renders the film from one of
@@ -213,7 +215,7 @@ src/tellerline/
 bench/            benchmarks, labelled cases (dev, test, held-out), the automated callers
                   (bench.caller over WebRTC, bench.phone over SIP) and their scripts
 telephony/        Asterisk for the phone line: container and configuration
-site/             the website (Next.js): replay, numbers, decision log, film
+site/             the website (Next.js, three.js): 3D stage, replay, numbers, decision log, film
 scripts/          model download, voice samples, the site's data export, the film renderer
 results/          benchmark results (JSONL) and the Phase 0 report
 docs/             plan, decision log, running, demo and phone guides
@@ -231,8 +233,9 @@ tests/
 - RNNoise by Xiph.Org and Jean-Marc Valin, licensed under BSD-3-Clause.
 - Asterisk by Sangoma, licensed under GPL-2.0; it runs as a separate program in its own container,
   from the `andrius/asterisk` image.
-- The website's typeface is IBM 3270 by Ricardo Bánffy and contributors, licensed under
-  BSD-3-Clause.
+- The website's typefaces are Mona Sans by GitHub and Martian Mono by Evil Martians, both
+  licensed under the SIL Open Font License 1.1; its 3D stage uses three.js, React Three Fiber
+  and Lenis, each licensed under MIT.
 
 Tellerline Bank is fictional, and all customer data is synthetic.
 

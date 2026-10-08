@@ -2,7 +2,7 @@
   "name": "tellerline-site",
   "version": "1.0.0",
   "private": true,
-  "description": "The Tellerline website: a real recorded call replayed as an operator's terminal session.",
+  "description": "The Tellerline website: a real recorded call played on a live 3D stage and replayed strip by strip.",
   "license": "MIT",
   "scripts": {
     "dev": "next dev",
