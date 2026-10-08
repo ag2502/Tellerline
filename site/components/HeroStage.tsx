@@ -98,7 +98,7 @@ function Deck() {
         <button type="button" data-primary="" className="key min-h-[3.4rem] w-[15.5rem] justify-start px-6 text-[1.05rem]" onClick={() => void toggle()} aria-keyshortcuts="Space">
           {playing ? <PauseIcon /> : finished ? <ReplayIcon /> : <PlayIcon />}
           {label}
-          {!started ? <span className="text-[0.78rem] font-medium text-[#c3cad2]">with sound</span> : null}
+          {!started ? <span className="text-[0.78rem] font-medium text-rail">with sound</span> : null}
         </button>
         <div role="group" aria-label="Recorded calls" className="flex gap-1.5">
           {calls.map((item, number) => {

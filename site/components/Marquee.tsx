@@ -30,7 +30,7 @@ export function Marquee({ items }: { items: string[] }) {
   }, []);
   const line = items.join("  ·  ") + "  ·  ";
   return (
-    <div className="relative z-10 overflow-hidden border-y-2 border-ink bg-amber py-3" aria-hidden="true">
+    <div className="relative z-10 overflow-hidden bg-ink py-3 text-strip" aria-hidden="true">
       <div ref={track} className="callsign flex w-max whitespace-nowrap text-[clamp(1.6rem,1rem+2.4vw,3.2rem)] will-change-transform">
         <span className="pr-[0.5em]">{line}</span>
         <span className="pr-[0.5em]">{line}</span>
