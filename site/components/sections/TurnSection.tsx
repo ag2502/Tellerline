@@ -55,7 +55,7 @@ export function TurnSection({ number }: { number: number }) {
                       <div
                         key={item.name}
                         title={`${item.name}: ${ms(item.value ?? 0)}`}
-                        className={`h-full min-w-[3px] border-r-2 border-strip first:rounded-l-[2px] last:rounded-r-[2px] last:border-r-0 ${
+                        className={`h-full min-w-[3px] border-r-2 border-board first:rounded-l-[2px] last:rounded-r-[2px] last:border-r-0 ${
                           item.side === "hear" ? "bg-amber" : "bg-blue"
                         }`}
                         style={{ width: `${((item.value ?? 0) / 1000 / total) * 100}%` }}

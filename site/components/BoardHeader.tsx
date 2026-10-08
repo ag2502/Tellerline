@@ -54,7 +54,7 @@ export function BoardHeader({ bays }: { bays: Bay[] }) {
   }, [bays]);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-rail bg-board shadow-[0_1px_0_rgb(255_255_255/0.6)]">
+    <header className="sticky top-0 z-40 border-b border-rail bg-board">
       <div className="mx-auto flex h-[var(--header-h)] max-w-[90rem] items-center gap-3 px-[var(--gutter)] sm:gap-6">
         <a href="#top" className="flex shrink-0 items-center gap-2.5 no-underline" aria-label="Tellerline, to the top">
           <StripMark className="h-[18px] w-[34px]" />
@@ -71,10 +71,10 @@ export function BoardHeader({ bays }: { bays: Bay[] }) {
                     aria-current={current ? "location" : undefined}
                     aria-keyshortcuts={String(number)}
                     className={`flex items-center gap-1.5 rounded-[5px] px-2 py-1.5 text-[0.8rem] font-semibold uppercase tracking-[0.07em] no-underline transition-colors duration-150 ${
-                      current ? "bg-ink text-strip" : "text-ink-2 hover:bg-well hover:text-ink"
+                      current ? "bg-amber text-[#16191d]" : "text-ink-2 hover:bg-well hover:text-ink"
                     }`}
                   >
-                    <span className={`print hidden text-[0.72rem] md:inline ${current ? "text-amber" : "text-ink-3"}`}>{number}</span>
+                    <span className={`print hidden text-[0.72rem] md:inline ${current ? "text-[#16191d]/70" : "text-ink-3"}`}>{number}</span>
                     <span>{item.name}</span>
                   </a>
                 </li>

@@ -42,14 +42,14 @@ const hex = (value: string): [number, number, number] => [
 
 export const COLOURS = {
   amber: hex("#d99a12"), // lit, reads as #f2c14e
-  amberPale: hex("#b3aa92"), // uninked: bare aluminium, warm side
+  amberPale: hex("#8c8167"), // uninked: bare aluminium, warm side
   blue: hex("#1b4fb8"), // lit, reads as #2f6fd6
-  bluePale: hex("#949fae"), // uninked: bare aluminium, cool side
+  bluePale: hex("#6e7d92"), // uninked: bare aluminium, cool side
   blueLight: hex("#86a6dc"),
   blueInk: hex("#1f57b5"),
-  ink: hex("#16191d"),
-  ink3: hex("#5b646e"),
-  pale: hex("#d5dadf"),
+  ink: hex("#e8ecf0"),
+  ink3: hex("#4c5866"),
+  pale: hex("#3d4856"),
   red: hex("#d93a2b"),
 };
 

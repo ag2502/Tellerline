@@ -72,7 +72,7 @@ export default async function Page() {
     <>
       <a
         href="#call"
-        className="sr-only z-50 rounded-[5px] bg-ink px-3 py-2 font-semibold text-strip focus:not-sr-only focus:fixed focus:left-4 focus:top-3"
+        className="sr-only z-50 rounded-[5px] bg-amber px-3 py-2 font-semibold text-[#16191d] focus:not-sr-only focus:fixed focus:left-4 focus:top-3"
       >
         Skip to the call
       </a>

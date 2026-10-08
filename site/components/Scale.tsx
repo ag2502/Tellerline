@@ -55,7 +55,7 @@ export function Flag({ at, label, row = 0 }: { at: number; label: string; row?: 
 export function Spread({ p50, p90 }: { p50: number; p90: number }) {
   const over = p90 > SCALE_S;
   return (
-    <span className="scale-ticks relative block h-6 rounded-[2px] bg-[#f3f5f7]" aria-hidden="true">
+    <span className="scale-ticks relative block h-6 rounded-[2px] bg-well" aria-hidden="true">
       <span className="absolute inset-y-1.5 left-0 rounded-l-[2px] bg-blue" style={{ width: `${onScale(p50) * 100}%` }} />
       <span
         className="hatch absolute inset-y-1.5"

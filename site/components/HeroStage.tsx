@@ -112,7 +112,7 @@ function Deck() {
                 title={item.title}
                 onClick={() => void choose(item.slug)}
                 className={`print grid h-[3.4rem] w-11 cursor-pointer place-items-center rounded-[6px] text-[1rem] font-semibold transition-colors duration-150 ${
-                  selected ? "bg-amber text-ink" : "bg-strip text-ink-2 shadow-[var(--lift)] hover:bg-well"
+                  selected ? "bg-amber text-[#16191d]" : "paper bg-strip text-ink-2 shadow-[var(--lift)] hover:bg-well"
                 } ${loading === item.slug ? "animate-pulse" : ""}`}
               >
                 {number + 1}

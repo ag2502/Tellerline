@@ -56,7 +56,7 @@ export function MemorySection({ number }: { number: number }) {
                 {rows.map((model) => (
                   <span
                     key={model.key}
-                    className="h-full border-r-2 border-strip bg-ink first:rounded-l-[2px]"
+                    className="h-full border-r-2 border-board bg-ink first:rounded-l-[2px]"
                     style={{ width: `${(resident(model.key) / TOTAL_GB) * 100}%` }}
                     title={`${model.name}: ${resident(model.key).toFixed(2)} GB`}
                   />

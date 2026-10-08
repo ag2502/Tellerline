@@ -137,13 +137,13 @@ export function CallBoard() {
               onClick={() => void choose(item.slug)}
               className={`flex cursor-pointer items-center gap-2 rounded-[5px] py-1.5 pl-1.5 pr-3 text-[0.82rem] font-semibold uppercase tracking-[0.06em] transition-colors duration-150 ${
                 selected
-                  ? "bg-ink text-strip shadow-[0_2px_0_#000]"
-                  : "bg-strip text-ink shadow-[var(--lift)] hover:bg-[#f5f6f7]"
+                  ? "bg-amber text-[#16191d] shadow-[0_2px_0_#a67a12]"
+                  : "paper bg-strip text-ink shadow-[var(--lift)] hover:bg-[#f5f6f7]"
               }`}
             >
               <span
                 className={`print grid h-6 w-6 place-items-center rounded-[3px] text-[0.78rem] ${
-                  selected ? "bg-amber text-ink" : "bg-well text-ink-2"
+                  selected ? "bg-[#16191d] text-amber" : "bg-well text-ink-2"
                 }`}
               >
                 {number + 1}
@@ -335,7 +335,7 @@ function CommandLine({ execute }: { execute: (input: string) => Promise<string> 
       <label htmlFor="replay-prompt" className="label mb-1 block">
         Type a command
       </label>
-      <div className="flex items-center gap-2 rounded-[6px] bg-strip px-3 shadow-[var(--lift)] focus-within:shadow-[0_0_0_2px_var(--color-blue)]">
+      <div className="paper flex items-center gap-2 rounded-[6px] bg-strip px-3 shadow-[var(--lift)] focus-within:shadow-[0_0_0_2px_var(--color-blue)]">
         <span className="print text-ink-3" aria-hidden="true">
           ›
         </span>

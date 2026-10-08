@@ -11,12 +11,12 @@ import type { Span } from "@/lib/timeline";
 const BAR = 2;
 const PITCH = 3;
 const COLOURS = {
-  idle: "#c3cad2",
-  caller: "#d9a21f",
-  agent: "#2f6fd6",
-  axis: "#9aa3ad",
-  head: "#16191d",
-  gap: "#16191d",
+  idle: "#2a3441",
+  caller: "#f2c14e",
+  agent: "#4b8bf0",
+  axis: "#3c4856",
+  head: "#eef1f4",
+  gap: "#eef1f4",
   band: "rgba(242, 193, 78, 0.22)",
 };
 
